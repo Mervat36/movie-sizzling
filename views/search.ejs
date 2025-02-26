@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Scene</title>
+    <link rel="stylesheet" href="/css/styles.css">
+
+</head>
+<body>
+    <%- include("header") %>
+
+    <div class="container">
+        <h2>Search for a Scene</h2>
+        <input type="text" id="searchInput" placeholder="Enter a keyword (e.g., 'car chase')">
+        <button onclick="searchScene()">Search</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function searchScene() {
+            const query = document.getElementById("searchInput").value;
+            const response = await fetch(`/api/search?query=${query}`);
+            const data = await response.json();
+
+            let output = "";
+            if (data.length > 0) {
+                data.forEach(scene => {
+                    output += `<p>${scene.description}</p>`;
+                });
+            } else {
+                output = "<p>No results found.</p>";
+            }
+            document.getElementById("results").innerHTML = output;
+        }
+    </script>
+
+    <%- include("footer") %>
+</body>
+</html>
