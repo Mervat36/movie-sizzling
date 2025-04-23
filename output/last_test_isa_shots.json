@@ -1,0 +1,357 @@
+{
+  "movieTitle": "last_test_isa",
+  "videoPath": "uploads\\dl_last_test_isa.mp4",
+  "fps": 12.0,
+  "shots": [
+    {
+      "shotNumber": 1,
+      "startFrame": 6,
+      "middleFrame": 34,
+      "endFrame": 63,
+      "startTime": "00:00:00.500",
+      "middleTime": "00:00:02.833",
+      "endTime": "00:00:05.250",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_001_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_001_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_001_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 2,
+      "startFrame": 64,
+      "middleFrame": 99,
+      "endFrame": 135,
+      "startTime": "00:00:05.333",
+      "middleTime": "00:00:08.250",
+      "endTime": "00:00:11.250",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_002_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_002_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_002_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 3,
+      "startFrame": 136,
+      "middleFrame": 149,
+      "endFrame": 163,
+      "startTime": "00:00:11.333",
+      "middleTime": "00:00:12.417",
+      "endTime": "00:00:13.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_003_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_003_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_003_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 4,
+      "startFrame": 164,
+      "middleFrame": 184,
+      "endFrame": 205,
+      "startTime": "00:00:13.667",
+      "middleTime": "00:00:15.333",
+      "endTime": "00:00:17.083",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_004_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_004_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_004_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 5,
+      "startFrame": 206,
+      "middleFrame": 222,
+      "endFrame": 238,
+      "startTime": "00:00:17.167",
+      "middleTime": "00:00:18.500",
+      "endTime": "00:00:19.833",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_005_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_005_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_005_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 6,
+      "startFrame": 239,
+      "middleFrame": 257,
+      "endFrame": 276,
+      "startTime": "00:00:19.917",
+      "middleTime": "00:00:21.417",
+      "endTime": "00:00:23.000",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_006_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_006_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_006_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 7,
+      "startFrame": 277,
+      "middleFrame": 319,
+      "endFrame": 362,
+      "startTime": "00:00:23.083",
+      "middleTime": "00:00:26.583",
+      "endTime": "00:00:30.167",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_007_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_007_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_007_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 8,
+      "startFrame": 363,
+      "middleFrame": 446,
+      "endFrame": 530,
+      "startTime": "00:00:30.250",
+      "middleTime": "00:00:37.167",
+      "endTime": "00:00:44.167",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_008_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_008_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_008_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 9,
+      "startFrame": 531,
+      "middleFrame": 551,
+      "endFrame": 571,
+      "startTime": "00:00:44.250",
+      "middleTime": "00:00:45.917",
+      "endTime": "00:00:47.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_009_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_009_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_009_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 10,
+      "startFrame": 572,
+      "middleFrame": 601,
+      "endFrame": 631,
+      "startTime": "00:00:47.667",
+      "middleTime": "00:00:50.083",
+      "endTime": "00:00:52.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_010_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_010_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_010_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 11,
+      "startFrame": 632,
+      "middleFrame": 667,
+      "endFrame": 703,
+      "startTime": "00:00:52.667",
+      "middleTime": "00:00:55.583",
+      "endTime": "00:00:58.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_011_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_011_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_011_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 12,
+      "startFrame": 704,
+      "middleFrame": 902,
+      "endFrame": 1100,
+      "startTime": "00:00:58.667",
+      "middleTime": "00:01:15.167",
+      "endTime": "00:01:31.667",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_012_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_012_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_012_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 13,
+      "startFrame": 1101,
+      "middleFrame": 1118,
+      "endFrame": 1135,
+      "startTime": "00:01:31.750",
+      "middleTime": "00:01:33.167",
+      "endTime": "00:01:34.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_013_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_013_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_013_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 14,
+      "startFrame": 1136,
+      "middleFrame": 1176,
+      "endFrame": 1217,
+      "startTime": "00:01:34.667",
+      "middleTime": "00:01:38.000",
+      "endTime": "00:01:41.417",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_014_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_014_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_014_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 15,
+      "startFrame": 1218,
+      "middleFrame": 1243,
+      "endFrame": 1269,
+      "startTime": "00:01:41.500",
+      "middleTime": "00:01:43.583",
+      "endTime": "00:01:45.750",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_015_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_015_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_015_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 16,
+      "startFrame": 1270,
+      "middleFrame": 1349,
+      "endFrame": 1428,
+      "startTime": "00:01:45.833",
+      "middleTime": "00:01:52.417",
+      "endTime": "00:01:59.000",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_016_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_016_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_016_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 17,
+      "startFrame": 1431,
+      "middleFrame": 1511,
+      "endFrame": 1592,
+      "startTime": "00:01:59.250",
+      "middleTime": "00:02:05.917",
+      "endTime": "00:02:12.667",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_017_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_017_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_017_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 18,
+      "startFrame": 1593,
+      "middleFrame": 1652,
+      "endFrame": 1711,
+      "startTime": "00:02:12.750",
+      "middleTime": "00:02:17.667",
+      "endTime": "00:02:22.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_018_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_018_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_018_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 19,
+      "startFrame": 1712,
+      "middleFrame": 1902,
+      "endFrame": 2093,
+      "startTime": "00:02:22.667",
+      "middleTime": "00:02:38.500",
+      "endTime": "00:02:54.417",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_019_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_019_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_019_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 20,
+      "startFrame": 2094,
+      "middleFrame": 2113,
+      "endFrame": 2133,
+      "startTime": "00:02:54.500",
+      "middleTime": "00:02:56.083",
+      "endTime": "00:02:57.750",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_020_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_020_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_020_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 21,
+      "startFrame": 2134,
+      "middleFrame": 2186,
+      "endFrame": 2239,
+      "startTime": "00:02:57.833",
+      "middleTime": "00:03:02.167",
+      "endTime": "00:03:06.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_021_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_021_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_021_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 22,
+      "startFrame": 2240,
+      "middleFrame": 2347,
+      "endFrame": 2455,
+      "startTime": "00:03:06.667",
+      "middleTime": "00:03:15.583",
+      "endTime": "00:03:24.583",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_022_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_022_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_022_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 23,
+      "startFrame": 2456,
+      "middleFrame": 2482,
+      "endFrame": 2508,
+      "startTime": "00:03:24.667",
+      "middleTime": "00:03:26.833",
+      "endTime": "00:03:29.000",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_023_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_023_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_023_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 24,
+      "startFrame": 1,
+      "middleFrame": 3,
+      "endFrame": 6,
+      "startTime": "00:00:00.083",
+      "middleTime": "00:00:00.250",
+      "endTime": "00:00:00.500",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_024_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_024_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_024_end.jpg"
+      }
+    },
+    {
+      "shotNumber": 25,
+      "startFrame": 1427,
+      "middleFrame": 1430,
+      "endFrame": 1433,
+      "startTime": "00:01:58.917",
+      "middleTime": "00:01:59.167",
+      "endTime": "00:01:59.417",
+      "images": {
+        "start": "shots\\last_test_isa\\shot_025_start.jpg",
+        "middle": "shots\\last_test_isa\\shot_025_middle.jpg",
+        "end": "shots\\last_test_isa\\shot_025_end.jpg"
+      }
+    }
+  ]
+}
