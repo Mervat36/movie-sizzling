@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search History</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/history.css" />
+  </head>
+  <body>
+    <%- include("header") %>
+
+    <section class="history-section">
+      <h2>Search History</h2>
+      <div class="history-table-wrapper">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Query Text</th>
+              <th>Retrieved Scene</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% history.forEach(item => { %>
+            <tr>
+              <td><%= item.queryText %></td>
+              <td><%= item.sceneTitle || 'Scene preview' %></td>
+              <td>
+                <a
+                  href="/results?video=<%= item.resultVideoPath %>&q=<%= item.queryText %>"
+                  class="btn-view"
+                  >View</a
+                >
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <%- include("footer") %>
+  </body>
+</html>
