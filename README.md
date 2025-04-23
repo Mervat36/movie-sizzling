@@ -15,13 +15,13 @@ Welcome to **Movie Sizzling** — a smart video cataloging platform that helps y
 
 ## 🛠 Tech Stack
 
-| Layer         | Tech Used                                 |
+| Layer         | Tech Used                                  |
 |---------------|--------------------------------------------|
 | Frontend      | HTML, CSS, JavaScript, EJS                 |
 | Backend       | Node.js, Express.js                        |
 | Database      | MongoDB + Mongoose                         |
 | AI Models     | TensorFlow / PyTorch, TransNetV2, YOLO     |
-| Auth          | Passport (Local + OAuth2 for Google/Facebook) |
+| Auth          | Passport (Local + OAuth2 for Google)       |
 | Email         | Nodemailer                                 |
 | Uploads       | Multer                                     |
 
