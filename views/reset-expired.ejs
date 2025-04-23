@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link is Expired</title>
+  <link rel="stylesheet" href="/css/reset-password.css">
+  <link rel="stylesheet" href="/css/common.css">
+</head>
+<body>
+  <%- include("header")%>
+  <div class="auth-section">
+    <div class="auth-card enhanced expired-card">
+      <h2 class="auth-title">This Reset Link Has Expired</h2>
+      <p>For security reasons, reset links are valid for 10 minutes only.</p>
+      <a href="/forgot-password" class="btn-primary">Request a New Reset Link</a>
+    </div>
+  </div>
+</body>
+</html>
