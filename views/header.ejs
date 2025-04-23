@@ -1,31 +1,69 @@
-<!-- Navigation Bar -->
-<nav>
-    <div class="nav-container">
-        
-        <!-- Logo -->
-        <div class="logo-container">
-            <a href="/" class="logo-link">
-                <img src="/images/logo.png" alt="Logo" class="logo">
-            </a>
-        </div>
-
-        <!-- Navbar Links -->
-        <ul class="nav-links">
-            <li><a href="/upload">Upload Video</a></li>
-            <li><a href="/search">Search Scene</a></li>
-            <li><a href="/history">Search History</a></li>
-        </ul>
-
-        <!-- User Profile Icon -->
-        <div class="user-menu">
-
-            <div class="dropdown-menu" id="userDropdown">
-                <a href="/login" id="loginLink">Login</a>
-                <a href="/register" id="registerLink">Register</a>
-                <a href="#" id="logoutLink" style="display: none;">Logout</a>
-            </div>
-        </div>
-
+<link rel="stylesheet" href="/css/layout.css" />
+<header class="site-header">
+  <div class="nav-container">
+    <div class="logo">
+      <a href="/">
+        <img src="/images/logo.png" alt="Movie Sizzling Logo" />
+      </a>
     </div>
-</nav>
-<!-- <button id="userIcon">👤</button> -->
+
+    <!-- ✅ HAMBURGER BUTTON (VISIBLE ON MOBILE ONLY) -->
+    <div class="toggle-wrapper">
+      <button class="menu-toggle" onclick="toggleMenu(this)" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <nav class="main-nav">
+      <ul>
+        <% if (user) { %>
+        <li><a href="/upload">Upload Video</a></li>
+        <li><a href="/search">Search Scene</a></li>
+        <li><a href="/history">Search History</a></li>
+        <li><a href="/profile" class="auth-btn login-btn">Profile</a></li>
+        <li>
+          <form action="/users/logout" method="POST" style="display: inline">
+            <button class="auth-btn register-btn" style="color: #121636" type="submit">Logout</button>
+          </form>
+        </li>
+        <% } else { %>
+        <li><a href="/login" class="auth-btn login-btn">Login</a></li>
+        <li><a href="/register" class="auth-btn register-btn" style="color: #121636">Register</a></li>
+        <% } %>
+        <li class="dark-mode-toggle">
+          <label class="theme-toggle">
+            <input type="checkbox" id="darkToggle" />
+            <span class="slider">
+              <span class="icon sun">&#9728;</span>
+              <span class="icon moon">&#9790;</span>
+            </span>
+          </label>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="/js/darkmode-toggle.js"></script>
+  <% if (typeof reset !== 'undefined' && reset === 'success') { %>
+    <div id="toast" class="toast success-toast">✅ Password changed successfully</div>
+  <% } %>
+  <% if (typeof toast !== 'undefined' && toast) { %>
+    <script>
+      const toast = {
+        type: "<%= toast.type %>",
+        message: "<%= toast.message %>"
+      };
+    </script>
+  <% } %>
+  <script>
+function toggleMenu(btn) {
+  const nav = document.querySelector('.main-nav');
+  nav.classList.toggle('active');
+  btn.classList.toggle('active');
+}
+  </script>
+  <script src="/js/reset-toast.js"></script>
+</header>
