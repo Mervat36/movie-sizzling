@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Handle regular session-based toast
-  if (typeof toast !== "undefined" && toast) {
+  if (typeof toast !== "undefined" && toast && toast.message) {
     const toastDiv = document.createElement("div");
     toastDiv.className = `toast ${toast.type}`;
     toastDiv.innerText = toast.message;

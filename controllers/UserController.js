@@ -489,7 +489,8 @@ const resetPassword = async (req, res) => {
     profilePicture: user.profilePicture || null,
     isGoogleUser: user.isGoogleUser || false,
   };
-
+  
+  req.flash("success", "Password updated successfully");
   res.redirect("/");
 };
 
