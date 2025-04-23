@@ -1,0 +1,171 @@
+/* ===================== HERO SECTION ===================== */
+.centered-hero {
+  background-color: #121636;
+  color: white;
+  text-align: center;
+  padding: 100px 20px;
+  border-radius: 0 0 50px 50px;
+}
+.centered-hero .hero-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.centered-hero h1 {
+  font-size: 2.8rem;
+  margin-bottom: 20px;
+  font-weight: 800;
+}
+.centered-hero p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+/* ===================== BUTTON STYLES ===================== */
+.btn-primary {
+  width: 100%;
+  background-color: #00dfc4;
+  color: #191d3a;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 223, 196, 0.3);
+}
+a.btn-primary {
+  text-decoration: none;
+}
+.btn-primary:hover {
+  background-color: #02c1ab;
+}
+
+/* ===================== FEATURES SECTION ===================== */
+.features-section {
+  padding: 80px 10%;
+  background: #ffffff;
+  text-align: center;
+}
+.features-title {
+  font-size: 2rem;
+  margin-bottom: 50px;
+  color: #1e1e2f;
+}
+.features-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+.feature-box {
+  flex: 1 1 30%;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 30px 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+.feature-box:hover {
+  transform: translateY(-8px);
+}
+.feature-box h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #191d3a;
+}
+.feature-box p {
+  font-size: 0.95rem;
+  color: #5f6470;
+}
+.feature-box svg {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+}
+
+/* ===================== SHARED TRANSITIONS ===================== */
+body,
+input,
+.feature-box,
+.auth-card,
+.login-box {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ===================== DARK MODE SECTION ===================== */
+body.dark-mode button[type="submit"],
+body.dark-mode .btn-primary {
+  background-color: var(--link-color);
+  color: var(--bg-color);
+  transition: background-color 0.3s ease;
+}
+body.dark-mode button[type="submit"]:hover,
+body.dark-mode .btn-primary:hover {
+  background-color: #02c1ab;
+  color: #fff;
+}
+body.dark-mode .home-section,
+body.dark-mode .features-section,
+body.dark-mode .hero-section {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+body.dark-mode .features-title {
+  color: var(--text-color);
+}
+body.dark-mode .centered-hero {
+  background-color: #1c1c2e;
+  color: var(--text-color);
+}
+body.dark-mode .feature-box h3 {
+  color: var(--text-color);
+}
+body.dark-mode .feature-box p {
+  color: #cfcfcf;
+}
+body.dark-mode .feature-box svg {
+  stroke: var(--text-color);
+}
+
+/* ===== Responsive Styles ===== */
+@media (max-width: 768px) {
+  .container, form, input, button, textarea, .card, .box {
+    width: 100% !important;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  .navbar, .nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .form-wrapper, .form-container {
+    padding: 10px;
+  }
+  .btn, .submit-button {
+    width: 100%;
+  }
+  .features-grid {
+    flex-direction: column;
+  }
+}
+@media (max-width: 480px) {
+  h1, h2, h3 {
+    font-size: 1.2rem;
+  }
+  .container, .card, .box {
+    margin-bottom: 15px;
+  }
+  .btn, .submit-button {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  .navbar .logo {
+    font-size: 1.2rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
