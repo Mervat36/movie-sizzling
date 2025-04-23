@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Sizzling</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/form.css" />
+  </head>
+  <body>
+    <%- include("header") %>
+
+    <div class="profile-container">
+      <div class="profile-card">
+        <h2 class="profile-title">Welcome, <%= user.name %>!</h2>
+        <% const [firstName, lastName] = user.name.split(' '); %>
+        <% if (formError) { %>
+          <div class="alert error"><%= formError %></div>
+        <% } %>
+        
+        <% if (typeof incorrectPassword !== 'undefined' && incorrectPassword) { %>
+          <div class="alert error">Current password is incorrect.</div>
+        <% } %>
+        
+        <% if (mismatch) { %>
+          <div class="alert error">Passwords do not match.</div>
+        <% } %>
+        <% if (typeof success !== 'undefined' && success) { %>
+          <div class="alert success"><%= success %></div>
+        <% } %>
+        <div id="loading-spinner" style="display: none;" class="spinner-overlay">
+          <div class="spinner"></div>
+        </div>
+        <form
+          action="/users/profile/update"
+          method="POST"
+          enctype="multipart/form-data"
+          class="profile-form"
+        >
+          <div class="profile-picture-section">
+            <div class="avatar-container">
+              <img
+                src="<%= user.profilePicture && user.profilePicture !== '' ? user.profilePicture : '/images/avatar.png' %>"
+                alt="Profile Picture"
+                id="profilePicPreview"
+              />
+              <input
+                type="file"
+                id="imageUpload"
+                name="profilePicture"
+                accept="image/*"
+                style="display: none"
+              />
+              <div>
+                <label
+                  for="imageUpload"
+                  class="change-pic-label"
+                  style="user-select: none"
+                  >Change profile photo</label
+                >
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" name="firstName" value="<%= firstName || '' %>" required />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" name="lastName" value="<%= lastName || '' %>" required />
+          </div>
+          <button type="submit" class="btn-primary">Update Profile</button>
+        </form>
+        <% if (!user.isGoogleUser) { %>
+        <hr />
+        <div class="change-password-box">
+          <button id="togglePasswordForm" class="toggle-password-btn">Change Password</button>
+        </div>
+        <div id="passwordFormContainer" style="display: none;">
+          <form id="changePasswordForm" action="/users/profile/change-password" method="POST" class="password-form" novalidate>
+
+        
+          <div class="form-group password-wrapper" style="margin-top: 25px">
+            <label for="currentPassword"
+              >Current Password <span style="color: red">*</span></label
+            >
+            <input
+              type="password"
+              name="currentPassword"
+              id="currentPassword"
+              placeholder="Enter your current password"
+              required
+            />
+            <div id="currentPasswordRequired" class="alert error" style="display: none">
+  Current Password is required.
+</div>
+          </div>
+          <div class="form-group password-wrapper">
+            <label for="password">New Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Create a new password"
+            />
+            <div class="field-error alert error" style="display: none">New Password is required.</div>
+            <div id="passwordWarning" class="alert error" style="display: none">
+              Password must be at least 9 characters and contain a letter and a
+              special character.
+            </div>
+            <div id="passwordRequired" class="alert error" style="display: none">
+              New Password is required.
+            </div>
+          </div>
+          <div class="form-group password-wrapper">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              id="confirmPassword"
+              placeholder="Re-enter your new password"
+            />
+            <div class="field-error alert error" style="display: none">Confirm Password is required.</div>
+            <div
+              id="passwordMismatch"
+              class="alert error"
+              style="display: none"
+            >
+              Passwords do not match.
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">Change Password</button>
+          <p class="small-text" style="text-align: center; margin-top: 10px">
+            <a href="/forgot-password">Forgot Password?</a>
+          </p>
+        </div>      
+        </form>
+        <div class="delete-account-box">
+          <button
+            onclick="document.getElementById('deleteForm').style.display='block'"
+            class="delete-account-btn"
+          >
+            Delete Account
+          </button>
+          <div id="deleteForm" class="delete-popup" style="display: none">
+            <form action="/users/delete-account" method="POST" novalidate>
+              <h3 class="confirm-heading">Confirm Deletion</h3>
+              <input
+              type="password"
+              name="deletePassword"
+              id="deletePassword"
+              placeholder="Enter Password"
+              required
+            />
+            <input
+              type="password"
+              name="deleteConfirmPassword"
+              id="deleteConfirmPassword"
+              placeholder="Confirm Password"
+              required
+            />
+            <div id="deletePasswordMismatch" class="alert error" style="display: none;">
+              Passwords do not match.
+            </div>                   
+              <div class="btn-group">
+                <button type="submit" class="danger-btn">Delete</button>
+                <button
+                  type="button"
+                  onclick="document.getElementById('deleteForm').style.display='none'"
+                  class="cancel-btn"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <% } else { %>
+        <div class="google-delete-info">
+          <p class="info-msg">
+            You signed in with Google. If you want to delete your account,
+            please
+            <a href="https://myaccount.google.com/permissions" target="_blank"
+              >revoke access from Google</a
+            >
+            or <a href="/contact">contact support</a>.
+          </p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <%- include("footer") %>
+    <script src="/js/profile-image-preview.js"></script>
+    <script src="/js/field-validation.js"></script>
+    <script src="/js/password-toggle.js"></script>
+    <script src="/js/form-loader.js"></script>
+  </body>
+</html>
