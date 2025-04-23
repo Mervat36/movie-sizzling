@@ -1,0 +1,248 @@
+/* ===================== CSS Reset ===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* ===================== Root Variables ===================== */
+:root {
+  --bg-color: #f0f2f5;
+  --text-color: #111;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-text: #000;
+  --placeholder-color: #888;
+  --link-color: #007bff;
+  --button-color: #00dfc4;
+  --button-hover-color: #00bfa6;
+  --button-text: #121636;
+  --hamburger-color: #00dfc4;
+}
+
+/* ===================== Global Layout ===================== */
+body {
+  font-family: "Rubik", sans-serif;
+  padding-top: 100px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+section {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+/* ===================== Form Inputs ===================== */
+input,
+textarea,
+select {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* ===================== Dark Mode Toggle ===================== */
+.dark-mode-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.dark-mode-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.dark-mode-toggle input:checked + .slider::before {
+  transform: translateX(26px);
+}
+.dark-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+/* ===================== Generic Switch Button ===================== */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: background-color 0.4s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  font-size: 18px;
+}
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+.switch input:checked + .slider {
+  background-color: var(--link-color);
+}
+.switch input:checked + .slider::before {
+  transform: translateX(24px);
+}
+
+/* ===================== Toast Notification ===================== */
+.toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #00dfc4;
+  color: #121636;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.4s ease, top 0.4s ease;
+  font-weight: bold;
+}
+.toast.show {
+  opacity: 1;
+  top: 50px;
+}
+.toast.success {
+  background-color: #28a745;
+}
+.toast.error {
+  background-color: #dc3545;
+}
+
+/* ===================== DARK MODE SECTION ===================== */
+body.dark-mode {
+  --bg-color: #121212;
+  --text-color: #f1f1f1;
+  --card-bg: #1e1e1e;
+  --input-bg: #2b2b2b;
+  --input-text: #f1f1f1;
+  --placeholder-color: #bbb;
+  --link-color: #009973;
+  --hamburger-color: #f0f0f0;
+}
+body.dark-mode .centered-hero {
+  background-color: #1c1c2e;
+  color: var(--text-color);
+}
+body.dark-mode .centered-hero .cta-btn {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+body.dark-mode .toast {
+  background-color: #143b2a;
+  color: #32cd89;
+  border: 1px solid #2ecc71;
+}
+
+/* ===================== Spinner style ===================== */
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #10b981;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===================== Responsive Style ===================== */
+@media (max-width: 768px) {
+  .container,
+  form,
+  input,
+  button,
+  textarea,
+  .card,
+  .box {
+    width: 100% !important;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  .form-wrapper,
+  .form-container {
+    padding: 10px;
+  }
+  .btn,
+  .submit-button {
+    width: 100%;
+  }
+  .auth-card,
+  .profile-card,
+  .upload-box {
+    padding: 20px;
+  }
+}
+@media (max-width: 480px) {
+  h1,
+  h2,
+  h3 {
+    font-size: 1.2rem;
+  }
+  .container,
+  .card,
+  .box {
+    margin-bottom: 15px;
+  }
+  .btn,
+  .submit-button {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  .navbar .logo {
+    font-size: 1.2rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  p,
+  label,
+  .auth-footer,
+  .auth-links {
+    font-size: 0.9rem;
+  }
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
