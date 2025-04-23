@@ -1,0 +1,433 @@
+/* ===================== Global Header Styles ===================== */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: #1f2937;
+  padding: 12px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+.logo img {
+  width: 120px;
+  height: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* ===================== Navigation ===================== */
+.main-nav ul {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  gap: 50px;
+  margin: 0;
+  padding: 0;
+}
+.main-nav ul li {
+  display: flex;
+  align-items: center;
+  user-select: none;
+  color: #121636;
+}
+.main-nav a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: color 0.3s;
+  user-select: none;
+}
+.main-nav a:hover {
+  color: #00dfc4;
+}
+
+/* ===================== Auth Buttons ===================== */
+.auth-btn {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 2px solid #00dfc4;
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+}
+.login-btn {
+  background-color: transparent;
+  color: #00dfc4;
+  font-size: 14px;
+  font-weight: 600;
+}
+.login-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+.register-btn {
+  background-color: #00dfc4;
+  color: #121636;
+  margin-left: 10px;
+}
+.register-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+
+/* ===================== Dark Mode Toggle ===================== */
+.dark-mode-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+
+}
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  border-radius: 30px;
+  background-color: #ccc;
+  transition: background-color 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Hide checkbox */
+.dark-mode-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+/* Toggle Track */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: background-color 0.4s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  font-size: 18px;
+}
+/* Inner Circle */
+.theme-toggle .slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+/* Checked Mode */
+.theme-toggle input:checked + .slider {
+  background-color: #009973;
+}
+.theme-toggle input:checked + .slider::before {
+  transform: translateX(24px);
+}
+/* Toggle Icons */
+.theme-toggle .slider .icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #fff;
+  pointer-events: none;
+  user-select: none;
+}
+.theme-toggle .slider .sun {
+  left: 6px;
+}
+.theme-toggle .slider .moon {
+  right: 6px;
+}
+
+/* ===================== Footer ===================== */
+.site-footer {
+  background-color: #1f2937;
+  color: #ffffff;
+  text-align: center;
+  padding: 20px 0;
+  font-size: 14px;
+  margin-top: 50px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+body.dark-mode .site-footer {
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+}
+
+/* ===================== DARK MODE SECTION ===================== */
+body.dark-mode .site-header {
+  background-color: #1a1a2e;
+  border-bottom: 1px solid #333;
+}
+body.dark-mode .main-nav a {
+  color: var(--text-color);
+}
+body.dark-mode .main-nav a:hover {
+  color: var(--link-color);
+}
+body.dark-mode .auth-btn,
+body.dark-mode .register-btn,
+body.dark-mode .login-btn {
+  border-color: var(--link-color);
+  color: var(--link-color);
+}
+body.dark-mode .register-btn {
+  background-color: var(--link-color);
+  color: #121636;
+}
+body.dark-mode .register-btn:hover,
+body.dark-mode .login-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+
+/* ===================== Hamburger Toggle ===================== */
+.toggle-wrapper {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10001;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 36px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 10001;
+}
+.menu-toggle span {
+  width: 25px;
+  height: 3px;
+  background-color: var(--hamburger-color);
+  margin: 20px 0;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: center;
+  position: absolute;
+}
+.menu-toggle span:nth-child(1) {
+  top: 0;
+}
+.menu-toggle span:nth-child(2) {
+  top: 12px;
+}
+.menu-toggle span:nth-child(3) {
+  top: 24px;
+}
+.menu-toggle.active span:nth-child(1) {
+  transform: rotate(45deg);
+  top: 12px;
+}
+.menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg);
+  top: 12px;
+}
+.dropdown-container {
+  width: 100%;
+  background-color: #1f2937;
+  border-radius: 16px;
+  padding: 20px 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  transition: background-color 0.3s ease;
+}
+
+/* ===================== Responsive Styles ===================== */
+@media (max-width: 768px) {
+  .logo img {
+    width: 100px;
+    height: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent; 
+  }
+.logo a {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+  .nav-container {
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+  }
+  .toggle-wrapper {
+    display: block !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10001;
+  }
+  .main-nav {
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+    z-index: 9999;
+    background: rgba(10, 15, 30, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: -8px 0 20px rgba(0, 255, 255, 0.1);
+    padding: 0;
+    max-width: 100%;
+  }
+  .main-nav.active {
+    display: flex;
+    max-height: 600px;
+    padding: 20px 16px;
+  }
+  .main-nav ul {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 0;
+    margin: 0;
+  }
+  .main-nav ul li {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+  }
+  .main-nav ul li form {
+    width: 100%;
+  }
+  .main-nav ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  .dark-mode-toggle {
+    margin-top: 12px;
+  }
+.main-nav ul li a,
+.main-nav ul li form button {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  color: #00dfc4;
+  border: 2px solid #00dfc4;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.main-nav ul li a:not(.login-btn):not(.register-btn) {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #00dfc4;
+  -webkit-tap-highlight-color: transparent;
+}
+.main-nav ul li form button.register-btn {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1.4;
+  border-radius: 50px;
+  background-color: #00dfc4;
+  color: #121636;
+  box-sizing: border-box;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.main-nav ul li form button.register-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+body.dark-mode .main-nav ul li form button.register-btn {
+  background-color: var(--link-color);
+  color: #121636;
+}
+body.dark-mode .main-nav ul li form button.register-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+.main-nav ul li a.register-btn {
+  background-color: #00dfc4;
+  color: #121636;
+  border: none;
+}
+.main-nav ul li a.register-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+body.dark-mode .main-nav ul li a.register-btn {
+  background-color: var(--link-color);
+  color: #121636;
+}
+body.dark-mode .main-nav ul li a.register-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+.main-nav ul li a.login-btn {
+  background-color: transparent;
+  border: 2px solid #00dfc4;
+  color: #00dfc4;
+}
+.main-nav ul li a.login-btn:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+.main-nav ul li a:hover,
+.main-nav ul li form button:hover {
+  background-color: #00bfa6;
+  color: #fff;
+  transform: translateY(-1px);
+}
+.main-nav ul li a.auth-btn:hover,
+.main-nav ul li form button.auth-btn:hover {
+  background-color: #00bfa6;
+  transform: translateY(-2px);
+}
+}
