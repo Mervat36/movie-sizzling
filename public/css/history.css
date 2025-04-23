@@ -1,0 +1,107 @@
+/* ===================== Light Mode: History Section ===================== */
+.history-section {
+  background-color: #f6f7fb;
+  color: #1e1e2f;
+}
+.history-table-wrapper {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+}
+.history-table th,
+.history-table td {
+  color: #1e1e2f;
+  border-color: #ddd;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* ===================== DARK MODE SECTION ===================== */
+body.dark-mode .history-section {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+body.dark-mode .history-table-wrapper {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+body.dark-mode .history-table th,
+body.dark-mode .history-table td {
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+body.dark-mode .history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--card-bg);
+}
+body.dark-mode .history-table th {
+  background-color: #1c1c2e;
+  padding: 10px;
+}
+body.dark-mode .history-table td {
+  background-color: var(--card-bg);
+  padding: 10px;
+  border-top: 1px solid var(--border-color);
+}
+/* ===================== Dark Mode View Button ===================== */
+body.dark-mode .btn-view {
+  background-color: var(--link-color);
+  color: var(--bg-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+body.dark-mode .btn-view:hover {
+  background-color: #00bfa6;
+  color: #fff;
+}
+
+/* ===== Responsive Styles ===== */
+@media (max-width: 768px) {
+  .container, form, input, button, textarea, .card, .box {
+    width: 100% !important;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  .navbar, .nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .form-wrapper, .form-container {
+    padding: 10px;
+  }
+  .btn, .submit-button {
+    width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  h1, h2, h3 {
+    font-size: 1.2rem;
+  }
+  .container, .card, .box {
+    margin-bottom: 15px;
+  }
+  .btn, .submit-button {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  .navbar .logo {
+    font-size: 1.2rem;
+  }
+  .history-table-wrapper {
+    overflow-x: auto;
+    padding: 10px;
+  }
+}
