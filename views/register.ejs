@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<lita charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/form.css"></head>
+<body>
+  <%- include("header") %>
+
+  <section class="auth-container">
+    <div class="login-box">
+<h2>Create an Account</h2>
+
+<% if (typeof generalError !== 'undefined') { %>
+  <div class="alert error"><%= generalError %></div>
+<% } %>
+<div id="loading-spinner" style="display: none;" class="spinner-overlay">
+  <div class="spinner"></div>
+</div>
+<form action="/users/register" method="POST" novalidate>
+  <div class="form-group">
+    <% if (typeof firstNameError !== 'undefined') { %>
+      <div class="alert error"><%= firstNameError %></div>
+    <% } %>
+    <label for="firstName">First Name</label>
+    <input
+      type="text"
+      name="firstName"
+      id="firstName"
+      placeholder="Enter your First Name"
+      value="<%= typeof firstName !== 'undefined' ? firstName : '' %>"
+      required
+    />
+    <div class="field-error alert error" style="display: none">First Name is required.</div>
+  </div>
+
+  <div class="form-group">
+    <% if (typeof lastNameError !== 'undefined') { %>
+      <div class="alert error"><%= lastNameError %></div>
+    <% } %>
+    <label for="lastName">Last Name</label>
+    <input
+      type="text"
+      name="lastName"
+      id="lastName"
+      placeholder="Enter your Last Name"
+      value="<%= typeof lastName !== 'undefined' ? lastName : '' %>"
+      required
+    />
+    <div class="field-error alert error" style="display: none">Last Name is required.</div>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input
+      type="email"
+      name="email"
+      id="email"
+      placeholder="Enter your email"
+      value="<%= typeof email !== 'undefined' ? email : '' %>"
+      required
+    />
+    <div class="field-error alert error" style="display: none">Email is required.</div>
+    <% if (typeof error !== 'undefined') { %>
+      <div class="alert error"><%= error %></div>
+    <% } %>
+  </div>
+
+  <div class="form-group password-wrapper">
+    <% if (typeof passwordError !== 'undefined') { %>
+      <div class="alert error"><%= passwordError %></div>
+    <% } %>
+    <label for="password">Password</label>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      placeholder="Create a password"
+      required
+    />
+    <div class="field-error alert error" style="display: none">Password is required.</div>
+  </div>
+
+  <div class="form-group password-wrapper">
+    <label for="confirmPassword">Confirm Password</label>
+    <% if (typeof confirmPasswordError !== 'undefined') { %>
+      <div class="alert error"><%= confirmPasswordError %></div>
+    <% } %>
+    <input
+      type="password"
+      name="confirmPassword"
+      id="confirmPassword"
+      placeholder="Confirm your password"
+      required
+    />
+    <div class="field-error alert error" style="display: none">Confirm Password is required.</div>
+    <div id="passwordMismatch" class="alert error" style="display: none">
+      Passwords do not match.
+    </div>
+  </div>
+
+  <button type="submit" class="btn-primary">Register</button>
+</form>
+
+        <div class="auth-links">
+          <a href="/login">Already have an account?</a>
+        </div>
+        <!-- Google Register Button -->
+        <a href="/auth/google" class="google-btn" onclick="showSpinner()">
+          <img src="/images/Google_logo.png" alt="Google icon" class="google-icon" />
+          <span>Continue with Google</span>
+        </a>
+      </form>
+    </div>
+  </section>
+
+  <%- include("footer") %>
+  <script src="/js/field-validation.js"></script>
+  <script src="/js/password-toggle.js"></script>
+  <script src="/js/form-loader.js"></script>
+</body>
+</html>

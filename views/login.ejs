@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/form.css" />
+  </head>
+  <body>
+    <%- include("header") %>
+
+    <section class="auth-container">
+      <div class="login-box">
+        <h2>Login</h2>
+        
+        <% if (typeof error !== 'undefined') { %>
+        <div class="alert error"><%= error %></div>
+        <% } %> <% if (typeof success !== 'undefined') { %>
+        <div class="alert success"><%= success %></div>
+        <% } %>
+        <div id="loading-spinner" style="display: none;" class="spinner-overlay">
+          <div class="spinner"></div>
+        </div>
+        <form action="/api/users/login" method="POST" novalidate>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Enter your email"
+              value="<%= typeof email !== 'undefined' && email ? email : '' %>"
+            />
+          </div>
+
+          <div class="form-group password-wrapper">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Enter your password"
+            />
+          </div>
+
+          <button type="submit" class="btn-primary">Login</button>
+
+          <div class="auth-links">
+            <a href="/forgot-password">Forgot Password?</a>
+            <span> | </span>
+            <a href="/register">Don't have an account?</a>
+          </div>
+
+          <!-- Google Login Button -->
+          <a href="/auth/google" class="google-btn" onclick="showSpinner()">
+            <img src="/images/Google_logo.png" alt="Google icon" class="google-icon" />
+            <span>Continue with Google</span>
+          </a>
+        </form>
+      </div>
+    </section>
+
+    <%- include("footer") %>
+    <script src="/js/field-validation.js"></script>
+    <script src="/js/password-toggle.js"></script>
+    <script src="/js/form-loader.js"></script>
+  </body>
+</html>
