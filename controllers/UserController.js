@@ -13,7 +13,7 @@ const registerUser = async (req, res) => {
   const { firstName, lastName, email, password, confirmPassword } = req.body;
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await userRepository.findByEmail(email);
 
     if (existingUser) {
       if (existingUser.isGoogleUser) {
@@ -24,7 +24,7 @@ const registerUser = async (req, res) => {
         existingUser.password = hashedPassword;
         existingUser.isGoogleUser = false;
 
-        await existingUser.save();
+        await userRepository.save(existingUser);
 
         // Update session with all existing user data
         req.session.user = {
@@ -67,7 +67,7 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
+    const newUser = await userRepository.createUser({
       name: `${firstName} ${lastName}`,
       email,
       password: hashedPassword,
@@ -112,7 +112,7 @@ const loginUser = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await userRepository.findByEmail(email);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).render("login", {
@@ -149,7 +149,7 @@ const logoutUser = (req, res) => {
 
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await userRepository.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json(user);
   } catch (error) {
@@ -188,7 +188,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.session.user._id;
-    const user = await User.findById(userId);
+    const user = await userRepository.findById(userId);
     if (!user) return res.status(404).send("User not found.");
 
     const { firstName, lastName } = req.body;
@@ -200,7 +200,7 @@ const updateProfile = async (req, res) => {
       user.profilePicture = `/uploads/profiles/${req.file.filename}`;
     }
 
-    await user.save();
+    await userRepository.save(user);
 
     req.session.user = {
       _id: user._id,
@@ -231,11 +231,8 @@ const updateProfile = async (req, res) => {
 const updateProfilePicture = async (req, res) => {
   try {
     const filePath = "/uploads/profiles/" + req.file.filename;
-    const user = await User.findByIdAndUpdate(
-      req.session.user._id,
-      { profilePicture: filePath },
-      { new: true }
-    );
+    const user = await userRepository.updateProfilePicture(req.session.user._id, filePath);
+
     req.session.user.profilePicture = user.profilePicture;
     req.session.success = "Profile picture updated successfully.";
     res.redirect("/profile");
@@ -247,6 +244,7 @@ const updateProfilePicture = async (req, res) => {
     });
   }
 };
+
 
 const changePassword = async (req, res) => {
   const { currentPassword, password, confirmPassword } = req.body;
@@ -288,7 +286,7 @@ const changePassword = async (req, res) => {
   }
 
   // 4. Check if current password is correct
-  const user = await User.findById(req.session.user._id);
+  const user = await userRepository.findById(req.session.user._id);
   const isMatch = await bcrypt.compare(currentPassword, user.password);
 
   if (!isMatch) {
@@ -303,7 +301,7 @@ const changePassword = async (req, res) => {
   }
   // 5. All checks passed, update password
   user.password = await bcrypt.hash(password, 10);
-  await user.save();
+  await userRepository.save(user);
 
   req.session.success = "Password updated successfully.";
   res.redirect("/profile");
@@ -331,7 +329,7 @@ const deleteAccount = async (req, res, next) => {
 
   try {
     // 2. Fetch user and compare password
-    const user = await User.findById(req.session.user._id);
+    const user = await userRepository.findById(req.session.user._id);
     const isMatch = await bcrypt.compare(deletePassword, user.password);
 
     if (!isMatch) {
@@ -373,7 +371,7 @@ const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await userRepository.findByEmail(email);
 
     if (!user) {
       return res.render("forgot-password", {
@@ -405,7 +403,7 @@ const forgotPassword = async (req, res) => {
       .digest("hex");
     user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
 
-    await user.save();
+    await userRepository.save(user);
 
     const sent = await sendResetEmail(user.email, token);
 
@@ -433,14 +431,11 @@ const showResetPasswordForm = async (req, res) => {
   const token = req.params.token;
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-  const user = await User.findOne({
-    resetPasswordToken: hashedToken,
-    resetPasswordExpires: { $gt: Date.now() },
-  });
+  const user = await userRepository.findByResetToken(hashedToken);
 
   if (!user) {
     return res.send("Reset link is invalid or expired");
-  }
+  }  
 
   res.render("reset-password", { token });
 };
@@ -467,7 +462,7 @@ const resetPassword = async (req, res) => {
   }
 
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-  const user = await User.findOne({ resetPasswordToken: hashedToken });
+  const user = await userRepository.findByResetToken(hashedToken);
 
   if (!user) {
     return res.status(400).render("reset-used"); // ✅ Used link
@@ -480,7 +475,7 @@ const resetPassword = async (req, res) => {
   user.password = await bcrypt.hash(password, 10);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
-  await user.save();
+  await userRepository.save(user);
 
   req.session.user = {
     _id: user._id,
