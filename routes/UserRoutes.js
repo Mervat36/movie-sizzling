@@ -109,7 +109,7 @@ router.get("/forgot-password", (req, res) => {
 router.get('/check-provider', async (req, res) => {
   const email = req.query.email;
   try {
-    const user = await User.findOne({ email });
+    const user = await userRepository.findByEmail(email);
     if (!user) return res.json({ provider: null });
 
     return res.json({
@@ -126,7 +126,8 @@ router.get('/reset-password/:token', async (req, res) => {
     const rawToken = req.params.token;
     const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
 
-const user = await User.findOne({ resetPasswordToken: hashedToken });
+    const user = await userRepository.findByResetToken(hashedToken);
+
 
 
     if (!user) {
@@ -149,7 +150,7 @@ router.get("/check-email", async (req, res) => {
   const email = req.query.email;
   if (!email) return res.json({ available: false });
 
-  const user = await User.findOne({ email });
+  const user = await userRepository.findByEmail(email);
   return res.json({ available: !user });
 });
 // ========== GOOGLE AUTH ==========
