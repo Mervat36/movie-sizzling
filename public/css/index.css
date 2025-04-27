@@ -1,4 +1,4 @@
-/* ===================== HERO SECTION ===================== */
+/* 1. Hero Section. */
 .centered-hero {
   background-color: #121636;
   color: white;
@@ -20,8 +20,7 @@
   margin-bottom: 30px;
   line-height: 1.6;
 }
-
-/* ===================== BUTTON STYLES ===================== */
+/* 2. Buttons Styles. */
 .btn-primary {
   width: 100%;
   background-color: #00dfc4;
@@ -41,8 +40,7 @@ a.btn-primary {
 .btn-primary:hover {
   background-color: #02c1ab;
 }
-
-/* ===================== FEATURES SECTION ===================== */
+/* 3. Features Styles.*/
 .features-section {
   padding: 80px 10%;
   background: #ffffff;
@@ -87,8 +85,7 @@ a.btn-primary {
   height: 60px;
   margin-bottom: 20px;
 }
-
-/* ===================== SHARED TRANSITIONS ===================== */
+/* 4. Transitions. */
 body,
 input,
 .feature-box,
@@ -96,8 +93,7 @@ input,
 .login-box {
   transition: background-color 0.3s, color 0.3s;
 }
-
-/* ===================== DARK MODE SECTION ===================== */
+/* 5. Dark Mode. */
 body.dark-mode button[type="submit"],
 body.dark-mode .btn-primary {
   background-color: var(--link-color);
@@ -131,22 +127,30 @@ body.dark-mode .feature-box p {
 body.dark-mode .feature-box svg {
   stroke: var(--text-color);
 }
-
-/* ===== Responsive Styles ===== */
+/* 6. Responsive Styles. */
 @media (max-width: 768px) {
-  .container, form, input, button, textarea, .card, .box {
+  .container,
+  form,
+  input,
+  button,
+  textarea,
+  .card,
+  .box {
     width: 100% !important;
     padding: 10px;
     font-size: 1rem;
   }
-  .navbar, .nav-links {
+  .navbar,
+  .nav-links {
     flex-direction: column;
     align-items: flex-start;
   }
-  .form-wrapper, .form-container {
+  .form-wrapper,
+  .form-container {
     padding: 10px;
   }
-  .btn, .submit-button {
+  .btn,
+  .submit-button {
     width: 100%;
   }
   .features-grid {
@@ -154,13 +158,18 @@ body.dark-mode .feature-box svg {
   }
 }
 @media (max-width: 480px) {
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-size: 1.2rem;
   }
-  .container, .card, .box {
+  .container,
+  .card,
+  .box {
     margin-bottom: 15px;
   }
-  .btn, .submit-button {
+  .btn,
+  .submit-button {
     width: 100%;
     font-size: 0.9rem;
   }

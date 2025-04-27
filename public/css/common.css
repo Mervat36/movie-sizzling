@@ -1,10 +1,10 @@
-/* ===================== CSS Reset ===================== */
+/* 1. CSS Reset. */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-/* ===================== Root Variables ===================== */
+/* 2. Root Variables. */
 :root {
   --bg-color: #f0f2f5;
   --text-color: #111;
@@ -18,8 +18,7 @@
   --button-text: #121636;
   --hamburger-color: #00dfc4;
 }
-
-/* ===================== Global Layout ===================== */
+/* 3. Global Layout. */
 body {
   font-family: "Rubik", sans-serif;
   padding-top: 100px;
@@ -31,8 +30,7 @@ section {
   border: 1px solid var(--border-color);
   color: var(--text-color);
 }
-
-/* ===================== Form Inputs ===================== */
+/* 4. Form Inputs. */
 input,
 textarea,
 select {
@@ -40,8 +38,7 @@ select {
   color: var(--text-color);
   border: 1px solid var(--border-color);
 }
-
-/* ===================== Dark Mode Toggle ===================== */
+/* 5. Dark Mode Toggle. */
 .dark-mode-toggle {
   position: relative;
   display: inline-block;
@@ -61,8 +58,7 @@ select {
   align-items: center;
   margin-left: 1rem;
 }
-
-/* ===================== Generic Switch Button ===================== */
+/* 6. Generic Switch Button. */
 .switch {
   position: relative;
   display: inline-block;
@@ -107,8 +103,7 @@ select {
 .switch input:checked + .slider::before {
   transform: translateX(24px);
 }
-
-/* ===================== Toast Notification ===================== */
+/* 7. Toast Notification. */
 .toast {
   position: fixed;
   top: 30px;
@@ -135,7 +130,7 @@ select {
   background-color: #dc3545;
 }
 
-/* ===================== DARK MODE SECTION ===================== */
+/* 8. Dark Mode. */
 body.dark-mode {
   --bg-color: #121212;
   --text-color: #f1f1f1;
@@ -160,14 +155,14 @@ body.dark-mode .toast {
   border: 1px solid #2ecc71;
 }
 
-/* ===================== Spinner style ===================== */
+/* 9. Spinner Style. */
 .spinner-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -182,11 +177,15 @@ body.dark-mode .toast {
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* ===================== Responsive Style ===================== */
+/* 10. Responsive Style. */
 @media (max-width: 768px) {
   .container,
   form,

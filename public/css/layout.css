@@ -1,4 +1,4 @@
-/* ===================== Global Header Styles ===================== */
+/* 1. Global Header Styles. */
 .site-header {
   position: fixed;
   top: 0;
@@ -23,8 +23,7 @@
   -moz-user-select: none;
   -ms-user-select: none;
 }
-
-/* ===================== Navigation ===================== */
+/* 2. Navigation Styles. */
 .main-nav ul {
   list-style: none;
   display: flex;
@@ -51,8 +50,7 @@
 .main-nav a:hover {
   color: #00dfc4;
 }
-
-/* ===================== Auth Buttons ===================== */
+/* 3. Auth Buttons. */
 .auth-btn {
   font-size: 14px;
   font-weight: 600;
@@ -84,14 +82,12 @@
   background-color: #00bfa6;
   color: #fff;
 }
-
-/* ===================== Dark Mode Toggle ===================== */
+/* 4. Dark Mode Toggle. */
 .dark-mode-toggle {
   position: relative;
   display: inline-block;
   width: 60px;
   height: 34px;
-
 }
 .theme-toggle {
   position: relative;
@@ -103,13 +99,11 @@
   transition: background-color 0.3s;
   -webkit-tap-highlight-color: transparent;
 }
-/* Hide checkbox */
 .dark-mode-toggle input {
   opacity: 0;
   width: 0;
   height: 0;
 }
-/* Toggle Track */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -126,7 +120,6 @@
   padding: 0 8px;
   font-size: 18px;
 }
-/* Inner Circle */
 .theme-toggle .slider::before {
   position: absolute;
   content: "";
@@ -138,14 +131,12 @@
   border-radius: 50%;
   transition: 0.4s;
 }
-/* Checked Mode */
 .theme-toggle input:checked + .slider {
   background-color: #009973;
 }
 .theme-toggle input:checked + .slider::before {
   transform: translateX(24px);
 }
-/* Toggle Icons */
 .theme-toggle .slider .icon {
   position: absolute;
   top: 50%;
@@ -161,8 +152,7 @@
 .theme-toggle .slider .moon {
   right: 6px;
 }
-
-/* ===================== Footer ===================== */
+/* 5. Footer Styles. */
 .site-footer {
   background-color: #1f2937;
   color: #ffffff;
@@ -176,8 +166,7 @@ body.dark-mode .site-footer {
   background-color: #1a1a2e;
   color: #e0e0e0;
 }
-
-/* ===================== DARK MODE SECTION ===================== */
+/* 6. Dark Mode. */
 body.dark-mode .site-header {
   background-color: #1a1a2e;
   border-bottom: 1px solid #333;
@@ -203,8 +192,7 @@ body.dark-mode .login-btn:hover {
   background-color: #00bfa6;
   color: #fff;
 }
-
-/* ===================== Hamburger Toggle ===================== */
+/* 7. Hamburger Toggle. */
 .toggle-wrapper {
   display: none;
   position: absolute;
@@ -264,8 +252,7 @@ body.dark-mode .login-btn:hover {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   transition: background-color 0.3s ease;
 }
-
-/* ===================== Responsive Styles ===================== */
+/* 8. Responsive Styles. */
 @media (max-width: 768px) {
   .logo img {
     width: 100px;
@@ -274,12 +261,12 @@ body.dark-mode .login-btn:hover {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    -webkit-tap-highlight-color: transparent; 
+    -webkit-tap-highlight-color: transparent;
   }
-.logo a {
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
+  .logo a {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
   .nav-container {
     flex-direction: column;
     align-items: flex-start;
@@ -337,97 +324,97 @@ body.dark-mode .login-btn:hover {
   .dark-mode-toggle {
     margin-top: 12px;
   }
-.main-nav ul li a,
-.main-nav ul li form button {
-  box-sizing: border-box;
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  margin: 8px 0;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 50px;
-  transition: all 0.3s ease;
-  background-color: transparent;
-  color: #00dfc4;
-  border: 2px solid #00dfc4;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.main-nav ul li a:not(.login-btn):not(.register-btn) {
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: #00dfc4;
-  -webkit-tap-highlight-color: transparent;
-}
-.main-nav ul li form button.register-btn {
-  all: unset;
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  margin: 8px 0;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  line-height: 1.4;
-  border-radius: 50px;
-  background-color: #00dfc4;
-  color: #121636;
-  box-sizing: border-box;
-  border: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.main-nav ul li form button.register-btn:hover {
-  background-color: #00bfa6;
-  color: #fff;
-}
-body.dark-mode .main-nav ul li form button.register-btn {
-  background-color: var(--link-color);
-  color: #121636;
-}
-body.dark-mode .main-nav ul li form button.register-btn:hover {
-  background-color: #00bfa6;
-  color: #fff;
-}
-.main-nav ul li a.register-btn {
-  background-color: #00dfc4;
-  color: #121636;
-  border: none;
-}
-.main-nav ul li a.register-btn:hover {
-  background-color: #00bfa6;
-  color: #fff;
-}
-body.dark-mode .main-nav ul li a.register-btn {
-  background-color: var(--link-color);
-  color: #121636;
-}
-body.dark-mode .main-nav ul li a.register-btn:hover {
-  background-color: #00bfa6;
-  color: #fff;
-}
-.main-nav ul li a.login-btn {
-  background-color: transparent;
-  border: 2px solid #00dfc4;
-  color: #00dfc4;
-}
-.main-nav ul li a.login-btn:hover {
-  background-color: #00bfa6;
-  color: #fff;
-}
-.main-nav ul li a:hover,
-.main-nav ul li form button:hover {
-  background-color: #00bfa6;
-  color: #fff;
-  transform: translateY(-1px);
-}
-.main-nav ul li a.auth-btn:hover,
-.main-nav ul li form button.auth-btn:hover {
-  background-color: #00bfa6;
-  transform: translateY(-2px);
-}
+  .main-nav ul li a,
+  .main-nav ul li form button {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    margin: 8px 0;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    color: #00dfc4;
+    border: 2px solid #00dfc4;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .main-nav ul li a:not(.login-btn):not(.register-btn) {
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #00dfc4;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .main-nav ul li form button.register-btn {
+    all: unset;
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    margin: 8px 0;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    line-height: 1.4;
+    border-radius: 50px;
+    background-color: #00dfc4;
+    color: #121636;
+    box-sizing: border-box;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .main-nav ul li form button.register-btn:hover {
+    background-color: #00bfa6;
+    color: #fff;
+  }
+  body.dark-mode .main-nav ul li form button.register-btn {
+    background-color: var(--link-color);
+    color: #121636;
+  }
+  body.dark-mode .main-nav ul li form button.register-btn:hover {
+    background-color: #00bfa6;
+    color: #fff;
+  }
+  .main-nav ul li a.register-btn {
+    background-color: #00dfc4;
+    color: #121636;
+    border: none;
+  }
+  .main-nav ul li a.register-btn:hover {
+    background-color: #00bfa6;
+    color: #fff;
+  }
+  body.dark-mode .main-nav ul li a.register-btn {
+    background-color: var(--link-color);
+    color: #121636;
+  }
+  body.dark-mode .main-nav ul li a.register-btn:hover {
+    background-color: #00bfa6;
+    color: #fff;
+  }
+  .main-nav ul li a.login-btn {
+    background-color: transparent;
+    border: 2px solid #00dfc4;
+    color: #00dfc4;
+  }
+  .main-nav ul li a.login-btn:hover {
+    background-color: #00bfa6;
+    color: #fff;
+  }
+  .main-nav ul li a:hover,
+  .main-nav ul li form button:hover {
+    background-color: #00bfa6;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .main-nav ul li a.auth-btn:hover,
+  .main-nav ul li form button.auth-btn:hover {
+    background-color: #00bfa6;
+    transform: translateY(-2px);
+  }
 }

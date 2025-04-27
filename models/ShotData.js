@@ -1,4 +1,3 @@
-// models/ShotMetadata.js
 const mongoose = require("mongoose");
 
 const shotSchema = new mongoose.Schema({
@@ -17,10 +16,10 @@ const shotSchema = new mongoose.Schema({
       images: {
         start: String,
         middle: String,
-        end: String
-      }
-    }
-  ]
+        end: String,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("ShotMetadata", shotSchema);

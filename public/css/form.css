@@ -1,4 +1,4 @@
-/* ===================== COMMON FORM LAYOUT ===================== */
+/* 1. Common Form Layout. */
 .auth-container {
   padding: 80px 20px;
   background-color: #f6f7fb;
@@ -18,8 +18,7 @@
   border: 1px solid var(--input-bg);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
-
-/* ===================== AUTH CARD & SHARED CONTAINERS ===================== */
+/* 2. Auth Card & Shared Containers. */
 .auth-card {
   background: #fff;
   padding: 40px 30px;
@@ -85,8 +84,7 @@
 .auth-links a:hover {
   text-decoration: underline;
 }
-
-/* ===================== LOGIN BOX (USED IN login.ejs) ===================== */
+/* 3. Login Box. */
 .login-box {
   background-color: #fff;
   padding: 40px 30px;
@@ -102,8 +100,7 @@
   font-weight: 600;
   text-align: center;
 }
-
-/* ===================== INPUT AND TOGGLE ICON ===================== */
+/* 4. Input and Toggle Icon. */
 .form-group {
   margin-bottom: 10px;
   text-align: left;
@@ -162,8 +159,7 @@
     transform: translateY(0);
   }
 }
-
-/* ===================== BUTTON STYLES ===================== */
+/* 5. Buttons Styles. */
 .btn-primary {
   width: 100%;
   background-color: #00dfc4;
@@ -189,8 +185,7 @@ a.btn-primary {
   text-decoration: none;
   user-select: none;
 }
-
-/* ===================== ALERTS ===================== */
+/* 6. Alerts. */
 .alert {
   padding: 12px 16px;
   border-radius: 6px;
@@ -223,7 +218,7 @@ a.btn-primary {
   margin-top: 5px;
   display: none;
 }
-/* ===================== TOGGLE / PASSWORD SHOW ===================== */
+/* 7. Password Toggle. */
 .password-wrapper {
   position: relative;
   display: flex;
@@ -259,8 +254,7 @@ a.btn-primary {
   background-color: var(--button-color);
   color: var(--button-text);
 }
-
-/* ===================== GOOGLE LOGIN BUTTON ===================== */
+/* 8. Google Login Button. */
 .google-btn {
   display: flex;
   align-items: center;
@@ -292,32 +286,7 @@ body.dark-mode .google-btn:hover {
   width: 20px;
   height: 20px;
 }
-
-/* ===================== FACEBOOK LOGIN BUTTON ===================== */
-.facebook-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #1877f2;
-  color: white;
-  padding: 10px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  margin-top: 10px;
-}
-
-.facebook-btn:hover {
-  background-color: #145dbf;
-}
-
-.facebook-btn img {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-}
-
-/* ===================== PROFILE PAGE STYLES ===================== */
+/* 9. Profile Page Styles. */
 .profile-card {
   background: white;
   padding: 40px;
@@ -503,8 +472,7 @@ body.dark-mode .google-btn:hover {
   font-size: 18px;
   margin-bottom: 10px;
 }
-
-/* ===================== UPLOAD PAGE ===================== */
+/* 10. Upload Page Styles. */
 .upload-container {
   width: 90%;
   max-width: 500px;
@@ -529,7 +497,7 @@ body.dark-mode .google-btn:hover {
   border: 1px solid #ccc;
   font-size: 16px;
 }
-/* Drag and Drop Area */
+/* 11. Drag and Drop Area. */
 #drop-zone {
   border: 2px dashed #00dfc4;
   padding: 80px 50px;
@@ -553,7 +521,7 @@ body.dark-mode .google-btn:hover {
   display: none;
 }
 
-/* ===================== TRANSITIONS & DARK MODE ===================== */
+/* 12. Transition and Dark Mode. */
 body,
 input,
 .feature-box,
@@ -649,33 +617,46 @@ body.dark-mode .btn-toggle-password:hover {
   background-color: var(--link-color);
   color: var(--bg-color);
 }
-
-/* ===== Responsive Styles ===== */
+/* 13. Responsive Styles. */
 @media (max-width: 768px) {
-  .container, form, input, button, textarea, .card, .box {
+  .container,
+  form,
+  input,
+  button,
+  textarea,
+  .card,
+  .box {
     width: 100% !important;
     padding: 10px;
     font-size: 1rem;
   }
-  .navbar, .nav-links {
+  .navbar,
+  .nav-links {
     flex-direction: column;
     align-items: flex-start;
   }
-  .form-wrapper, .form-container {
+  .form-wrapper,
+  .form-container {
     padding: 10px;
   }
-  .btn, .submit-button {
+  .btn,
+  .submit-button {
     width: 100%;
   }
 }
 @media (max-width: 480px) {
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-size: 1.2rem;
   }
-  .container, .card, .box {
+  .container,
+  .card,
+  .box {
     margin-bottom: 15px;
   }
-  .btn, .submit-button {
+  .btn,
+  .submit-button {
     width: 100%;
     font-size: 0.9rem;
   }

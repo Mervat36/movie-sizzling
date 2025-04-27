@@ -1,4 +1,4 @@
-/* ===================== Page Layout ===================== */
+/* 1. Page Layout. */
 body,
 .auth-card.enhanced {
   transition: background-color 0.3s, color 0.3s;
@@ -16,8 +16,7 @@ body,
   background-color: var(--bg-color);
   color: var(--text-color);
 }
-
-/* ===================== Error Card Styles ===================== */
+/* 2. Error Card Styles. */
 .auth-card {
   background: #fff;
   padding: 40px 30px;
@@ -33,7 +32,7 @@ body,
   color: var(--button-text);
   border: none;
 }
-/* Highlight enhanced layout */
+/* 3. Highlight enhanced layout */
 .auth-card.enhanced {
   background: #ffffff;
   padding: 40px 30px;
@@ -50,8 +49,7 @@ body,
   color: #121636;
   margin-bottom: 10px;
 }
-
-/* ===================== Text Elements ===================== */
+/* 4. Text Elements. */
 .auth-title {
   font-size: 28px;
   font-weight: 700;
@@ -70,8 +68,7 @@ body,
   color: var(--text-color);
   border: 1px solid var(--input-bg);
 }
-
-/* ===================== Image Styling ===================== */
+/* 5. Image Styling. */
 .auth-card img {
   width: 120px;
   height: auto;
@@ -82,8 +79,7 @@ body,
   user-select: none;
   pointer-events: none;
 }
-
-/* ===================== Button Styles ===================== */
+/* 6. Button Styles. */
 .btn-primary {
   width: 100%;
   background-color: #00dfc4;
@@ -103,8 +99,7 @@ a.btn-primary {
 .btn-primary:hover {
   background-color: #02c1ab;
 }
-
-/* ===================== DARK MODE SECTION ===================== */
+/* 7. Dark Mode. */
 body.dark-mode .auth-title {
   color: #ffffff;
 }
@@ -124,33 +119,46 @@ body.dark-mode .btn-primary:hover {
   background-color: #02c1ab;
   color: #fff;
 }
-
-/* ===== Responsive Styles ===== */
+/* 8. Responsive Styles. */
 @media (max-width: 768px) {
-  .container, form, input, button, textarea, .card, .box {
+  .container,
+  form,
+  input,
+  button,
+  textarea,
+  .card,
+  .box {
     width: 100% !important;
     padding: 10px;
     font-size: 1rem;
   }
-  .navbar, .nav-links {
+  .navbar,
+  .nav-links {
     flex-direction: column;
     align-items: flex-start;
   }
-  .form-wrapper, .form-container {
+  .form-wrapper,
+  .form-container {
     padding: 10px;
   }
-  .btn, .submit-button {
+  .btn,
+  .submit-button {
     width: 100%;
   }
 }
 @media (max-width: 480px) {
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-size: 1.2rem;
   }
-  .container, .card, .box {
+  .container,
+  .card,
+  .box {
     margin-bottom: 15px;
   }
-  .btn, .submit-button {
+  .btn,
+  .submit-button {
     width: 100%;
     font-size: 0.9rem;
   }
