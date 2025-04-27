@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Handle regular session-based toast
+  // 1. Handle regular session-based toast.
   if (typeof toast !== "undefined" && toast && toast.message) {
     const toastDiv = document.createElement("div");
     toastDiv.className = `toast ${toast.type}`;
@@ -8,8 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => toastDiv.classList.add("show"), 50);
     setTimeout(() => toastDiv.remove(), 3500);
   }
-
-  // 2. Handle delete-toast from cookie
+  // 2. Handle delete account toast from cookie.
   const toastCookie = document.cookie
     .split("; ")
     .find((row) => row.startsWith("deleteToast="));
@@ -22,8 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.cookie =
       "deleteToast=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   }
-
-  // 3. Handle static toast (like #toast from reset success)
+  // 3. Handle static toast.
   const staticToast = document.getElementById("toast");
   if (staticToast) {
     staticToast.classList.add("show");

@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordWarning = document.getElementById("passwordWarning");
   const mismatchWarning = document.getElementById("passwordMismatch");
 
-  // Show/hide password toggle
+  // 1. Show/hide password toggle.
   passwordFields.forEach((field) => {
     const wrapper = field.parentElement;
     const toggle = document.createElement("span");
@@ -19,11 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     wrapper.appendChild(toggle);
   });
-
-  // Real-time required field validation
+  // 2. Real-time alert for required field validation.
   const requiredInputs = document.querySelectorAll("input[required]");
   requiredInputs.forEach((input) => {
-    const alertDiv = input.closest(".form-group")?.querySelector(".field-error");
+    const alertDiv = input
+      .closest(".form-group")
+      ?.querySelector(".field-error");
     input.addEventListener("input", () => {
       const value = input.value.trim();
       if (value === "") {
@@ -37,15 +38,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-  // Password strength indicator
+  // 3. Password strength indicator.
   const passwordStrength = document.createElement("div");
   passwordStrength.id = "passwordStrength";
   passwordStrength.style.marginTop = "5px";
   passwordStrength.style.fontSize = "13px";
   passwordStrength.style.fontWeight = "bold";
   const currentPath = window.location.pathname;
-
   if (
     passwordInput &&
     (currentPath.includes("register") ||
@@ -57,7 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const val = passwordInput.value;
       let strength = "";
       let color = "";
-
       if (
         val.length >= 9 &&
         /[A-Za-z]/.test(val) &&
@@ -82,15 +80,13 @@ document.addEventListener("DOMContentLoaded", () => {
         strength = "Weak";
         color = "red";
       }
-
       passwordStrength.textContent = strength
         ? `Password Strength: ${strength}`
         : "";
       passwordStrength.style.color = color;
     });
   }
-
-  // Password match check
+  // 4. Check for mismatch.
   function checkMatch() {
     if (!confirmInput || !passwordInput || !mismatchWarning) return;
     if (confirmInput.value.length === 0) {
@@ -106,26 +102,26 @@ document.addEventListener("DOMContentLoaded", () => {
       confirmInput.classList.remove("input-error");
     }
   }
-
   if (confirmInput && passwordInput) {
     confirmInput.addEventListener("input", checkMatch);
     passwordInput.addEventListener("input", checkMatch);
   }
-
-  // ✅ DELETE ACCOUNT FORM: Real-time mismatch check
+  // 5. Check for mismatch in Delete account form.
   const deletePassword = document.getElementById("deletePassword");
-  const deleteConfirmPassword = document.getElementById("deleteConfirmPassword");
-  const deleteMismatchWarning = document.getElementById("deletePasswordMismatch");
-
+  const deleteConfirmPassword = document.getElementById(
+    "deleteConfirmPassword"
+  );
+  const deleteMismatchWarning = document.getElementById(
+    "deletePasswordMismatch"
+  );
   function checkDeleteMatch() {
-    if (!deletePassword || !deleteConfirmPassword || !deleteMismatchWarning) return;
-
+    if (!deletePassword || !deleteConfirmPassword || !deleteMismatchWarning)
+      return;
     if (deleteConfirmPassword.value.length === 0) {
       deleteMismatchWarning.style.display = "none";
       deleteConfirmPassword.classList.remove("input-error");
       return;
     }
-
     if (deletePassword.value !== deleteConfirmPassword.value) {
       deleteMismatchWarning.style.display = "block";
       deleteConfirmPassword.classList.add("input-error");
@@ -134,13 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
       deleteConfirmPassword.classList.remove("input-error");
     }
   }
-
   if (deletePassword && deleteConfirmPassword) {
     deletePassword.addEventListener("input", checkDeleteMatch);
     deleteConfirmPassword.addEventListener("input", checkDeleteMatch);
   }
-
-  // Email availability check
+  // 6. Email availability check.
   if (emailInput && emailInput.dataset.check === "availability") {
     emailInput.addEventListener("input", async () => {
       const email = emailInput.value.trim();
@@ -149,7 +143,9 @@ document.addEventListener("DOMContentLoaded", () => {
         emailInput.classList.remove("input-valid", "input-error");
         return;
       }
-      const response = await fetch(`/check-email?email=${encodeURIComponent(email)}`);
+      const response = await fetch(
+        `/check-email?email=${encodeURIComponent(email)}`
+      );
       const data = await response.json();
       if (data.available) {
         emailHint.textContent = "Email is available";
@@ -164,8 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // Email match for forgot-password
+  // 7. Email match for forgot-password.
   const resetEmailInput = document.getElementById("reset-email");
   const resetWarning = document.getElementById("email-match-warning");
   const metaEmail = document.querySelector('meta[name="logged-in-email"]');
@@ -178,7 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
       resetEmailInput.classList.toggle("input-error", !valid);
       resetEmailInput.classList.toggle("input-valid", valid);
     });
-
     const resetForm = resetEmailInput.closest("form");
     if (resetForm) {
       resetForm.addEventListener("submit", function (e) {
@@ -191,16 +185,16 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
-
-  // Final form submission validation
+  // 8. Final form submission validation.
   forms.forEach((form) => {
     form.addEventListener("submit", (e) => {
       const isPasswordForm = form.id === "changePasswordForm";
       let stop = false;
-
       form.querySelectorAll("input[required]").forEach((input) => {
         const value = input.value.trim();
-        const alertDiv = input.closest(".form-group")?.querySelector(".field-error");
+        const alertDiv = input
+          .closest(".form-group")
+          ?.querySelector(".field-error");
         if (value === "") {
           input.classList.add("input-error");
           input.classList.remove("input-valid");
@@ -212,30 +206,32 @@ document.addEventListener("DOMContentLoaded", () => {
           if (alertDiv) alertDiv.style.display = "none";
         }
       });
-
       if (isPasswordForm) {
         const passwordRequired = document.getElementById("passwordRequired");
         const currentPasswordInput = document.getElementById("currentPassword");
-        const currentPasswordAlert = document.getElementById("currentPasswordRequired");
-
+        const currentPasswordAlert = document.getElementById(
+          "currentPasswordRequired"
+        );
         if (currentPasswordInput && currentPasswordInput.value.trim() === "") {
-          if (currentPasswordAlert) currentPasswordAlert.style.display = "block";
+          if (currentPasswordAlert)
+            currentPasswordAlert.style.display = "block";
           stop = true;
         }
-
         if (passwordInput && passwordInput.value.trim() === "") {
           if (passwordRequired) passwordRequired.style.display = "block";
           stop = true;
         } else {
           if (passwordRequired) passwordRequired.style.display = "none";
         }
-
-        if (passwordInput && passwordWarning && passwordInput.value.trim() !== "") {
+        if (
+          passwordInput &&
+          passwordWarning &&
+          passwordInput.value.trim() !== ""
+        ) {
           const strong =
             passwordInput.value.length >= 9 &&
             /[A-Za-z]/.test(passwordInput.value) &&
             /[^A-Za-z0-9]/.test(passwordInput.value);
-
           if (!strong) {
             passwordWarning.style.display = "block";
             passwordInput.classList.add("input-error");
@@ -245,7 +241,6 @@ document.addEventListener("DOMContentLoaded", () => {
             passwordInput.classList.remove("input-error");
           }
         }
-
         if (
           passwordInput &&
           confirmInput &&
@@ -257,14 +252,15 @@ document.addEventListener("DOMContentLoaded", () => {
           stop = true;
         }
       }
-
       if (stop) e.preventDefault();
     });
   });
 
-  // Toggle password form
+  // 9. Toggle password form.
   const togglePasswordForm = document.getElementById("togglePasswordForm");
-  const passwordFormContainer = document.getElementById("passwordFormContainer");
+  const passwordFormContainer = document.getElementById(
+    "passwordFormContainer"
+  );
   if (togglePasswordForm && passwordFormContainer) {
     togglePasswordForm.addEventListener("click", () => {
       passwordFormContainer.style.display =
