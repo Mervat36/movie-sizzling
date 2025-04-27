@@ -7,6 +7,7 @@ const router = express.Router();
 const { ensureAuthenticated } = require("../middleware/auth");
 const userController = require("../controllers/UserController");
 const User = require("../models/User");
+const userRepository = require('../repositories/userRepository');
 
 const {
   registerUser,

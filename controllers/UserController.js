@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const crypto = require("crypto");
 const sendResetEmail = require("../utils/sendResetPasswordEmail");
+const userRepository = require('../repositories/userRepository');
 
 function isStrongPassword(password) {
   return /^(?=.*[A-Za-z])(?=.*[^A-Za-z0-9])(?=.{9,})/.test(password);
