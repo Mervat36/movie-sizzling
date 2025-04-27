@@ -46,7 +46,7 @@ It is designed for content creators, researchers, and media enthusiasts who need
 ### Backend
 - Node.js
 - Express.js
-- MongoDB + Mongoose
+- MongoDB + Mongoose + Supabase
 - Supabase (for file storage)
 
 ### Frontend
