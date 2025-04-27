@@ -8,11 +8,9 @@
   <link rel="stylesheet" href="/css/form.css"></head>
 <body>
   <%- include("partials/header") %>
-
   <section class="auth-container">
     <div class="login-box">
 <h2>Create an Account</h2>
-
 <% if (typeof generalError !== 'undefined') { %>
   <div class="alert error"><%= generalError %></div>
 <% } %>
@@ -35,7 +33,6 @@
     />
     <div class="field-error alert error" style="display: none">First Name is required.</div>
   </div>
-
   <div class="form-group">
     <% if (typeof lastNameError !== 'undefined') { %>
       <div class="alert error"><%= lastNameError %></div>
@@ -51,7 +48,6 @@
     />
     <div class="field-error alert error" style="display: none">Last Name is required.</div>
   </div>
-
   <div class="form-group">
     <label for="email">Email Address</label>
     <input
@@ -67,7 +63,6 @@
       <div class="alert error"><%= error %></div>
     <% } %>
   </div>
-
   <div class="form-group password-wrapper">
     <% if (typeof passwordError !== 'undefined') { %>
       <div class="alert error"><%= passwordError %></div>
@@ -82,7 +77,6 @@
     />
     <div class="field-error alert error" style="display: none">Password is required.</div>
   </div>
-
   <div class="form-group password-wrapper">
     <label for="confirmPassword">Confirm Password</label>
     <% if (typeof confirmPasswordError !== 'undefined') { %>
@@ -100,14 +94,11 @@
       Passwords do not match.
     </div>
   </div>
-
   <button type="submit" class="btn-primary">Register</button>
 </form>
-
         <div class="auth-links">
           <a href="/login">Already have an account?</a>
         </div>
-        <!-- Google Register Button -->
         <a href="/auth/google" class="google-btn" onclick="showSpinner()">
           <img src="/images/Google_logo.png" alt="Google icon" class="google-icon" />
           <span>Continue with Google</span>
@@ -115,7 +106,6 @@
       </form>
     </div>
   </section>
-
   <%- include("partials/footer") %>
   <script src="/js/field-validation.js"></script>
   <script src="/js/password-toggle.js"></script>

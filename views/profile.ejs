@@ -9,7 +9,6 @@
   </head>
   <body>
     <%- include("partials/header") %>
-
     <div class="profile-container">
       <div class="profile-card">
         <h2 class="profile-title">Welcome, <%= user.name %>!</h2>
@@ -17,11 +16,9 @@
         <% if (formError) { %>
           <div class="alert error"><%= formError %></div>
         <% } %>
-        
         <% if (typeof incorrectPassword !== 'undefined' && incorrectPassword) { %>
           <div class="alert error">Current password is incorrect.</div>
         <% } %>
-        
         <% if (mismatch) { %>
           <div class="alert error">Passwords do not match.</div>
         <% } %>
@@ -129,7 +126,6 @@
               Passwords do not match.
             </div>
           </div>
-
           <button type="submit" class="btn-primary">Change Password</button>
           <p class="small-text" style="text-align: center; margin-top: 10px">
             <a href="/forgot-password">Forgot Password?</a>
@@ -190,7 +186,6 @@
         <% } %>
       </div>
     </div>
-
     <%- include("partials/footer") %>
     <script src="/js/profile-image-preview.js"></script>
     <script src="/js/field-validation.js"></script>
