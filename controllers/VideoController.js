@@ -1,6 +1,6 @@
 const Video = require("../models/Video");
 
-// Upload Video
+// 1. Uploads a video.
 exports.uploadVideo = async (req, res) => {
     try {
         res.status(200).json({ message: "Video uploaded successfully!" });
@@ -9,7 +9,7 @@ exports.uploadVideo = async (req, res) => {
     }
 };
 
-// Get All Videos
+// Returns all videos.
 exports.getAllVideos = async (req, res) => {
     try {
         const videos = await Video.find();
@@ -19,7 +19,7 @@ exports.getAllVideos = async (req, res) => {
     }
 };
 
-// Get Video by ID
+// Get video by ID.
 exports.getVideoById = async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);

@@ -4,30 +4,26 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const crypto = require("crypto");
 const sendResetEmail = require("../utils/sendResetPasswordEmail");
-const userRepository = require('../repositories/userRepository');
+const userRepository = require("../repositories/userRepository");
 
 function isStrongPassword(password) {
   return /^(?=.*[A-Za-z])(?=.*[^A-Za-z0-9])(?=.{9,})/.test(password);
 }
 
+// 1. Registers a new user (Email or Google account re-registration).
 const registerUser = async (req, res) => {
   const { firstName, lastName, email, password, confirmPassword } = req.body;
-
   try {
     const existingUser = await userRepository.findByEmail(email);
-
     if (existingUser) {
       if (existingUser.isGoogleUser) {
-        // Allow re-registration with password
+        // Allow Google account re-registration with password.
         const hashedPassword = await bcrypt.hash(password, 10);
-
         existingUser.name = `${firstName} ${lastName}`;
         existingUser.password = hashedPassword;
         existingUser.isGoogleUser = false;
-
         await userRepository.save(existingUser);
-
-        // Update session with all existing user data
+        // Update session with all existing user data.
         req.session.user = {
           _id: existingUser._id,
           name: existingUser.name,
@@ -35,11 +31,9 @@ const registerUser = async (req, res) => {
           profilePicture: existingUser.profilePicture || null,
           isGoogleUser: false,
         };
-
         return res.redirect("/profile");
       }
-
-      // Normal user already exists
+      // Normal user already exists.
       return res.status(409).render("register", {
         error: "User already exists.",
         firstName,
@@ -47,7 +41,7 @@ const registerUser = async (req, res) => {
         email,
       });
     }
-
+    // Check for mismatch.
     if (password !== confirmPassword) {
       return res.status(400).render("register", {
         error: "Passwords do not match.",
@@ -56,7 +50,7 @@ const registerUser = async (req, res) => {
         email,
       });
     }
-
+    // Check password strength.
     if (!isStrongPassword(password)) {
       return res.status(400).render("register", {
         error:
@@ -66,7 +60,7 @@ const registerUser = async (req, res) => {
         email,
       });
     }
-
+    // Save an Email user in database.
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await userRepository.createUser({
       name: `${firstName} ${lastName}`,
@@ -74,9 +68,8 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       isGoogleUser: false,
     });
-
     await newUser.save();
-
+    // Update session with all existing user data.
     req.session.user = {
       _id: newUser._id,
       name: newUser.name,
@@ -84,14 +77,15 @@ const registerUser = async (req, res) => {
       profilePicture: null,
       isGoogleUser: false,
     };
-
+    // All checks passed.
     req.session.toast = {
       type: "success",
       message: "Account created successfully. Welcome!",
     };
     res.redirect("/");
+    // Any server error.
   } catch (error) {
-    console.error("Register error:", error);
+    console.error("[Register Error]", error.message);
     return res.status(500).render("register", {
       error: "Server error. Please try again.",
       firstName,
@@ -101,10 +95,11 @@ const registerUser = async (req, res) => {
   }
 };
 
+// 2. Login a user (email/password authentication).
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    // Check for empty fields.
     if (!email || !password) {
       return res.status(400).render("login", {
         error: "Invalid email or password.",
@@ -112,9 +107,8 @@ const loginUser = async (req, res) => {
         email,
       });
     }
-
     const user = await userRepository.findByEmail(email);
-
+    // Check if current email or password is correct.
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).render("login", {
         error: "Invalid email or password.",
@@ -122,7 +116,7 @@ const loginUser = async (req, res) => {
         email,
       });
     }
-
+    // Login and open session.
     req.session.user = {
       _id: user._id,
       name: user.name,
@@ -130,10 +124,10 @@ const loginUser = async (req, res) => {
       profilePicture: user.profilePicture || null,
       isGoogleUser: user.isGoogleUser || false,
     };
-
     res.redirect("/");
+    // Any server error.
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[Login Error]", error.message);
     res.status(500).render("login", {
       error: "Server error occurred. Please try again.",
       showPopup: true,
@@ -142,33 +136,36 @@ const loginUser = async (req, res) => {
   }
 };
 
+// 3. Logs out the currently logged-in user.
 const logoutUser = (req, res) => {
   req.session.destroy(() => {
     res.redirect("/");
   });
 };
 
+// 4. Fetch a user's profile information by ID (API JSON).
 const getUserProfile = async (req, res) => {
   try {
-    const user = await userRepository.findById(req.params.id).select("-password");
+    const user = await userRepository
+      .findById(req.params.id)
+      .select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json(user);
   } catch (error) {
-    console.error("Get profile error:", error);
+    console.error("[Get Profile Error]", error.message);
     res
       .status(500)
       .json({ message: "Error fetching user", error: error.message || error });
   }
 };
 
+// 5. Returns the profile page for the logged-in user,
 const getProfile = async (req, res) => {
   try {
     const user = req.session.user;
     if (!user) return res.redirect("/login");
-
     const success = req.session.success;
     delete req.session.success;
-
     res.render("profile", {
       user: req.session.user,
       firstName,
@@ -186,23 +183,20 @@ const getProfile = async (req, res) => {
   }
 };
 
+// 6. Updates the logged-in user's name and profile picture.
 const updateProfile = async (req, res) => {
   try {
     const userId = req.session.user._id;
     const user = await userRepository.findById(userId);
     if (!user) return res.status(404).send("User not found.");
-
     const { firstName, lastName } = req.body;
     if (firstName && lastName) {
       user.name = `${firstName} ${lastName}`;
     }
-
     if (req.file) {
       user.profilePicture = `/uploads/profiles/${req.file.filename}`;
     }
-
     await userRepository.save(user);
-
     req.session.user = {
       _id: user._id,
       name: user.name,
@@ -210,16 +204,16 @@ const updateProfile = async (req, res) => {
       profilePicture: user.profilePicture || null,
       isGoogleUser: user.isGoogleUser,
     };
-
     if (req.user) {
       req.user.name = user.name;
       req.user.email = user.email;
       req.user.profilePicture = user.profilePicture;
       req.user.isGoogleUser = user.isGoogleUser;
     }
-
+    // Success update message.
     req.session.success = "Profile updated successfully.";
     res.redirect("/profile");
+    // Any server error.
   } catch (err) {
     console.error("Update Error:", err.message);
     res.status(500).render("profile", {
@@ -229,16 +223,21 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// 7. Updates only the logged-in user's profile picture.
 const updateProfilePicture = async (req, res) => {
   try {
     const filePath = "/uploads/profiles/" + req.file.filename;
-    const user = await userRepository.updateProfilePicture(req.session.user._id, filePath);
-
+    const user = await userRepository.updateProfilePicture(
+      req.session.user._id,
+      filePath
+    );
+    // Success update message.
     req.session.user.profilePicture = user.profilePicture;
     req.session.success = "Profile picture updated successfully.";
     res.redirect("/profile");
+    // Any server error.
   } catch (error) {
-    console.error("Error uploading profile picture:", error);
+    console.error("[Upload Picture Error]", error.message);
     res.status(500).render("profile", {
       user: req.session.user,
       error: "Failed to upload profile picture.",
@@ -246,11 +245,10 @@ const updateProfilePicture = async (req, res) => {
   }
 };
 
-
+// 8. Changes the user's password after validating old one.
 const changePassword = async (req, res) => {
   const { currentPassword, password, confirmPassword } = req.body;
-
-  // 1. Check for empty fields
+  // Check for empty fields.
   if (!currentPassword || !password || !confirmPassword) {
     return res.render("profile", {
       user: req.session.user,
@@ -261,8 +259,7 @@ const changePassword = async (req, res) => {
       weakPassword: null,
     });
   }
-
-  // 2. Check password strength
+  // Check password strength.
   if (!isStrongPassword(password)) {
     return res.render("profile", {
       user: req.session.user,
@@ -273,8 +270,7 @@ const changePassword = async (req, res) => {
       weakPassword: true,
     });
   }
-
-  // 3. Check for mismatch
+  // Check for mismatch.
   if (password !== confirmPassword) {
     return res.render("profile", {
       user: req.session.user,
@@ -285,11 +281,9 @@ const changePassword = async (req, res) => {
       weakPassword: null,
     });
   }
-
-  // 4. Check if current password is correct
+  // Check if current password is correct.
   const user = await userRepository.findById(req.session.user._id);
   const isMatch = await bcrypt.compare(currentPassword, user.password);
-
   if (!isMatch) {
     return res.render("profile", {
       user: req.session.user,
@@ -300,18 +294,17 @@ const changePassword = async (req, res) => {
       weakPassword: null,
     });
   }
-  // 5. All checks passed, update password
+  // All checks passed, update password.
   user.password = await bcrypt.hash(password, 10);
   await userRepository.save(user);
-
   req.session.success = "Password updated successfully.";
   res.redirect("/profile");
 };
 
+// 9. Deletes a user's account after password confirmation.
 const deleteAccount = async (req, res, next) => {
   const { deletePassword, deleteConfirmPassword } = req.body;
-
-  // 1. Check for missing or mismatched passwords
+  // Check for missing or mismatched passwords.
   if (
     !deletePassword ||
     !deleteConfirmPassword ||
@@ -327,12 +320,10 @@ const deleteAccount = async (req, res, next) => {
       deleteError: "Passwords do not match.",
     });
   }
-
   try {
-    // 2. Fetch user and compare password
+    // Fetch user and compare password.
     const user = await userRepository.findById(req.session.user._id);
     const isMatch = await bcrypt.compare(deletePassword, user.password);
-
     if (!isMatch) {
       return res.render("profile", {
         user: req.session.user,
@@ -344,16 +335,15 @@ const deleteAccount = async (req, res, next) => {
         deleteError: null,
       });
     }
-
-    // 3. Delete user and logout
+    // Delete user and logout.
     await User.findByIdAndDelete(user._id);
-
     req.session.destroy((err) => {
       if (err) return next(err);
       res.clearCookie("connect.sid");
       res.cookie("deleteToast", "1", { maxAge: 5000, httpOnly: false });
       res.redirect("/");
     });
+    // Any server error.
   } catch (err) {
     console.error("Delete Account Error:", err.message);
     return res.status(500).render("profile", {
@@ -368,19 +358,19 @@ const deleteAccount = async (req, res, next) => {
   }
 };
 
+// 10. Sends reset email in forgot password.
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
-
   try {
     const user = await userRepository.findByEmail(email);
-
+    // Check if the user's email not found.
     if (!user) {
       return res.render("forgot-password", {
         error: "No account found with that email.",
         success: null,
       });
     }
-
+    // Check if the account is a Google account.
     if (user.isGoogleUser) {
       return res.render("forgot-password", {
         error:
@@ -388,7 +378,7 @@ const forgotPassword = async (req, res) => {
         success: null,
       });
     }
-
+    // Check if the reset password is already sent and still valid.
     if (user.resetPasswordExpires && user.resetPasswordExpires > Date.now()) {
       return res.render("forgot-password", {
         error:
@@ -396,29 +386,28 @@ const forgotPassword = async (req, res) => {
         success: null,
       });
     }
-
+    // Update the new password.
     const token = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = crypto
       .createHash("sha256")
       .update(token)
       .digest("hex");
     user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
-
     await userRepository.save(user);
-
     const sent = await sendResetEmail(user.email, token);
-
+    // Any server error.
     if (!sent) {
       return res.render("forgot-password", {
         error: "Failed to send reset email. Please try again.",
         success: null,
       });
     }
-
+    // All checks passed and the email is sent.
     return res.render("forgot-password", {
       success: "A reset link has been sent to your email.",
       error: null,
     });
+    // Any server error.
   } catch (err) {
     console.error("Forgot Password Error:", err.message);
     return res.render("forgot-password", {
@@ -428,23 +417,24 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+// 11. Displays the password reset form.
 const showResetPasswordForm = async (req, res) => {
   const token = req.params.token;
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
   const user = await userRepository.findByResetToken(hashedToken);
-
+  // Check if the link is wrong or invalid.
   if (!user) {
     return res.send("Reset link is invalid or expired");
-  }  
-
+  }
+  // Give a new token to the link.
   res.render("reset-password", { token });
 };
 
+// 12. Resets the user's password after verifying the token.
 const resetPassword = async (req, res) => {
   const { password, confirmPassword } = req.body;
   const token = req.params.token;
-
+  // Check for mismatch.
   if (password !== confirmPassword) {
     return res.status(400).render("reset-password", {
       token,
@@ -452,7 +442,7 @@ const resetPassword = async (req, res) => {
       success: null,
     });
   }
-
+  // Check for password strength.
   if (!isStrongPassword(password)) {
     return res.status(400).render("reset-password", {
       token,
@@ -461,23 +451,21 @@ const resetPassword = async (req, res) => {
       success: null,
     });
   }
-
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
   const user = await userRepository.findByResetToken(hashedToken);
-
+  // Reset link is already used once,
   if (!user) {
-    return res.status(400).render("reset-used"); // ✅ Used link
+    return res.status(400).render("reset-used");
   }
-
+  // Reset link is expired.
   if (!user.resetPasswordExpires || user.resetPasswordExpires < Date.now()) {
-    return res.status(400).render("reset-expired"); // ✅ Expired link
+    return res.status(400).render("reset-expired");
   }
-
+  // Update password successfully.
   user.password = await bcrypt.hash(password, 10);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
   await userRepository.save(user);
-
   req.session.user = {
     _id: user._id,
     name: user.name,
@@ -485,7 +473,6 @@ const resetPassword = async (req, res) => {
     profilePicture: user.profilePicture || null,
     isGoogleUser: user.isGoogleUser || false,
   };
-  
   req.flash("success", "Password updated successfully");
   res.redirect("/");
 };
