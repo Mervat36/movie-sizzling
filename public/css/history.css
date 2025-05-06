@@ -2,7 +2,17 @@
 .history-section {
   background-color: #f6f7fb;
   color: #1e1e2f;
+  padding-top: 30px; /* Adjust as needed */
+ 
 }
+.center-title {
+  text-align: center;
+  font-size: 28px;
+  color: #1e1e2f;
+  margin-bottom: 20px;
+}
+
+
 .history-table-wrapper {
   background-color: #ffffff;
   border-radius: 10px;
@@ -10,6 +20,7 @@
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   max-width: 1500px;
   margin: 0 auto;
+  height: 500px;
 }
 .history-table {
   width: 100%;

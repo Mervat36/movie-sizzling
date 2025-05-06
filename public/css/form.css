@@ -1,23 +1,39 @@
 /* 1. Common Form Layout. */
 .auth-container {
-  padding: 80px 20px;
-  background-color: #f6f7fb;
+  background-image: url('/images/nnnn.PNG');  
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 700px;
+  /* padding: 80px 20px; */
+  /* background-color: #f6f7fb; */
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 80vh;
+  margin-bottom: 50px;
+  
 }
+body {
+  background-image: url('/images/nnnn.PNG'); 
+  background-size: 135%;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 820px;
+}
+
 .login-box,
 .profile-card,
 .upload-box,
 .reset-container,
-.container,
+.container
 .search-container {
   background-color: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--input-bg);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
+
 /* 2. Auth Card & Shared Containers. */
 .auth-card {
   background: #fff;
@@ -85,6 +101,8 @@
   text-decoration: underline;
 }
 /* 3. Login Box. */
+
+/* 3. Login Box. */
 .login-box {
   background-color: #fff;
   padding: 40px 30px;
@@ -102,7 +120,8 @@
 }
 /* 4. Input and Toggle Icon. */
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 2px;
+  margin-top: 2px;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -372,11 +391,22 @@ body.dark-mode .google-btn:hover {
   text-decoration: none;
 }
 .profile-container {
-  padding-top: 120px;
+  height: 800px;
+  padding-top: 90px;
   display: flex;
   justify-content: center;
   align-items: center;
+  
 }
+.profile-photo {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px; /* Optional rounded corners */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Optional shadow */
+}
+
+
+
 .profile-title {
   text-align: center;
   font-size: 28px;
