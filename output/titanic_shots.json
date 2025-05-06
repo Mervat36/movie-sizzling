@@ -1,0 +1,21 @@
+{
+  "movieTitle": "titanic",
+  "videoPath": "uploads\\titanic.mp4",
+  "fps": 29.97002997002997,
+  "shots": [
+    {
+      "shotNumber": 1,
+      "startFrame": 899,
+      "middleFrame": 1348,
+      "endFrame": 1798,
+      "startTime": "00:00:29.997",
+      "middleTime": "00:00:44.978",
+      "endTime": "00:00:59.993",
+      "images": {
+        "start": "shots\\titanic\\shot_001_start.jpg",
+        "middle": "shots\\titanic\\shot_001_middle.jpg",
+        "end": "shots\\titanic\\shot_001_end.jpg"
+      }
+    }
+  ]
+}

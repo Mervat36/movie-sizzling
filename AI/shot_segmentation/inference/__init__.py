@@ -1,0 +1,1 @@
+from inference.transnetv2 import TransNetV2
