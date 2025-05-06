@@ -20,12 +20,15 @@
     <nav class="main-nav">
       <ul>
         <% if (user) { %>
+         
         <li><a href="/upload">Upload Video</a></li>
-        <li><a href="/search">Search Scene</a></li>
+        <li><a href="/search">Search for a Scene</a></li>
         <li><a href="/history">Search History</a></li>
         <li><a href="/profile" class="auth-btn login-btn">Profile</a></li>
         <li>
+          
           <form action="/users/logout" method="POST" style="display: inline">
+           
             <button
               class="auth-btn register-btn"
               style="color: #121636"
@@ -33,7 +36,13 @@
             >
               Logout
             </button>
+           
           </form>
+          <li>
+            <% if (user) { %>
+              <span class="welcome-text">Hi, <%= user.name %>!</span>
+            <% } %>
+            </li>
         </li>
         <% } else { %>
         <li><a href="/login" class="auth-btn login-btn">Login</a></li>
