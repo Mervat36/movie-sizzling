@@ -264,15 +264,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Upload Route
-app.post(
-  "/upload",
-  ensureAuthenticated,
-  upload.single("video"),
-  async (req, res) => {
-    // unchanged...
-  }
-);
+
 
 // APIs
 app.use("/api/videos", videoRoutes);
@@ -290,7 +282,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// ===== Start of server.js File 2 (extra upload route with supabase and metadata handling) =====
 app.post("/upload", upload.single("video"), async (req, res) => {
   const localTempPath = req.file.path;
   const movieTitle = req.body.title;
@@ -301,6 +292,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
   const localDownloadPath = path.join("uploads", `dl_${supaFileName}`);
 
   try {
+    console.log("🟡 Uploading video to Supabase...");
     const fileBuffer = fs.readFileSync(localTempPath);
     const { error } = await supabase.storage
       .from("movies")
@@ -313,6 +305,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
       console.error("❌ Supabase upload error:", error);
       return res.status(500).send("Upload to Supabase failed.");
     }
+    console.log("✅ Supabase video upload complete.");
 
     fs.unlink(localTempPath, (unlinkErr) => {
       if (unlinkErr)
@@ -329,18 +322,25 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     response.data.pipe(writer);
 
     writer.on("finish", async () => {
+      console.log("🟡 Download complete. Starting shot segmentation...");
+
       exec(
         `venv\\Scripts\\python.exe AI/shot_segmentation/shot_segmentation.py "${localDownloadPath}" "${safeTitle}"`,
         async (error, stdout, stderr) => {
+          console.log("📤 [Model Triggered] Running Python command...");
           if (error) {
             console.error(`❌ Python error: ${error.message}`);
             return res.status(500).send("Model failed.");
           }
 
+          console.log("✅ [Shot Segmenter] Finished running shot_segmentation.py");
+
           try {
             const jsonPath = path.join("output", `${safeTitle}_shots.json`);
             const shotFolder = path.join("shots", safeTitle);
             const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+
+            console.log("🟡 Uploading shots to Supabase...");
 
             for (const shot of jsonData.shots) {
               for (const [key, imagePath] of Object.entries(shot.images)) {
@@ -355,18 +355,17 @@ app.post("/upload", upload.single("video"), async (req, res) => {
                   });
 
                 if (uploadError) {
-                  console.error(
-                    `❌ Failed to upload ${imageName}:`,
-                    uploadError
-                  );
+                  console.error(`❌ Failed to upload ${imageName}:`, uploadError);
                 }
 
                 fs.unlinkSync(imagePath);
               }
             }
 
+            console.log("✅ [Supabase] All shots uploaded.");
+
             const savedMetadata = await ShotMetadata.create(jsonData);
-            console.log("✅ Metadata saved:", savedMetadata._id);
+            console.log("✅ Metadata saved to MongoDB:", savedMetadata._id);
 
             fs.rmSync(shotFolder, { recursive: true, force: true });
             fs.unlink(localDownloadPath, () => {});
