@@ -4,4 +4,8 @@ venv/
 uploads/
 shots/
 output/
+output_images/
 venv_scene/
+venv_scene_class/
+**/model-v1.ckpt/
+
