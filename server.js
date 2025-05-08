@@ -771,7 +771,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
         fs.unlinkSync(localDownloadPath);
 
         console.log("\uD83D\uDFE2 Starting scene segmentation...");
-        const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/bassl/bassl/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
+        const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/model/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
 
         exec(sceneCommand, async (sceneErr, stdout, stderr) => {
           if (sceneErr) {
