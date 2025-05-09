@@ -8,3 +8,4 @@ output_images/
 venv_scene/
 venv_scene_class/
 *.ckpt
+supabaseClient.js
