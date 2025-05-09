@@ -1,40 +1,11 @@
 /* 1. Hero Section. */
-/* .centered-hero {
+.centered-hero {
   background-color: #121636;
   color: white;
   text-align: center;
   padding: 100px 20px;
   border-radius: 0 0 50px 50px;
-} */
-.centered-hero {
-  position: relative;
-  background-image: url('/images/background.jpg'); /* Correct path */
-  background-size: cover;
-  background-position: center 72%; /* Moves the image 10% down from the center */
-  background-repeat: no-repeat;
-  color: white;
-  text-align: center;
-  padding: 100px 20px;
-  height: 540px; /* Adjust the height as needed */
-  border-radius: 20px;
 }
-/* Add a pseudo-element for the overlay */
-.centered-hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.2); /* Adjust the opacity here (0 to 1) */
-  z-index: 1;
-}
-/* Ensure text and content stay above the overlay */
-.centered-hero > * {
-  position: relative;
-  z-index: 2;
-}
-
 .centered-hero .hero-content {
   max-width: 700px;
   margin: 0 auto;

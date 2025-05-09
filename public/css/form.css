@@ -1,12 +1,11 @@
 /* 1. Common Form Layout. */
 .auth-container {
-  background-image: url('/images/nnnn.PNG');  
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   height: 700px;
-  /* padding: 80px 20px; */
-  /* background-color: #f6f7fb; */
+  padding: 80px 20px;
+  background-color: #f6f7fb;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,7 +14,6 @@
   
 }
 body {
-  background-image: url('/images/nnnn.PNG'); 
   background-size: 135%;
   background-repeat: no-repeat;
   background-position: center;
@@ -100,7 +98,6 @@ body {
 .auth-links a:hover {
   text-decoration: underline;
 }
-/* 3. Login Box. */
 
 /* 3. Login Box. */
 .login-box {
