@@ -7,6 +7,12 @@ import subprocess
 import cv2
 from datetime import datetime
 
+# Define timestamp_to_seconds function
+def timestamp_to_seconds(ts):
+    """Convert HH:MM:SS.MS to float seconds"""
+    h, m, s = ts.split(':')
+    return int(h) * 3600 + int(m) * 60 + float(s)
+
 # CLI args: [captions_json, user_query, video_path]
 captions_path = sys.argv[1]
 query = sys.argv[2]
@@ -43,10 +49,10 @@ for path, info in metadata.items():
             "image": path
         })
 
-# Sort and remove duplicates by time
+# Sort and remove duplicates by start_time (ascending order)
 seen = set()
 final_matches = []
-for result in sorted(caption_results, key=lambda x: x["score"], reverse=True):
+for result in sorted(caption_results, key=lambda x: timestamp_to_seconds(x["start_time"]), reverse=False):
     key = (result["start_time"], result["end_time"])
     if key not in seen:
         seen.add(key)
@@ -59,19 +65,21 @@ os.makedirs(scene_clips_folder, exist_ok=True)
 # Initialize list to store scene video files
 scene_video_files = []
 
-def timestamp_to_seconds(ts):
-    """Convert HH:MM:SS.MS to float seconds"""
-    h, m, s = ts.split(':')
-    return int(h) * 3600 + int(m) * 60 + float(s)
-
 # Open the video file using OpenCV
 cap = cv2.VideoCapture(video_path)
 fps = cap.get(cv2.CAP_PROP_FPS)
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+# Prepare to write the final concatenated video
+final_output_filename = "final_concatenated_video.mp4"
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4
+out = cv2.VideoWriter(final_output_filename, fourcc, fps, (frame_width, frame_height))
+
 # Process and cut scenes from video
-for i, match in enumerate(final_matches):
+i = 0
+clips_to_concatenate = []
+for match in final_matches:
     start = timestamp_to_seconds(match["start_time"])
     end = timestamp_to_seconds(match["end_time"])
 
@@ -80,8 +88,7 @@ for i, match in enumerate(final_matches):
 
     # Create a VideoWriter object to save the cut scene
     output_filename = os.path.join(scene_clips_folder, f"scene_{i:03}.mp4")
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4
-    out = cv2.VideoWriter(output_filename, fourcc, fps, (frame_width, frame_height))
+    temp_out = cv2.VideoWriter(output_filename, fourcc, fps, (frame_width, frame_height))
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -93,11 +100,34 @@ for i, match in enumerate(final_matches):
         if current_frame >= (end * fps):
             break
 
-        # Write the frame to the output video file
-        out.write(frame)
+        # Write the frame to the temporary video file
+        temp_out.write(frame)
 
-    # Release the video writer and continue
-    out.release()
+    # Release the temporary video writer
+    temp_out.release()
+
+    # If current scene is similar to the previous one (same caption or close in time), merge
+    if i > 0 and (final_matches[i]["caption"] == final_matches[i-1]["caption"] or 
+                  timestamp_to_seconds(final_matches[i]["start_time"]) - timestamp_to_seconds(final_matches[i-1]["end_time"]) < 5):
+        # Concatenate with previous scene
+        prev_clip = cv2.VideoCapture(output_filename)
+        while prev_clip.isOpened():
+            ret, frame = prev_clip.read()
+            if ret:
+                out.write(frame)  # Write to final output
+            else:
+                break
+        prev_clip.release()
+    else:
+        # Add the current clip to the final output video
+        temp_clip = cv2.VideoCapture(output_filename)
+        while temp_clip.isOpened():
+            ret, frame = temp_clip.read()
+            if ret:
+                out.write(frame)  # Write to final output
+            else:
+                break
+        temp_clip.release()
 
     # Save the scene metadata
     scene_video_files.append({
@@ -108,11 +138,17 @@ for i, match in enumerate(final_matches):
         "score": match["score"]
     })
 
+    # Increase scene counter
+    i += 1
+
 # Release the video capture object
 cap.release()
 
 # Save JSON of matched scenes
 with open("matched_scenes.json", "w") as f:
     json.dump(scene_video_files, f, indent=2)
+
+# Release the final output file
+out.release()
 
 print(f"✅ Finished. Total scenes: {len(scene_video_files)}")
