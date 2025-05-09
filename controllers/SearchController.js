@@ -1,4 +1,4 @@
-const Search = require("../models/Search");
+const Search = require("../models/SceneSearchResult");
 
 // 1. Searches for scenes in the database matching the query.
 exports.searchScenes = async (req, res) => {
