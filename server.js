@@ -432,12 +432,20 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { ensureAuthenticated } = require("./middleware/auth");
 require("./middleware/auth");
+require('events').EventEmitter.defaultMaxListeners = 20;
+
 const { getProfile } = require("./controllers/UserController");
 
 const User = require("./models/User");
 const supabase = require("./supabaseClient");
 const ShotMetadata = require("./models/ShotData");
+
+const UserQuery = require("./models/UserQuery");
+
 const SceneMetadata = require("./models/SceneMetadata");
+const SceneResults = require("./models/SceneSearchResult");
+
+
 const connectDB = require("./config/db");
 const videoRoutes = require("./routes/VideoRoutes");
 const userRoutes = require("./routes/UserRoutes");
@@ -700,6 +708,32 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+app.post("/search", ensureAuthenticated, async (req, res) => {
+  const { query } = req.body;
+
+  try {
+    const userId = req.user?._id || req.session.user?._id;
+
+    const newQuery = new UserQuery({
+      userId,
+      query
+    });
+
+    await newQuery.save();
+
+    // Redirect or render results page
+  res.render("results", {
+  query: query,       // or the actual query text
+  videoUrl: null   // if you're also using a video in the page
+});
+
+
+} catch (err) {
+    console.error("Error saving search query:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 app.post("/upload", upload.single("video"), async (req, res) => {
   const localTempPath = req.file.path;
   const movieTitle = req.body.title;
@@ -770,7 +804,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
         await ShotMetadata.create(jsonData);
         fs.unlinkSync(localDownloadPath);
 
-        console.log("\uD83D\uDFE2 Starting scene segmentation...");
+        console.log("🟢 Starting scene segmentation...");
         const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/model/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
 
         exec(sceneCommand, async (sceneErr, stdout, stderr) => {
@@ -790,7 +824,6 @@ app.post("/upload", upload.single("video"), async (req, res) => {
           const scenesData = JSON.parse(fs.readFileSync(scenesJsonPath, "utf-8"));
 
           for (const scene of scenesData.scenes) {
-            // Upload scene thumbnail
             const localThumbPath = path.join("output", safeTitle, "scenes", path.basename(scene.thumbnail_path));
             if (!fs.existsSync(localThumbPath)) {
               console.warn("Missing scene thumbnail:", localThumbPath);
@@ -812,7 +845,6 @@ app.post("/upload", upload.single("video"), async (req, res) => {
 
             fs.unlinkSync(localThumbPath);
 
-            // Upload all scene shot images (flat structure)
             const sceneFolder = path.join("output", safeTitle, "scenes", path.basename(scene.thumbnail_path, ".jpg"));
             if (fs.existsSync(sceneFolder)) {
               const sceneFiles = fs.readdirSync(sceneFolder);
@@ -848,7 +880,66 @@ app.post("/upload", upload.single("video"), async (req, res) => {
           }
           fs.rmSync(shotFolder, { recursive: true, force: true });
 
-          res.redirect("/search");
+          // ✅ START SEARCH.PY INTEGRATION
+          const localSceneFolder = path.join("output", safeTitle, "search_scenes");
+          fs.mkdirSync(localSceneFolder, { recursive: true });
+
+          console.log("📥 Downloading scene images from Supabase...");
+          for (const scene of scenesData.scenes) {
+            const baseName = path.basename(scene.thumbnail_path, ".jpg");
+            const pattern = new RegExp(`^${baseName}_shot\\d+_(start|middle|end)\\.jpg$`);
+            const { data: files, error: listErr } = await supabase.storage.from("scene-results").list(`${safeTitle}`, { limit: 100 });
+            if (listErr) {
+              console.error("❌ Failed to list scene files:", listErr.message);
+              return res.status(500).send("Scene listing failed.");
+            }
+
+            const matched = files.filter(f => pattern.test(f.name));
+            for (const file of matched) {
+              const { data, error: downloadErr } = await supabase.storage.from("scene-results").download(`${safeTitle}/${file.name}`);
+              if (downloadErr) {
+                console.error("❌ Failed to download:", file.name);
+                continue;
+              }
+              const buffer = Buffer.from(await data.arrayBuffer());
+              fs.writeFileSync(path.join(localSceneFolder, file.name), buffer);
+            }
+          }
+
+          const metadataPath = path.join("output", safeTitle, "scene_metadata.json");
+          const sceneMetadata = await SceneMetadata.findOne({ title: safeTitle });
+          fs.writeFileSync(metadataPath, JSON.stringify(sceneMetadata, null, 2));
+
+          console.log("🚀 Running scene captioning pipeline...");
+          const searchCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search.py "${localSceneFolder}" "${metadataPath}"`;
+exec(searchCommand, async (searchErr, stdout, stderr) => {
+  if (searchErr) {
+    console.error("❌ Search pipeline failed:", searchErr.message);
+    console.error("🔴 STDERR:", stderr);
+    return res.status(500).send("Scene captioning pipeline failed.");
+  }
+
+  console.log("✅ Search captioning completed:\n", stdout);
+
+  // ⬇️ Upload captions JSON to MongoDB
+  try {
+    const captionsJsonPath = path.join(__dirname, `${safeTitle}_captions.json`);
+    console.log("📂 Looking for caption JSON to insert:", captionsJsonPath);
+
+    const data = fs.readFileSync(captionsJsonPath, "utf-8");
+    const parsedJson = JSON.parse(data);
+
+    await SceneResults.create(parsedJson);
+    console.log("✅ Captions JSON inserted to MongoDB.");
+  } catch (mongoErr) {
+    console.error("❌ Failed to insert captions JSON to MongoDB:", mongoErr.message);
+    return res.status(500).send("Failed to insert captions to Mongo.");
+  }
+
+  // ✅ All good
+  res.redirect("/search");
+});
+
         });
       });
     });
