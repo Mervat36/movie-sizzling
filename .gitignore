@@ -12,4 +12,6 @@ testing_last_scene_is/
 *.pt
 *.ckpt
 *.pkl
+*.json
+*.jpg
 supabaseClient.js

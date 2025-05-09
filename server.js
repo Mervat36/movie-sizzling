@@ -734,6 +734,7 @@ app.post("/search", ensureAuthenticated, async (req, res) => {
   }
 });
 
+
 app.post("/upload", upload.single("video"), async (req, res) => {
   const localTempPath = req.file.path;
   const movieTitle = req.body.title;
@@ -880,7 +881,6 @@ app.post("/upload", upload.single("video"), async (req, res) => {
           }
           fs.rmSync(shotFolder, { recursive: true, force: true });
 
-          // ✅ START SEARCH.PY INTEGRATION
           const localSceneFolder = path.join("output", safeTitle, "search_scenes");
           fs.mkdirSync(localSceneFolder, { recursive: true });
 
@@ -912,34 +912,57 @@ app.post("/upload", upload.single("video"), async (req, res) => {
 
           console.log("🚀 Running scene captioning pipeline...");
           const searchCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search.py "${localSceneFolder}" "${metadataPath}"`;
-exec(searchCommand, async (searchErr, stdout, stderr) => {
-  if (searchErr) {
-    console.error("❌ Search pipeline failed:", searchErr.message);
-    console.error("🔴 STDERR:", stderr);
-    return res.status(500).send("Scene captioning pipeline failed.");
-  }
+          exec(searchCommand, async (searchErr, stdout, stderr) => {
+            if (searchErr) {
+              console.error("❌ Search pipeline failed:", searchErr.message);
+              console.error("🔴 STDERR:", stderr);
+              return res.status(500).send("Scene captioning pipeline failed.");
+            }
 
-  console.log("✅ Search captioning completed:\n", stdout);
+            console.log("✅ Search captioning completed:\n", stdout);
 
-  // ⬇️ Upload captions JSON to MongoDB
-  try {
-    const captionsJsonPath = path.join(__dirname, `${safeTitle}_captions.json`);
-    console.log("📂 Looking for caption JSON to insert:", captionsJsonPath);
+            try {
+              const captionsJsonPath = path.join(__dirname, `${safeTitle}_captions.json`);
+              console.log("📂 Looking for caption JSON to insert:", captionsJsonPath);
 
-    const data = fs.readFileSync(captionsJsonPath, "utf-8");
-    const parsedJson = JSON.parse(data);
+              if (!fs.existsSync(captionsJsonPath)) {
+                console.error("❌ Captions JSON file not found:", captionsJsonPath);
+                return res.status(500).send("Captions file missing.");
+              }
 
-    await SceneResults.create(parsedJson);
-    console.log("✅ Captions JSON inserted to MongoDB.");
-  } catch (mongoErr) {
-    console.error("❌ Failed to insert captions JSON to MongoDB:", mongoErr.message);
-    return res.status(500).send("Failed to insert captions to Mongo.");
-  }
+              const data = fs.readFileSync(captionsJsonPath, "utf-8");
+              if (data.trim().startsWith("<")) {
+                console.error("❌ Captions file contains unexpected HTML instead of JSON.");
+                return res.status(500).send("Invalid captions file content.");
+              }
 
-  // ✅ All good
-  res.redirect("/search");
-});
+              let parsedJson;
+              try {
+                parsedJson = JSON.parse(data);
+              } catch (parseErr) {
+                console.error("❌ Failed to parse captions JSON:", parseErr.message);
+                return res.status(500).send("Failed to parse captions file.");
+              }
 
+              if (!parsedJson.movie_name || typeof parsedJson.shots_metadata !== 'object') {
+                console.error("❌ Invalid caption JSON format. Must contain movie_name and valid shots_metadata.");
+                return res.status(400).send("Invalid caption JSON format.");
+              }
+
+              const formattedData = {
+                movie_name: parsedJson.movie_name,
+                shots_metadata: parsedJson.shots_metadata
+              };
+
+              const SceneResults = require("./models/SceneSearchResult");
+              await SceneResults.create(formattedData);
+              console.log("✅ Captions JSON inserted to MongoDB.");
+              res.redirect("/search");
+            } catch (mongoErr) {
+              console.error("❌ Failed to insert captions JSON to MongoDB:", mongoErr.message);
+              return res.status(500).send("Failed to insert captions to Mongo.");
+            }
+          });
         });
       });
     });

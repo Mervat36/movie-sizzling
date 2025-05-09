@@ -127,11 +127,15 @@ for scene_id, shot_dict in tqdm(scene_shot_map.items()):
             caption, tags = caption_and_extract(path)
 
             clip_metadata[path] = {
-                "caption": caption,
-                "tags": tags,
-                "start_time": scene_start_time,
-                "end_time": scene_end_time
-            }
+            "caption": caption,
+            "tags": {
+                "action": tags["action"],
+                "place": tags["place"],
+                "objects": list(tags["objects"])  # 👈 ده المهم!
+            },
+            "start_time": scene_start_time,
+            "end_time": scene_end_time
+        }
 
             shot_captions.append(caption)
 
