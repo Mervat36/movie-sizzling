@@ -708,31 +708,50 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+
+
 app.post("/search", ensureAuthenticated, async (req, res) => {
   const { query } = req.body;
+  const userId = req.user?._id || req.session.user?._id;
+
+  // ✅ Get videoTitle from session
+  const safeTitle = req.session.videoTitle;
+
+  if (!safeTitle) {
+    return res.status(400).send("No video linked to this search.");
+  }
 
   try {
-    const userId = req.user?._id || req.session.user?._id;
-
-    const newQuery = new UserQuery({
-      userId,
-      query
-    });
-
+    const newQuery = new UserQuery({ userId, query });
     await newQuery.save();
 
-    // Redirect or render results page
-  res.render("results", {
-  query: query,       // or the actual query text
-  videoUrl: null   // if you're also using a video in the page
-});
+    const captionsPath = path.join(__dirname, `${safeTitle}_captions.json`);
+    const videoPath = path.join("uploads", `dl_${safeTitle}.mp4`);
 
+    if (!fs.existsSync(captionsPath) || !fs.existsSync(videoPath)) {
+      return res.status(400).send("Captions or video not found.");
+    }
 
-} catch (err) {
-    console.error("Error saving search query:", err);
+    const pyCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search_user_query.py "${captionsPath}" "${query}" "${videoPath}"`;
+
+    exec(pyCommand, async (error, stdout, stderr) => {
+      if (error) {
+        console.error("❌ Python search failed:", error.message);
+        console.error("🔴 STDERR:", stderr);
+        return res.status(500).send("Search failed.");
+      }
+
+      console.log("✅ Search finished:", stdout);
+      res.redirect("/search-results");
+    });
+
+  } catch (err) {
+    console.error("❌ Error saving query or executing search:", err.message);
     res.status(500).send("Internal Server Error");
   }
 });
+
+
 
 
 app.post("/upload", upload.single("video"), async (req, res) => {
@@ -759,10 +778,14 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     console.log("✅ Supabase video upload complete.");
     fs.unlinkSync(localTempPath);
 
+    req.session.videoTitle = safeTitle;
+    console.log("📌 Saved video title to session:", safeTitle);
+
     const response = await axios({ method: "get", url: publicUrl, responseType: "stream" });
     const writer = fs.createWriteStream(localDownloadPath);
     response.data.pipe(writer);
 
+    
     writer.on("finish", async () => {
       console.log("🟡 Starting shot segmentation...");
       exec(`venv\\Scripts\\python.exe AI/shot_segmentation/shot_segmentation.py "${localDownloadPath}" "${safeTitle}"`, async (error) => {
@@ -803,7 +826,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
         }
 
         await ShotMetadata.create(jsonData);
-        fs.unlinkSync(localDownloadPath);
+        // fs.unlinkSync(localDownloadPath);
 
         console.log("🟢 Starting scene segmentation...");
         const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/model/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
@@ -957,7 +980,10 @@ app.post("/upload", upload.single("video"), async (req, res) => {
               const SceneResults = require("./models/SceneSearchResult");
               await SceneResults.create(formattedData);
               console.log("✅ Captions JSON inserted to MongoDB.");
-              res.redirect("/search");
+              res.render("search", {
+                uploadedVideoTitle: safeTitle
+
+              });
             } catch (mongoErr) {
               console.error("❌ Failed to insert captions JSON to MongoDB:", mongoErr.message);
               return res.status(500).send("Failed to insert captions to Mongo.");

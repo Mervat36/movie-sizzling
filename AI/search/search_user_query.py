@@ -1,123 +1,118 @@
 import os
+import sys
+import json
 import torch
 import clip
-import json
-import pickle
-import re
-from sentence_transformers import SentenceTransformer, util
-from ultralytics import YOLO
-import spacy
-from pymongo import MongoClient
+import subprocess
+import cv2
 from datetime import datetime
 
-# ----------------------------
-# Setup
-# ----------------------------
+# CLI args: [captions_json, user_query, video_path]
+captions_path = sys.argv[1]
+query = sys.argv[2]
+video_path = sys.argv[3]
+
+# Load caption metadata
+with open(captions_path, "r") as f:
+    data = json.load(f)
+metadata = data["shots_metadata"]
+
+# Load model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
+
+from sentence_transformers import SentenceTransformer, util
 sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
-yolo = YOLO("yolov8n.pt")
-nlp = spacy.load("en_core_web_sm")
 
+# Process query
+query_embedding = model.encode_text(clip.tokenize([query]).to(device)).squeeze()
+caption_results = []
 
-# ----------------------------
-# Tag Extraction
-# ----------------------------
-place_keywords = {"restaurant", "kitchen", "hall", "room", "forest", "street", "car", "park", "school", "office", "building", "beach", "hospital"}
+# Match captions
+for path, info in metadata.items():
+    caption = info["caption"]
+    caption_embedding = model.encode_text(clip.tokenize([caption]).to(device)).squeeze()
+    score = torch.cosine_similarity(query_embedding, caption_embedding, dim=0).item()
 
-def extract_tags(text):
-    doc = nlp(text)
-    action, place = None, None
-    objects = []
-    for token in doc:
-        if token.pos_ == "VERB" and action is None:
-            action = token.lemma_
-        if token.dep_ == "pobj" and token.head.text in ["in", "on", "at"]:
-            place = token.text
-        if token.pos_ == "NOUN":
-            if token.text.lower() in place_keywords:
-                place = token.text
-            else:
-                objects.append(token.text)
-    return {"action": action, "place": place, "objects": objects}
+    if score > 0.28:
+        caption_results.append({
+            "score": round(score, 3),
+            "caption": caption,
+            "start_time": info["start_time"],
+            "end_time": info["end_time"],
+            "image": path
+        })
 
-# ----------------------------
-# Load Cached Data
-# ----------------------------
-with open("clip_embeddings.pkl", "rb") as f:
-    clip_cache = pickle.load(f)
-scene_features = torch.stack(clip_cache["features"]).squeeze()
-scene_paths = clip_cache["paths"]
+# Sort and remove duplicates by time
+seen = set()
+final_matches = []
+for result in sorted(caption_results, key=lambda x: x["score"], reverse=True):
+    key = (result["start_time"], result["end_time"])
+    if key not in seen:
+        seen.add(key)
+        final_matches.append(result)
 
-with open("scene_metadata.json", "r") as f:
-    scene_metadata = json.load(f)
+# Create folder for scene clips
+scene_clips_folder = "output_scene_clips"
+os.makedirs(scene_clips_folder, exist_ok=True)
 
-# ----------------------------
-# Search Execution
-# ----------------------------
-query = input("🔍 Enter your query: ").strip()
-tags = extract_tags(query)
+# Initialize list to store scene video files
+scene_video_files = []
 
-query_tokens = clip.tokenize([query]).to(device)
-with torch.no_grad():
-    query_embedding = model.encode_text(query_tokens).mean(dim=0)
+def timestamp_to_seconds(ts):
+    """Convert HH:MM:SS.MS to float seconds"""
+    h, m, s = ts.split(':')
+    return int(h) * 3600 + int(m) * 60 + float(s)
 
-similarities = torch.cosine_similarity(query_embedding.unsqueeze(0), scene_features)
-threshold = 0.25
+# Open the video file using OpenCV
+cap = cv2.VideoCapture(video_path)
+fps = cap.get(cv2.CAP_PROP_FPS)
+frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-results = []
-for i, sim in enumerate(similarities):
-    score = sim.item()
-    if score < threshold:
-        continue
+# Process and cut scenes from video
+for i, match in enumerate(final_matches):
+    start = timestamp_to_seconds(match["start_time"])
+    end = timestamp_to_seconds(match["end_time"])
 
-    path = scene_paths[i]
-    data = scene_metadata.get(path)
-    if not data:
-        continue
+    # Set the position to the start frame
+    cap.set(cv2.CAP_PROP_POS_FRAMES, int(start * fps))
 
-    caption = data["caption"]
-    image_tags = data["tags"]
-    yolo_objects = list(set(image_tags["objects"]))
+    # Create a VideoWriter object to save the cut scene
+    output_filename = os.path.join(scene_clips_folder, f"scene_{i:03}.mp4")
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4
+    out = cv2.VideoWriter(output_filename, fourcc, fps, (frame_width, frame_height))
 
-    if not set(tags["objects"]).intersection(yolo_objects):
-        continue
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        current_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
-    cap_score = util.pytorch_cos_sim(
-        sentence_model.encode(query, convert_to_tensor=True),
-        sentence_model.encode(caption, convert_to_tensor=True)
-    ).item()
+        # Check if we've reached the end of the scene
+        if current_frame >= (end * fps):
+            break
 
-    final_score = 0.7 * score + 0.3 * cap_score
+        # Write the frame to the output video file
+        out.write(frame)
 
-    results.append({
-        "image": os.path.basename(path),
-        "clip_score": round(score, 3),
-        "caption_score": round(cap_score, 3),
-        "final_score": round(final_score, 3),
-        "caption": caption,
-        "tags": image_tags,
-        "yolo_objects": yolo_objects,
-        "start_time": data.get("start_time", ""),
-        "end_time": data.get("end_time", "")
+    # Release the video writer and continue
+    out.release()
+
+    # Save the scene metadata
+    scene_video_files.append({
+        "file": output_filename,
+        "start_time": match["start_time"],
+        "end_time": match["end_time"],
+        "caption": match["caption"],
+        "score": match["score"]
     })
 
-results.sort(key=lambda x: x["final_score"], reverse=True)
+# Release the video capture object
+cap.release()
 
-# ----------------------------
-# Save to Mongo
-# ----------------------------
-entry = {
-    "userId": None,
-    "result": {
-        "query": query,
-        "title": "search_results",
-        "nlp_tags": tags,
-        "matches": results,
-        "createdAt": datetime.utcnow()
-    },
-    "createdAt": datetime.utcnow()
-}
+# Save JSON of matched scenes
+with open("matched_scenes.json", "w") as f:
+    json.dump(scene_video_files, f, indent=2)
 
-user_query_collection.insert_one(entry)
-print(f"✅ Saved query with {len(results)} matches to MongoDB.")
+print(f"✅ Finished. Total scenes: {len(scene_video_files)}")
