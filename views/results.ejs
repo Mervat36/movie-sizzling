@@ -8,55 +8,59 @@
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/form.css" />
   </head>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    main {
+      flex: 1;
+    }
+  </style>
   <body>
     <%- include("partials/header") %>
-    <section class="auth-container">
-      <div class="login-box">
-        <h2>Search Results</h2>
-        <p class="query-label" style="text-align: center; font-size: 16px">
+    <main>
+      <section class="results-container">
+        <h2 class="profile-title" style="text-align: center">Search Results</h2>
+        <p class="query-label" style="text-align: center; font-size: 16px;">
           <strong>Search Query:</strong> <%= query %>
         </p>
-
-        <% if (!video) { %>
-        <p class="alert-warning" style="text-align: center; margin-top: 20px">
-          <%= message || "No relevant scenes were found for this video." %>
-        </p>
-        <div style="text-align: center; margin-top: 20px">
-          <a href="/search" class="btn-primary">Try Another Search</a>
-        </div>
-        <% } else { %>
-        <div
-          class="video-wrapper"
-          style="margin-top: 20px; margin-bottom: 20px"
-        >
-          <video id="videoPlayer" controls width="100%">
-            <source src="<%= video %>" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </div>
-
         <div style="text-align: center; margin-top: 20px; margin-bottom: 20px">
-          <a href="/search" class="btn-primary">Search Again</a>
+          <a href="/search" class="btn-primary" style="max-width: 200px"
+            >Search Again</a
+          >
         </div>
 
         <% if (results && results.length > 0) { %>
-        <div class="results-grid">
+        <div class="results-wrapper">
           <% results.forEach(result => { %>
           <div class="result-card">
-            <img src="/<%= result.image.replace(/\\/g, "/") %>" alt="Scene
-            Image" />
+            <video controls width="100%">
+              <source src="<%= result.clip %>" type="video/mp4" />
+            </video>
             <div class="result-info">
-              <p><strong>Caption:</strong> <%= result.caption %></p>
-              <p><strong>Start:</strong> <%= result.start_time %></p>
-              <p><strong>End:</strong> <%= result.end_time %></p>
-              <p><strong>Tags:</strong> <%= JSON.stringify(result.tags) %></p>
+              <p style="font-weight: 500"><%= result.caption %></p>
+              <p style="font-size: 13px; color: #888">
+                <%= result.start_time %> – <%= result.end_time %>
+              </p>
             </div>
           </div>
           <% }) %>
         </div>
-        <% } %> <% } %>
-      </div>
-    </section>
+        <% } else { %>
+        <div
+          class="alert error"
+          style="margin: 0 auto; text-align: center; max-width: 250px;"
+        >
+          <%= message || "No relevant scenes were found for this video." %>
+        </div>
+
+        <% } %>
+      </section>
+    </main>
     <%- include("partials/footer") %>
   </body>
 </html>

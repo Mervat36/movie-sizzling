@@ -82,6 +82,7 @@ scene_captions = []
 with open(metadata_file, "r") as f:
     scene_json = json.load(f)
 
+# 🛑 Friendly check BEFORE crashing
 movie_name = scene_json.get("title", "unknown_movie").strip().replace(" ", "_")
 scene_metadata_output = f"{movie_name}_captions.json"
 scene_captions_file = f"{movie_name}_scene_summaries.json"
@@ -171,10 +172,10 @@ with open(scene_captions_file, "w") as f:
 
 # 🛑 Friendly check BEFORE crashing
 if not scene_features:
-    print("❌ No valid scene features extracted. Creating fallback flag.")
-    # Create fallback marker to detect in Node.js
-    with open(f"output/{movie_name}/no_scene_found.txt", "w") as nf:
-        nf.write("Scene captioning skipped: no valid images were processed.")
+    print("No valid scene features extracted. Creating fallback flag.")
+    no_scene_flag = os.path.join("output", movie_name, "no_scene_found.txt")
+    with open(no_scene_flag, "w") as f:
+        f.write("No scene features were extracted for this video.")
     sys.exit(1)
 
 # Only reached if data exists

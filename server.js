@@ -472,7 +472,6 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-
 // ✅ Global middleware to pass user to all views
 app.use((req, res, next) => {
   res.locals.user = req.user || req.session.user || null;
@@ -681,8 +680,6 @@ const upload = multer({ storage });
 app.use("/api/videos", videoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/search", searchRoutes);
-app.use("/users", userRoutes);
-app.use("/", userRoutes);
 app.use(
   session({
     secret: "yourSecretKey",
@@ -690,7 +687,7 @@ app.use(
     saveUninitialized: true,
   })
 );
-app.use('/output', express.static(path.join(__dirname, 'output')));
+app.use("/output", express.static(path.join(__dirname, "output")));
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -1111,7 +1108,6 @@ app.post("/upload", upload.single("video"), async (req, res) => {
         }
       );
     });
-    
 
     writer.on("error", (err) => {
       console.error("❌ File write error:", err);
@@ -1127,7 +1123,15 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
   const videoTitle = req.session.videoTitle;
 
   if (!videoTitle || !userQuery) {
-    return res.status(400).send("Missing video title or query.");
+    return res.status(400).render("error", {
+      error: {
+        status: 400,
+        message: "Missing video or search input",
+      },
+      theme: req.session.theme || "light",
+      friendlyMessage:
+        "Oops! We couldn’t find your video or search term. Please try uploading a video again or go back to the search page.",
+    });
   }
 
   const captionPath = path.join(__dirname, `${videoTitle}_captions.json`);
@@ -1137,8 +1141,31 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
   }
 
   try {
-    const rawData = fs.readFileSync(captionPath, "utf-8");
-    const parsed = JSON.parse(rawData);
+    const rawData = fs.readFileSync(captionPath, "utf-8").trim();
+
+    if (rawData.startsWith("<")) {
+      console.error("❌ Captions file contains HTML, not JSON");
+      return res.status(500).render("error", {
+        error: { status: 500, message: "Corrupted captions file" },
+        theme: req.session.theme || "light",
+        friendlyMessage:
+          "Something went wrong while reading the video data. Please try re-uploading your video.",
+      });
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(rawData);
+    } catch (e) {
+      console.error("❌ Failed to parse captions JSON:", e.message);
+      return res.status(500).render("error", {
+        error: { status: 500, message: "Invalid JSON format" },
+        theme: req.session.theme || "light",
+        friendlyMessage:
+          "We couldn’t process your video results. Please try again later.",
+      });
+    }
+
     const metadata = parsed.shots_metadata;
 
     const results = [];
@@ -1164,10 +1191,45 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
       });
     }
 
+    const { execSync } = require("child_process");
+
+    const inputPath = path.join("uploads", `dl_${videoTitle}.mp4`);
+    const clipsDir = path.join("output", "clips");
+    if (!fs.existsSync(clipsDir)) {
+      fs.mkdirSync(clipsDir, { recursive: true });
+    }
+
+    const trimmedResults = [];
+
+    for (const match of results) {
+      const clipName = `${videoTitle}_${match.start_time.replace(
+        /:/g,
+        "-"
+      )}_${match.end_time.replace(/:/g, "-")}_clip.mp4`;
+      const outputClipPath = path.join(clipsDir, clipName);
+      const clipUrl = `/output/clips/${clipName}`;
+
+      if (!fs.existsSync(outputClipPath)) {
+        const trimCommand = `ffmpeg -y -i "${inputPath}" -ss ${match.start_time} -to ${match.end_time} -preset ultrafast -crf 28 "${outputClipPath}"`;
+        try {
+          execSync(trimCommand);
+          console.log("✅ Created clip:", clipName);
+        } catch (error) {
+          console.error("❌ Failed to trim clip:", error.message);
+          continue; // Skip this one if failed
+        }
+      }
+
+      trimmedResults.push({
+        ...match,
+        clip: clipUrl,
+      });
+    }
+
     res.render("results", {
-      results,
+      results: trimmedResults,
       query: userQuery,
-      video: `/uploads/dl_${videoTitle}.mp4`,
+      video: null,
       message: null,
     });
   } catch (err) {
@@ -1175,4 +1237,9 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
     return res.status(500).send("Server error processing results.");
   }
 });
-
+app.use("*", (req, res) => {
+  res.status(404).render("error", {
+    error: { status: 404, message: "Page Not Found" },
+    theme: req.session.theme || "light",
+  });
+});

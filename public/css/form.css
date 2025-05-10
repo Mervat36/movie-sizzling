@@ -388,8 +388,8 @@ body.dark-mode .google-btn:hover {
 .profile-photo {
   max-width: 100%;
   max-height: 100%;
-  border-radius: 10px; /* Optional rounded corners */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Optional shadow */
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 
@@ -538,7 +538,45 @@ body.dark-mode .google-btn:hover {
   display: none;
 }
 
-/* 12. Transition and Dark Mode. */
+/* 12. Result Page */
+.results-container {
+  background-color: var(--bg-color);
+  display: block;
+  min-height: calc(100vh - 200px);
+  padding: 100px 20px 40px;
+}
+.results-wrapper {
+  padding: 30px 20px;
+  max-width: 900px;
+  margin: auto;
+}
+.result-card {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  transition: transform 0.3s;
+}
+.result-card video {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+.result-card:hover {
+  transform: translateY(-4px);
+}
+.result-info {
+  padding-top: 10px;
+  padding-left: 4px;
+}
+.result-info p {
+  margin: 4px 0;
+}
+
+
+/* 13. Transition and Dark Mode. */
 body,
 input,
 .feature-box,
