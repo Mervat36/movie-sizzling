@@ -690,6 +690,7 @@ app.use(
     saveUninitialized: true,
   })
 );
+app.use('/output', express.static(path.join(__dirname, 'output')));
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -1110,6 +1111,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
         }
       );
     });
+    
 
     writer.on("error", (err) => {
       console.error("❌ File write error:", err);
@@ -1120,3 +1122,57 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     res.status(500).send("Server error.");
   }
 });
+app.post("/search/result", ensureAuthenticated, async (req, res) => {
+  const userQuery = req.body.query;
+  const videoTitle = req.session.videoTitle;
+
+  if (!videoTitle || !userQuery) {
+    return res.status(400).send("Missing video title or query.");
+  }
+
+  const captionPath = path.join(__dirname, `${videoTitle}_captions.json`);
+
+  if (!fs.existsSync(captionPath)) {
+    return res.status(404).send("Caption data not found.");
+  }
+
+  try {
+    const rawData = fs.readFileSync(captionPath, "utf-8");
+    const parsed = JSON.parse(rawData);
+    const metadata = parsed.shots_metadata;
+
+    const results = [];
+
+    for (const [imgPath, shot] of Object.entries(metadata)) {
+      if (shot.caption.toLowerCase().includes(userQuery.toLowerCase())) {
+        results.push({
+          caption: shot.caption,
+          tags: shot.tags,
+          start_time: shot.start_time,
+          end_time: shot.end_time,
+          image: imgPath,
+        });
+      }
+    }
+
+    if (results.length === 0) {
+      return res.render("results", {
+        results: [],
+        query: userQuery,
+        video: `/uploads/dl_${videoTitle}.mp4`,
+        message: "No results matched your query.",
+      });
+    }
+
+    res.render("results", {
+      results,
+      query: userQuery,
+      video: `/uploads/dl_${videoTitle}.mp4`,
+      message: null,
+    });
+  } catch (err) {
+    console.error("❌ Failed to process search results:", err.message);
+    return res.status(500).send("Server error processing results.");
+  }
+});
+

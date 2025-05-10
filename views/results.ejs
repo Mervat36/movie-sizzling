@@ -5,33 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <title>Search Results</title>
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/results.css" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/form.css" />
   </head>
   <body>
     <%- include("partials/header") %>
-    <section class="results-section">
-      <div class="results-container">
+    <section class="auth-container">
+      <div class="login-box">
         <h2>Search Results</h2>
-        <% if (!videoPath) { %>
-        <div class="no-results">
-          <p style="text-align: center; font-size: 18px; color: #d9534f">
-            <%= message || "No relevant scenes were found for this video." %>
-          </p>
-          <div style="text-align: center; margin-top: 20px">
-            <a href="/search" class="btn-primary">Try Another Search</a>
-          </div>
+        <p class="query-label" style="text-align: center; font-size: 16px">
+          <strong>Search Query:</strong> <%= query %>
+        </p>
+
+        <% if (!video) { %>
+        <p class="alert-warning" style="text-align: center; margin-top: 20px">
+          <%= message || "No relevant scenes were found for this video." %>
+        </p>
+        <div style="text-align: center; margin-top: 20px">
+          <a href="/search" class="btn-primary">Try Another Search</a>
         </div>
         <% } else { %>
-        <div class="video-wrapper">
-          <video id="videoPlayer" controls>
-            <source src="<%= videoPath %>" type="video/mp4" />
+        <div
+          class="video-wrapper"
+          style="margin-top: 20px; margin-bottom: 20px"
+        >
+          <video id="videoPlayer" controls width="100%">
+            <source src="<%= video %>" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
-        <p class="query-label"><strong>Search Query:</strong> <%= query %></p>
-        <a href="/search" class="btn-primary">Search Again</a>
-        <% } %>
+
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px">
+          <a href="/search" class="btn-primary">Search Again</a>
+        </div>
+
+        <% if (results && results.length > 0) { %>
+        <div class="results-grid">
+          <% results.forEach(result => { %>
+          <div class="result-card">
+            <img src="/<%= result.image.replace(/\\/g, "/") %>" alt="Scene
+            Image" />
+            <div class="result-info">
+              <p><strong>Caption:</strong> <%= result.caption %></p>
+              <p><strong>Start:</strong> <%= result.start_time %></p>
+              <p><strong>End:</strong> <%= result.end_time %></p>
+              <p><strong>Tags:</strong> <%= JSON.stringify(result.tags) %></p>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+        <% } %> <% } %>
       </div>
     </section>
     <%- include("partials/footer") %>
