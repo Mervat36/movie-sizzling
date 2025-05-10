@@ -25,7 +25,7 @@
     <main>
       <section class="results-container">
         <h2 class="profile-title" style="text-align: center">Search Results</h2>
-        <p class="query-label" style="text-align: center; font-size: 16px;">
+        <p class="query-label" style="text-align: center; font-size: 16px">
           <strong>Search Query:</strong> <%= query %>
         </p>
         <div style="text-align: center; margin-top: 20px; margin-bottom: 20px">
@@ -41,9 +41,43 @@
             <video controls width="100%">
               <source src="<%= result.clip %>" type="video/mp4" />
             </video>
+            <a
+              href="<%= result.clip %>"
+              download
+              class="btn-primary"
+              style="
+                display: inline-block;
+                margin-top: 10px;
+                width: 100%;
+                text-align: center;
+              "
+            >
+              Download
+            </a>
+
             <div class="result-info">
-              <p style="font-weight: 500"><%= result.caption %></p>
-              <p style="font-size: 13px; color: #888">
+              <p
+                style="
+                  font-weight: 500;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  max-width: 100%;
+                  text-align: center;
+                  margin-top: 4px;
+                "
+                title="<%= result.caption %>"
+              >
+                <%= result.caption %>
+              </p>
+              <p
+                style="
+                  font-size: 13px;
+                  color: #888;
+                  text-align: center;
+                  margin-top: 4px;
+                "
+              >
                 <%= result.start_time %> – <%= result.end_time %>
               </p>
             </div>
@@ -53,7 +87,7 @@
         <% } else { %>
         <div
           class="alert error"
-          style="margin: 0 auto; text-align: center; max-width: 250px;"
+          style="margin: 0 auto; text-align: center; max-width: 250px"
         >
           <%= message || "No relevant scenes were found for this video." %>
         </div>
