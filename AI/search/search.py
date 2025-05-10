@@ -169,5 +169,14 @@ with open(scene_metadata_output, "w") as f:
 with open(scene_captions_file, "w") as f:
     json.dump(scene_captions, f, indent=2)
 
+# 🛑 Friendly check BEFORE crashing
+if not scene_features:
+    print("❌ No valid scene features extracted. Creating fallback flag.")
+    # Create fallback marker to detect in Node.js
+    with open(f"output/{movie_name}/no_scene_found.txt", "w") as nf:
+        nf.write("Scene captioning skipped: no valid images were processed.")
+    sys.exit(1)
+
+# Only reached if data exists
 scene_features = torch.stack(scene_features).squeeze()
 print(f" Preprocessing complete. Metadata saved to {scene_metadata_output} and {scene_captions_file}")

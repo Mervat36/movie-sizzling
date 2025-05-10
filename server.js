@@ -89,7 +89,6 @@
 //   });
 // });
 
-
 // app.get("/login", (req, res) => res.render("login"));
 // app.get("/register", (req, res) => res.render("register"));
 // app.get("/upload", ensureAuthenticated, (req, res) => res.render("upload"));
@@ -137,9 +136,6 @@
 //     weakPassword: null
 //   });
 // });
-
-
-
 
 // // RESET PASSWORD PAGE
 
@@ -211,7 +207,6 @@
 //   }
 // });
 
-
 // // Google OAuth
 // app.get(
 //   "/auth/google",
@@ -263,8 +258,6 @@
 //   },
 // });
 // const upload = multer({ storage });
-
-
 
 // // APIs
 // app.use("/api/videos", videoRoutes);
@@ -414,7 +407,6 @@
 //   });
 // });
 
-
 // ===== Start of server.js File 1 =====
 require("dotenv").config();
 const express = require("express");
@@ -432,7 +424,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { ensureAuthenticated } = require("./middleware/auth");
 require("./middleware/auth");
-require('events').EventEmitter.defaultMaxListeners = 20;
+require("events").EventEmitter.defaultMaxListeners = 20;
 
 const { getProfile } = require("./controllers/UserController");
 
@@ -444,7 +436,6 @@ const UserQuery = require("./models/UserQuery");
 
 const SceneMetadata = require("./models/SceneMetadata");
 const SceneResults = require("./models/SceneSearchResult");
-
 
 const connectDB = require("./config/db");
 const videoRoutes = require("./routes/VideoRoutes");
@@ -511,10 +502,9 @@ app.get("/", (req, res) => {
 
   res.render("index", {
     user: req.user || req.session.user,
-    reset: reset
+    reset: reset,
   });
 });
-
 
 app.get("/login", (req, res) => res.render("login"));
 app.get("/register", (req, res) => res.render("register"));
@@ -560,12 +550,9 @@ app.get("/profile", ensureAuthenticated, async (req, res) => {
     formError: null,
     mismatch: null,
     incorrectPassword: null,
-    weakPassword: null
+    weakPassword: null,
   });
 });
-
-
-
 
 // RESET PASSWORD PAGE
 
@@ -596,7 +583,8 @@ app.post("/reset-password/:token", async (req, res) => {
     if (!passwordRegex.test(password)) {
       return res.render("reset-password", {
         token,
-        error: "Password must be at least 9 characters and contain a letter and a special character.",
+        error:
+          "Password must be at least 9 characters and contain a letter and a special character.",
         success: null,
       });
     }
@@ -636,7 +624,6 @@ app.post("/reset-password/:token", async (req, res) => {
     return res.status(500).send("Server error");
   }
 });
-
 
 // Google OAuth
 app.get(
@@ -690,27 +677,25 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-
-
 // APIs
 app.use("/api/videos", videoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/users", userRoutes);
 app.use("/", userRoutes);
-app.use(session({
-  secret: "yourSecretKey",
-  resave: false,
-  saveUninitialized: true,
-}));
+app.use(
+  session({
+    secret: "yourSecretKey",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 // Start Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-
-
-app.post("/search", ensureAuthenticated, async (req, res) => {
+app.post("/search/user", ensureAuthenticated, async (req, res) => {
   const { query } = req.body;
   const userId = req.user?._id || req.session.user?._id;
 
@@ -744,15 +729,11 @@ app.post("/search", ensureAuthenticated, async (req, res) => {
       console.log("✅ Search finished:", stdout);
       res.redirect("/search-results");
     });
-
   } catch (err) {
     console.error("❌ Error saving query or executing search:", err.message);
     res.status(500).send("Internal Server Error");
   }
 });
-
-
-
 
 app.post("/upload", upload.single("video"), async (req, res) => {
   const localTempPath = req.file.path;
@@ -766,10 +747,12 @@ app.post("/upload", upload.single("video"), async (req, res) => {
   try {
     console.log("🟡 Uploading video to Supabase...");
     const fileBuffer = fs.readFileSync(localTempPath);
-    const { error } = await supabase.storage.from("movies").upload(supaFileName, fileBuffer, {
-      contentType: "video/mp4",
-      upsert: true,
-    });
+    const { error } = await supabase.storage
+      .from("movies")
+      .upload(supaFileName, fileBuffer, {
+        contentType: "video/mp4",
+        upsert: true,
+      });
 
     if (error) {
       console.error("❌ Supabase upload error:", error);
@@ -781,216 +764,351 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     req.session.videoTitle = safeTitle;
     console.log("📌 Saved video title to session:", safeTitle);
 
-    const response = await axios({ method: "get", url: publicUrl, responseType: "stream" });
+    const response = await axios({
+      method: "get",
+      url: publicUrl,
+      responseType: "stream",
+    });
     const writer = fs.createWriteStream(localDownloadPath);
     response.data.pipe(writer);
 
-    
     writer.on("finish", async () => {
       console.log("🟡 Starting shot segmentation...");
-      exec(`venv\\Scripts\\python.exe AI/shot_segmentation/shot_segmentation.py "${localDownloadPath}" "${safeTitle}"`, async (error) => {
-        if (error) {
-          console.error("❌ Shot model failed:", error.message);
-          return res.status(500).send("Shot model failed.");
-        }
-
-        const jsonPath = path.join("output", `${safeTitle}_shots.json`);
-        const shotFolder = path.join("shots", safeTitle);
-        if (!fs.existsSync(jsonPath)) {
-          return res.status(500).send("Shot JSON file missing.");
-        }
-
-        let jsonData;
-        try {
-          jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
-        } catch (err) {
-          return res.status(500).send("Invalid shot JSON format.");
-        }
-
-        console.log("🟡 Uploading shots to Supabase...");
-        const allShotImagePaths = [];
-        for (const shot of jsonData.shots) {
-          for (const [key, imagePath] of Object.entries(shot.images)) {
-            const imageBuffer = fs.readFileSync(imagePath);
-            const imageName = path.basename(imagePath);
-            const { error: uploadError } = await supabase.storage.from("shots").upload(`${safeTitle}/${imageName}`, imageBuffer, {
-              contentType: "image/jpeg",
-              upsert: true,
-            });
-            if (uploadError) {
-              console.error("❌ Failed to upload shot image:", uploadError.message);
-              return res.status(500).send("Shot image upload to Supabase failed.");
-            }
-            allShotImagePaths.push(imagePath);
-          }
-        }
-
-        await ShotMetadata.create(jsonData);
-        // fs.unlinkSync(localDownloadPath);
-
-        console.log("🟢 Starting scene segmentation...");
-        const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/model/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
-
-        exec(sceneCommand, async (sceneErr, stdout, stderr) => {
-          if (sceneErr) {
-            console.error("❌ Scene segmentation failed:", sceneErr.message);
-            console.error("🔴 STDERR:", stderr);
-            return res.status(500).send("Scene segmentation failed.");
+      exec(
+        `venv\\Scripts\\python.exe AI/shot_segmentation/shot_segmentation.py "${localDownloadPath}" "${safeTitle}"`,
+        async (error) => {
+          if (error) {
+            console.error("❌ Shot model failed:", error.message);
+            return res.status(500).send("Shot model failed.");
           }
 
-          console.log("✅ Scene segmentation output:", stdout);
-
-          const scenesJsonPath = path.join("output", safeTitle, "scenes.json");
-          if (!fs.existsSync(scenesJsonPath)) {
-            return res.status(500).send("Scenes file missing.");
+          const jsonPath = path.join("output", `${safeTitle}_shots.json`);
+          const shotFolder = path.join("shots", safeTitle);
+          if (!fs.existsSync(jsonPath)) {
+            return res.status(500).send("Shot JSON file missing.");
           }
 
-          const scenesData = JSON.parse(fs.readFileSync(scenesJsonPath, "utf-8"));
+          let jsonData;
+          try {
+            jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+          } catch (err) {
+            return res.status(500).send("Invalid shot JSON format.");
+          }
 
-          for (const scene of scenesData.scenes) {
-            const localThumbPath = path.join("output", safeTitle, "scenes", path.basename(scene.thumbnail_path));
-            if (!fs.existsSync(localThumbPath)) {
-              console.warn("Missing scene thumbnail:", localThumbPath);
-              continue;
-            }
-
-            const buffer = fs.readFileSync(localThumbPath);
-            const { error: uploadError } = await supabase.storage
-              .from("scene-results")
-              .upload(`${safeTitle}/${path.basename(scene.thumbnail_path)}`, buffer, {
-                contentType: "image/jpeg",
-                upsert: true,
-              });
-
-            if (uploadError) {
-              console.error("❌ Scene image upload failed:", uploadError.message);
-              return res.status(500).send("Scene image upload to Supabase failed.");
-            }
-
-            fs.unlinkSync(localThumbPath);
-
-            const sceneFolder = path.join("output", safeTitle, "scenes", path.basename(scene.thumbnail_path, ".jpg"));
-            if (fs.existsSync(sceneFolder)) {
-              const sceneFiles = fs.readdirSync(sceneFolder);
-              for (const file of sceneFiles) {
-                const filePath = path.join(sceneFolder, file);
-                const fileBuffer = fs.readFileSync(filePath);
-
-                const { error: sceneShotError } = await supabase.storage
-                  .from("scene-results")
-                  .upload(`${safeTitle}/${file}`, fileBuffer, {
-                    contentType: "image/jpeg",
-                    upsert: true,
-                  });
-
-                if (sceneShotError) {
-                  console.warn("❌ Failed to upload scene shot:", sceneShotError.message);
-                }
-
-                fs.unlinkSync(filePath);
+          console.log("🟡 Uploading shots to Supabase...");
+          const allShotImagePaths = [];
+          for (const shot of jsonData.shots) {
+            for (const [key, imagePath] of Object.entries(shot.images)) {
+              const imageBuffer = fs.readFileSync(imagePath);
+              const imageName = path.basename(imagePath);
+              const { error: uploadError } = await supabase.storage
+                .from("shots")
+                .upload(`${safeTitle}/${imageName}`, imageBuffer, {
+                  contentType: "image/jpeg",
+                  upsert: true,
+                });
+              if (uploadError) {
+                console.error(
+                  "❌ Failed to upload shot image:",
+                  uploadError.message
+                );
+                return res
+                  .status(500)
+                  .send("Shot image upload to Supabase failed.");
               }
-
-              fs.rmdirSync(sceneFolder);
+              allShotImagePaths.push(imagePath);
             }
           }
 
-          await SceneMetadata.create({
-            title: safeTitle,
-            scenes: scenesData.scenes,
-          });
+          await ShotMetadata.create(jsonData);
+          // fs.unlinkSync(localDownloadPath);
 
-          for (const imgPath of allShotImagePaths) {
-            if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-          }
-          fs.rmSync(shotFolder, { recursive: true, force: true });
+          console.log("🟢 Starting scene segmentation...");
+          const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/model/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
 
-          const localSceneFolder = path.join("output", safeTitle, "search_scenes");
-          fs.mkdirSync(localSceneFolder, { recursive: true });
-
-          console.log("📥 Downloading scene images from Supabase...");
-          for (const scene of scenesData.scenes) {
-            const baseName = path.basename(scene.thumbnail_path, ".jpg");
-            const pattern = new RegExp(`^${baseName}_shot\\d+_(start|middle|end)\\.jpg$`);
-            const { data: files, error: listErr } = await supabase.storage.from("scene-results").list(`${safeTitle}`, { limit: 100 });
-            if (listErr) {
-              console.error("❌ Failed to list scene files:", listErr.message);
-              return res.status(500).send("Scene listing failed.");
+          exec(sceneCommand, async (sceneErr, stdout, stderr) => {
+            if (sceneErr) {
+              console.error("❌ Scene segmentation failed:", sceneErr.message);
+              console.error("🔴 STDERR:", stderr);
+              return res.status(500).send("Scene segmentation failed.");
             }
 
-            const matched = files.filter(f => pattern.test(f.name));
-            for (const file of matched) {
-              const { data, error: downloadErr } = await supabase.storage.from("scene-results").download(`${safeTitle}/${file.name}`);
-              if (downloadErr) {
-                console.error("❌ Failed to download:", file.name);
+            console.log("✅ Scene segmentation output:", stdout);
+
+            const scenesJsonPath = path.join(
+              "output",
+              safeTitle,
+              "scenes.json"
+            );
+            if (!fs.existsSync(scenesJsonPath)) {
+              return res.status(500).send("Scenes file missing.");
+            }
+
+            const scenesData = JSON.parse(
+              fs.readFileSync(scenesJsonPath, "utf-8")
+            );
+
+            for (const scene of scenesData.scenes) {
+              const localThumbPath = path.join(
+                "output",
+                safeTitle,
+                "scenes",
+                path.basename(scene.thumbnail_path)
+              );
+              if (!fs.existsSync(localThumbPath)) {
+                console.warn("Missing scene thumbnail:", localThumbPath);
                 continue;
               }
-              const buffer = Buffer.from(await data.arrayBuffer());
-              fs.writeFileSync(path.join(localSceneFolder, file.name), buffer);
-            }
-          }
 
-          const metadataPath = path.join("output", safeTitle, "scene_metadata.json");
-          const sceneMetadata = await SceneMetadata.findOne({ title: safeTitle });
-          fs.writeFileSync(metadataPath, JSON.stringify(sceneMetadata, null, 2));
+              const buffer = fs.readFileSync(localThumbPath);
+              const { error: uploadError } = await supabase.storage
+                .from("scene-results")
+                .upload(
+                  `${safeTitle}/${path.basename(scene.thumbnail_path)}`,
+                  buffer,
+                  {
+                    contentType: "image/jpeg",
+                    upsert: true,
+                  }
+                );
 
-          console.log("🚀 Running scene captioning pipeline...");
-          const searchCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search.py "${localSceneFolder}" "${metadataPath}"`;
-          exec(searchCommand, async (searchErr, stdout, stderr) => {
-            if (searchErr) {
-              console.error("❌ Search pipeline failed:", searchErr.message);
-              console.error("🔴 STDERR:", stderr);
-              return res.status(500).send("Scene captioning pipeline failed.");
-            }
-
-            console.log("✅ Search captioning completed:\n", stdout);
-
-            try {
-              const captionsJsonPath = path.join(__dirname, `${safeTitle}_captions.json`);
-              console.log("📂 Looking for caption JSON to insert:", captionsJsonPath);
-
-              if (!fs.existsSync(captionsJsonPath)) {
-                console.error("❌ Captions JSON file not found:", captionsJsonPath);
-                return res.status(500).send("Captions file missing.");
+              if (uploadError) {
+                console.error(
+                  "❌ Scene image upload failed:",
+                  uploadError.message
+                );
+                return res
+                  .status(500)
+                  .send("Scene image upload to Supabase failed.");
               }
 
-              const data = fs.readFileSync(captionsJsonPath, "utf-8");
-              if (data.trim().startsWith("<")) {
-                console.error("❌ Captions file contains unexpected HTML instead of JSON.");
-                return res.status(500).send("Invalid captions file content.");
+              fs.unlinkSync(localThumbPath);
+
+              const sceneFolder = path.join(
+                "output",
+                safeTitle,
+                "scenes",
+                path.basename(scene.thumbnail_path, ".jpg")
+              );
+              if (fs.existsSync(sceneFolder)) {
+                const sceneFiles = fs.readdirSync(sceneFolder);
+                for (const file of sceneFiles) {
+                  const filePath = path.join(sceneFolder, file);
+                  const fileBuffer = fs.readFileSync(filePath);
+
+                  const { error: sceneShotError } = await supabase.storage
+                    .from("scene-results")
+                    .upload(`${safeTitle}/${file}`, fileBuffer, {
+                      contentType: "image/jpeg",
+                      upsert: true,
+                    });
+
+                  if (sceneShotError) {
+                    console.warn(
+                      "❌ Failed to upload scene shot:",
+                      sceneShotError.message
+                    );
+                  }
+
+                  fs.unlinkSync(filePath);
+                }
+
+                fs.rmdirSync(sceneFolder);
+              }
+            }
+
+            await SceneMetadata.create({
+              title: safeTitle,
+              scenes: scenesData.scenes,
+            });
+
+            for (const imgPath of allShotImagePaths) {
+              if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+            }
+            fs.rmSync(shotFolder, { recursive: true, force: true });
+
+            const localSceneFolder = path.join(
+              "output",
+              safeTitle,
+              "search_scenes"
+            );
+            fs.mkdirSync(localSceneFolder, { recursive: true });
+
+            console.log("📥 Downloading scene images from Supabase...");
+            for (const scene of scenesData.scenes) {
+              const baseName = path.basename(scene.thumbnail_path, ".jpg");
+              const pattern = new RegExp(
+                `^${baseName}_shot\\d+_(start|middle|end)\\.jpg$`
+              );
+              const { data: files, error: listErr } = await supabase.storage
+                .from("scene-results")
+                .list(`${safeTitle}`, { limit: 100 });
+              if (listErr) {
+                console.error(
+                  "❌ Failed to list scene files:",
+                  listErr.message
+                );
+                return res.status(500).send("Scene listing failed.");
               }
 
-              let parsedJson;
+              const matched = files.filter((f) => pattern.test(f.name));
+              for (const file of matched) {
+                const { data, error: downloadErr } = await supabase.storage
+                  .from("scene-results")
+                  .download(`${safeTitle}/${file.name}`);
+
+                if (
+                  downloadErr ||
+                  !data ||
+                  typeof data.arrayBuffer !== "function"
+                ) {
+                  console.error(
+                    "❌ Failed to download or invalid data for:",
+                    file.name
+                  );
+                  continue;
+                }
+
+                let buffer;
+                try {
+                  buffer = Buffer.from(await data.arrayBuffer());
+                } catch (e) {
+                  console.error(
+                    "❌ Buffer conversion failed for:",
+                    file.name,
+                    e.message
+                  );
+                  continue;
+                }
+
+                fs.writeFileSync(
+                  path.join(localSceneFolder, file.name),
+                  buffer
+                );
+              }
+            }
+
+            const metadataPath = path.join(
+              "output",
+              safeTitle,
+              "scene_metadata.json"
+            );
+            const sceneMetadata = await SceneMetadata.findOne({
+              title: safeTitle,
+            });
+            fs.writeFileSync(
+              metadataPath,
+              JSON.stringify(sceneMetadata, null, 2)
+            );
+
+            console.log("🚀 Running scene captioning pipeline...");
+            const searchCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search.py "${localSceneFolder}" "${metadataPath}"`;
+            exec(searchCommand, async (searchErr, stdout, stderr) => {
+              if (searchErr) {
+                console.error("❌ Search pipeline failed:", searchErr.message);
+                console.error("🔴 STDERR:", stderr);
+                return res
+                  .status(500)
+                  .send("Scene captioning pipeline failed.");
+              }
+
+              console.log("✅ Search captioning completed:\n", stdout);
+
+              console.log("✅ Search captioning completed:\n", stdout);
+
+              // ✅ INSERT THIS BLOCK
+              const noScenePath = path.join(
+                "output",
+                safeTitle,
+                "no_scene_found.txt"
+              );
+              if (fs.existsSync(noScenePath)) {
+                console.warn("⚠️ No scene features found.");
+                return res.status(404).render("results", {
+                  videoPath: null,
+                  query: null,
+                  message: "No relevant scenes were found for this video.",
+                });
+              }
+
+              // Continue with regular caption parsing
               try {
-                parsedJson = JSON.parse(data);
-              } catch (parseErr) {
-                console.error("❌ Failed to parse captions JSON:", parseErr.message);
-                return res.status(500).send("Failed to parse captions file.");
+                const captionsJsonPath = path.join(
+                  __dirname,
+                  `${safeTitle}_captions.json`
+                );
+                console.log(
+                  "📂 Looking for caption JSON to insert:",
+                  captionsJsonPath
+                );
+
+                if (!fs.existsSync(captionsJsonPath)) {
+                  console.error(
+                    "❌ Captions JSON file not found:",
+                    captionsJsonPath
+                  );
+                  return res.status(500).send("Captions file missing.");
+                }
+
+                const data = fs.readFileSync(captionsJsonPath, "utf-8").trim();
+
+                if (data.startsWith("<")) {
+                  console.error(
+                    "❌ Captions file contains unexpected HTML (possibly an error page):\n",
+                    data.slice(0, 200)
+                  );
+                  return res
+                    .status(500)
+                    .send("Invalid captions file content (HTML detected).");
+                }
+
+                let parsedJson;
+                try {
+                  parsedJson = JSON.parse(data);
+                } catch (parseErr) {
+                  console.error(
+                    "❌ JSON parsing failed. Content:\n",
+                    data.slice(0, 200)
+                  );
+                  console.error("Error:", parseErr.message);
+                  return res.status(500).send("Failed to parse captions file.");
+                }
+
+                if (
+                  !parsedJson.movie_name ||
+                  typeof parsedJson.shots_metadata !== "object"
+                ) {
+                  console.error(
+                    "❌ Invalid caption JSON format. Must contain movie_name and valid shots_metadata."
+                  );
+                  return res.status(400).send("Invalid caption JSON format.");
+                }
+
+                const formattedData = {
+                  movie_name: parsedJson.movie_name,
+                  shots_metadata: parsedJson.shots_metadata,
+                };
+
+                const SceneResults = require("./models/SceneSearchResult");
+                await SceneResults.create(formattedData);
+                console.log("✅ Captions JSON inserted to MongoDB.");
+                res.render("search", {
+                  uploadedVideoTitle: safeTitle,
+                  videoId: safeTitle,
+                });
+              } catch (mongoErr) {
+                console.error(
+                  "❌ Failed to insert captions JSON to MongoDB:",
+                  mongoErr.message
+                );
+                return res
+                  .status(500)
+                  .send("Failed to insert captions to Mongo.");
               }
-
-              if (!parsedJson.movie_name || typeof parsedJson.shots_metadata !== 'object') {
-                console.error("❌ Invalid caption JSON format. Must contain movie_name and valid shots_metadata.");
-                return res.status(400).send("Invalid caption JSON format.");
-              }
-
-              const formattedData = {
-                movie_name: parsedJson.movie_name,
-                shots_metadata: parsedJson.shots_metadata
-              };
-
-              const SceneResults = require("./models/SceneSearchResult");
-              await SceneResults.create(formattedData);
-              console.log("✅ Captions JSON inserted to MongoDB.");
-              res.render("search", {
-                uploadedVideoTitle: safeTitle
-
-              });
-            } catch (mongoErr) {
-              console.error("❌ Failed to insert captions JSON to MongoDB:", mongoErr.message);
-              return res.status(500).send("Failed to insert captions to Mongo.");
-            }
+            });
           });
-        });
-      });
+        }
+      );
     });
 
     writer.on("error", (err) => {

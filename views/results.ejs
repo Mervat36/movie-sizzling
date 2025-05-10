@@ -13,14 +13,25 @@
     <section class="results-section">
       <div class="results-container">
         <h2>Search Results</h2>
+        <% if (!videoPath) { %>
+        <div class="no-results">
+          <p style="text-align: center; font-size: 18px; color: #d9534f">
+            <%= message || "No relevant scenes were found for this video." %>
+          </p>
+          <div style="text-align: center; margin-top: 20px">
+            <a href="/search" class="btn-primary">Try Another Search</a>
+          </div>
+        </div>
+        <% } else { %>
         <div class="video-wrapper">
           <video id="videoPlayer" controls>
-            <source src="<%= videoUrl %>" type="video/mp4" />
+            <source src="<%= videoPath %>" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
         <p class="query-label"><strong>Search Query:</strong> <%= query %></p>
         <a href="/search" class="btn-primary">Search Again</a>
+        <% } %>
       </div>
     </section>
     <%- include("partials/footer") %>

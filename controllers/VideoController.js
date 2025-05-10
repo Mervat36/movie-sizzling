@@ -11,9 +11,11 @@ exports.uploadVideo = async (req, res) => {
     const movieTitle = req.body.title || req.file.originalname.split(".")[0];
 
     // Run Python script with video path and title
-    const scriptPath = path.join(__dirname, "../AI/shot_segmentation/shot_segmentation.py");
+    const scriptPath = path.join(
+      __dirname,
+      "../AI/shot_segmentation/shot_segmentation.py"
+    );
     const python = spawn("python", [scriptPath, videoPath, movieTitle]);
-
 
     python.stdout.on("data", (data) => {
       console.log(`PYTHON: ${data}`);
@@ -27,7 +29,9 @@ exports.uploadVideo = async (req, res) => {
       const jsonPath = path.join("output", `${movieTitle}_shots.json`);
 
       if (!fs.existsSync(jsonPath)) {
-        return res.status(500).json({ message: "Shot metadata not generated." });
+        return res
+          .status(500)
+          .json({ message: "Shot metadata not generated." });
       }
 
       // Parse and save metadata to MongoDB
@@ -35,10 +39,52 @@ exports.uploadVideo = async (req, res) => {
 
       try {
         const saved = await ShotMetadata.create(shotData);
-        return res.status(200).json({ message: "Video processed and saved", data: saved });
+        console.log("✅ Shot metadata saved:", saved.movieTitle || saved._id);
+
+        // === Scene Segmentation Script ===
+        const sceneScriptPath = path.join(
+          __dirname,
+          "../AI/Scene/scene_segmentation.py"
+        );
+        const shotFolder = path.join("output", movieTitle); // folder with *_start.jpg etc.
+        const modelPath = path.join("AI", "Scene", "scene_model.pth"); // path to your model
+        const sceneOutput = path.join("output", `${movieTitle}_scenes.json`);
+
+        const sceneProcess = spawn("python", [
+          sceneScriptPath,
+          shotFolder,
+          modelPath,
+          sceneOutput,
+        ]);
+
+        sceneProcess.stdout.on("data", (data) => {
+          console.log(`SCENE AI: ${data}`);
+        });
+
+        sceneProcess.stderr.on("data", (err) => {
+          console.error(`SCENE ERROR: ${err}`);
+        });
+
+        sceneProcess.on("close", (sceneCode) => {
+          if (sceneCode !== 0) {
+            console.error("❌ Scene segmentation failed.");
+          } else {
+            console.log(
+              "✅ Scene segmentation complete. JSON saved:",
+              sceneOutput
+            );
+          }
+
+          // ✅ Redirect only after scene segmentation finishes
+          return res.redirect(
+            `/search?videoId=${saved.movieTitle || saved._id}`
+          );
+        });
       } catch (err) {
         console.error("MongoDB save error:", err);
-        return res.status(500).json({ message: "Failed to save metadata", error: err });
+        return res
+          .status(500)
+          .json({ message: "Failed to save metadata", error: err });
       }
     });
   } catch (error) {
