@@ -681,12 +681,6 @@ app.use("/api/videos", videoRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/", userRoutes);
 app.use("/users", userRoutes);
-app.use("*", (req, res) => {
-  res.status(404).render("error", {
-    error: { status: 404, message: "Page Not Found" },
-    theme: req.session.theme || "light",
-  });
-});
 app.use("/output", express.static(path.join(__dirname, "output")));
 // Start Server
 app.listen(PORT, () => {

@@ -50,13 +50,14 @@ for path, info in metadata.items():
         })
 
 # Sort and remove duplicates by start_time (ascending order)
-seen = set()
+seen_paths = set()
 final_matches = []
-for result in sorted(caption_results, key=lambda x: timestamp_to_seconds(x["start_time"]), reverse=False):
-    key = (result["start_time"], result["end_time"])
-    if key not in seen:
-        seen.add(key)
+for result in sorted(caption_results, key=lambda x: timestamp_to_seconds(x["start_time"])):
+    video_file = result["image"].split("_scene")[0]  # base video path, adjust if structure differs
+    if video_file not in seen_paths:
+        seen_paths.add(video_file)
         final_matches.append(result)
+
 
 # Create folder for scene clips
 scene_clips_folder = "output_scene_clips"
