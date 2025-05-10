@@ -678,7 +678,6 @@ const upload = multer({ storage });
 
 // APIs
 app.use("/api/videos", videoRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/search", searchRoutes);
 app.use(
   session({
@@ -687,6 +686,7 @@ app.use(
     saveUninitialized: true,
   })
 );
+app.use("/users", userRoutes);
 app.use("/output", express.static(path.join(__dirname, "output")));
 // Start Server
 app.listen(PORT, () => {
