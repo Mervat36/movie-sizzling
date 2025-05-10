@@ -29,6 +29,7 @@
             muted
             controls
           ></video>
+          <button type="button" id="remove-btn" class="btn-danger" style="display: none;"> Remove Video</button>
           <input
             type="file"
             name="video"
@@ -94,6 +95,32 @@
           handleFile(files[0]);
         }
       });
+
+const removeBtn = document.getElementById("remove-btn");
+
+// Show video preview and Remove button
+function handleFile(file) {
+  if (file && file.type.startsWith("video/")) {
+    const videoURL = URL.createObjectURL(file);
+    videoPreview.src = videoURL;
+    videoPreview.style.display = "block";
+    removeBtn.style.display = "inline-block"; // ✅ SHOW the Remove button
+    dropZone.querySelector("p").textContent = `File: ${file.name}`;
+  }
+}
+
+// Remove/reset uploaded file
+function resetUpload() {
+  fileInput.value = "";
+  videoPreview.src = "";
+  videoPreview.style.display = "none";
+  removeBtn.style.display = "none"; // ✅ HIDE the button again
+  dropZone.querySelector("p").textContent = "Drag & drop your video here or click to Upload";
+}
+
+removeBtn.addEventListener("click", resetUpload);
+
+
     </script>
     <script src="/js/form-loader.js"></script>
   </body>
