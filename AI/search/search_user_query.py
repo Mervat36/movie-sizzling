@@ -53,7 +53,7 @@ for path, info in metadata.items():
 seen_paths = set()
 final_matches = []
 for result in sorted(caption_results, key=lambda x: timestamp_to_seconds(x["start_time"])):
-    video_file = result["image"].split("_scene")[0]  # base video path, adjust if structure differs
+    video_file = os.path.basename(result["image"]).split("_shot")[0] # base video path, adjust if structure differs
     if video_file not in seen_paths:
         seen_paths.add(video_file)
         final_matches.append(result)
@@ -133,6 +133,7 @@ for match in final_matches:
     # Save the scene metadata
     scene_video_files.append({
         "file": output_filename,
+        "video_id": os.path.basename(match["image"]).split("_shot")[0],
         "start_time": match["start_time"],
         "end_time": match["end_time"],
         "caption": match["caption"],

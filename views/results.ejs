@@ -29,14 +29,17 @@
           <strong>Search Query:</strong> <%= query %>
         </p>
         <div style="text-align: center; margin-top: 20px; margin-bottom: 20px">
-          <a href="/search" class="btn-primary" style="max-width: 200px"
-            >Search Again</a
-          >
+          <a href="/search" class="btn-primary" style="max-width: 200px">Search Again</a>
         </div>
 
         <% if (results && results.length > 0) { %>
         <div class="results-wrapper">
-          <% results.forEach(result => { %>
+          <% let seen = new Set(); %>
+          <% results.forEach(result => { 
+               const videoId = result.image?.split("_shot")[0]; 
+               if (!seen.has(videoId)) {
+                 seen.add(videoId);
+          %>
           <div class="result-card">
             <video controls width="100%">
               <source src="<%= result.clip %>" type="video/mp4" />
@@ -45,53 +48,28 @@
               href="<%= result.clip %>"
               download
               class="btn-primary"
-              style="
-                display: inline-block;
-                margin-top: 10px;
-                width: 100%;
-                text-align: center;
-              "
+              style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;"
             >
               Download
             </a>
-
             <div class="result-info">
               <p
-                style="
-                  font-weight: 500;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                  max-width: 100%;
-                  text-align: center;
-                  margin-top: 4px;
-                "
+                style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; margin-top: 4px;"
                 title="<%= result.caption %>"
               >
                 <%= result.caption %>
               </p>
-              <p
-                style="
-                  font-size: 13px;
-                  color: #888;
-                  text-align: center;
-                  margin-top: 4px;
-                "
-              >
+              <p style="font-size: 13px; color: #888; text-align: center; margin-top: 4px;">
                 <%= result.start_time %> – <%= result.end_time %>
               </p>
             </div>
           </div>
-          <% }) %>
+          <% } }) %>
         </div>
         <% } else { %>
-        <div
-          class="alert error"
-          style="margin: 0 auto; text-align: center; max-width: 250px"
-        >
+        <div class="alert error" style="margin: 0 auto; text-align: center; max-width: 250px">
           <%= message || "No relevant scenes were found for this video." %>
         </div>
-
         <% } %>
       </section>
     </main>
