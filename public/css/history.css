@@ -2,7 +2,10 @@
 .history-section {
   background-color: #f6f7fb;
   color: #1e1e2f;
-  padding-top: 30px;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .center-title {
   text-align: center;
@@ -20,6 +23,8 @@
   max-width: 1500px;
   margin: 0 auto;
   height: 500px;
+  width: 100%;
+  max-width: 1200px;
 }
 .history-table {
   width: 100%;
@@ -32,8 +37,12 @@
   border-color: #ddd;
   text-align: center;
   vertical-align: middle;
+  padding: 10px;
 }
 /* 2. Dark Mode. */
+body.dark-mode .center-title {
+  color: #ffffff;
+}
 body.dark-mode .history-section {
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -48,6 +57,7 @@ body.dark-mode .history-table th,
 body.dark-mode .history-table td {
   color: var(--text-color);
   border-color: var(--border-color);
+  padding: 10px;
 }
 body.dark-mode .history-table {
   width: 100%;
