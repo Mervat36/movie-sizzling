@@ -132,7 +132,7 @@ for scene_id, shot_dict in tqdm(scene_shot_map.items()):
             "tags": {
                 "action": tags["action"],
                 "place": tags["place"],
-                "objects": list(tags["objects"])  # 👈 ده المهم!
+                "objects": list(tags["objects"])
             },
             "start_time": scene_start_time,
             "end_time": scene_end_time

@@ -440,6 +440,7 @@ const SceneResults = require("./models/SceneSearchResult");
 const connectDB = require("./config/db");
 const videoRoutes = require("./routes/VideoRoutes");
 const userRoutes = require("./routes/UserRoutes");
+const historyRoutes = require("./routes/HistoryRoutes");
 const searchRoutes = require("./routes/SearchRoutes");
 const uploadDir = path.join(__dirname, "uploads", "profiles");
 
@@ -510,9 +511,6 @@ app.get("/register", (req, res) => res.render("register"));
 app.get("/upload", ensureAuthenticated, (req, res) => res.render("upload"));
 app.get("/search", ensureAuthenticated, (req, res) => res.render("search"));
 app.get("/results", ensureAuthenticated, (req, res) => res.render("results"));
-app.get("/history", ensureAuthenticated, (req, res) =>
-  res.render("history", { history: [] })
-);
 app.get("/scene-history", ensureAuthenticated, (req, res) =>
   res.render("scene-history")
 );
@@ -679,6 +677,7 @@ const upload = multer({ storage });
 // APIs
 app.use("/api/videos", videoRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/", historyRoutes);
 app.use("/", userRoutes);
 app.use("/users", userRoutes);
 app.use("/output", express.static(path.join(__dirname, "output")));
@@ -1218,6 +1217,21 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
         ...match,
         clip: clipUrl,
       });
+    }
+    const UserQuery = require("./models/UserQuery");
+    const clipToSave = trimmedResults[0]?.clip || null;
+
+    if (clipToSave && req.session.user) {
+      try {
+        await UserQuery.create({
+          userId: req.session.user._id,
+          query: userQuery,
+          resultVideoUrl: clipToSave,
+        });
+        console.log("✅ Saved search to history.");
+      } catch (err) {
+        console.warn("⚠️ Failed to save to history:", err.message);
+      }
     }
 
     res.render("results", {
