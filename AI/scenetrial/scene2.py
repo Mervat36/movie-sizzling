@@ -584,6 +584,33 @@ if len(scenes) >= 2 and len(scenes[0]) < MIN_SCENE_LEN:
 
 print(f"[INFO] Detected {len(scenes)} scenes (after merging short and splitting long scenes).")
 
+# ======= Visualize =======
+for idx, scene in enumerate(scenes):
+    print(f"\n=== Scene {idx+1} → {len(scene)} shots ===")
+    ncols = min(5, len(scene))
+    nrows = (len(scene) + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 4, nrows * 4))
+    axes = axes.flatten() if isinstance(axes, np.ndarray) else [axes]
+    
+    for i, sid in enumerate(scene):
+        img_path = Path(test_movie_dir) / f"shot_{sid}_img_0.jpg"
+        if img_path.exists():
+            img = Image.open(img_path)
+            axes[i].imshow(img)
+            axes[i].set_title(f"Shot {sid}")
+            axes[i].axis("off")
+        else:
+            axes[i].set_visible(False)
+    
+    for j in range(len(scene), len(axes)):
+        axes[j].set_visible(False)
+    
+    plt.show()
+
+
+
+
+
 
 
 
