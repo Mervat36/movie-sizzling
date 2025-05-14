@@ -7,98 +7,93 @@
     <title>Search History</title>
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/history.css" />
-    <style>
-      video {
-        max-width: 200px;
-        border-radius: 10px;
-      }
-      .btn-download {
-        padding: 6px 10px;
-        background-color: #0f4662;
-        color: white;
-        border-radius: 5px;
-        text-decoration: none;
-      }
-
-      .pagination {
-        margin-top: 20px;
-        text-align: center;
-      }
-
-      .pagination a {
-        display: inline-block;
-        padding: 8px 12px;
-        margin: 0 5px;
-        background-color: #0f4662;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-      }
-
-      .pagination a.active {
-        background-color: #2c8dbb;
-        font-weight: bold;
-      }
-    </style>
+    <script defer src="/js/history.js"></script>
   </head>
-  <body>
+  <body class="layout-body">
     <%- include("partials/header") %>
-    <section class="history-section">
-      <h2 class="center-title">Search History</h2>
-
-      <div class="history-table-wrapper">
-        <table class="history-table">
-          <thead>
-            <tr>
-              <th>Query Text</th>
-              <th>Retrieved Scene</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (queries.length === 0) { %>
-              <tr><td colspan="3" style="text-align:center;">No search history found.</td></tr>
-            <% } else { %>
-              <% queries.forEach(item => { %>
+    <main class="layout-main">
+      <section class="history-section">
+        <h2 class="center-title">Search History</h2>
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Query Text</th>
+                <th>Retrieved Scenes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (queries.length === 0) { %>
+              <tr>
+                <td colspan="2" style="text-align: center">
+                  No search history found.
+                </td>
+              </tr>
+              <% } else { %> <% queries.forEach((item, index) => { %>
               <tr>
                 <td><%= item.query %></td>
                 <td>
-                  <video controls>
-                    <source src="<%= item.resultVideoUrl %>" type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </td>
-                <td>
-                  <a
-                    href="<%= item.resultVideoUrl %>"
-                    download
-                    class="btn-download"
-                    >Download</a
+                  <% if (item.videos && item.videos.length > 0) { %>
+                  <div
+                    class="video-container"
+                    data-index="0"
+                    data-videos="<%- JSON.stringify(item.videos.map(v => ({ url: v.url, caption: v.caption }))) %>"
                   >
+                    <button class="prev-btn">&#8249;</button>
+
+                    <video controls>
+                      <source
+                        src="<%= item.videos[0].url %>"
+                        type="video/mp4"
+                      />
+                    </video>
+
+                    <div class="caption">
+                      <div><%= item.videos[0].caption %></div>
+                      <% if (item.videos[0].startTime && item.videos[0].endTime)
+                      { %>
+                      <div class="time-range">
+                        <%= item.videos[0].startTime %> – <%=
+                        item.videos[0].endTime %>
+                      </div>
+                      <% } %>
+                    </div>
+
+                    <div class="actions">
+                      <a
+                        href="<%= item.videos[0].url %>"
+                        download
+                        class="btn-download"
+                        >Download</a
+                      >
+
+                      <form
+                        action="/history/remove"
+                        method="POST"
+                        style="display: inline"
+                      >
+                        <input
+                          type="hidden"
+                          name="videoUrl"
+                          value="<%= item.videos[0].url %>"
+                        />
+                        <button type="submit" class="btn-remove">Remove</button>
+                      </form>
+                    </div>
+
+                    <button class="next-btn">&#8250;</button>
+                  </div>
+                  <% } else { %>
+                  <p>No video results available.</p>
+                  <% } %>
                 </td>
               </tr>
-              <% }) %>
-            <% } %>
-          </tbody>
-        </table>
-
-        <% if (totalPages > 1) { %>
-          <div class="pagination">
-            <% if (currentPage > 1) { %>
-              <a href="?page=<%= currentPage - 1 %>">&laquo; Prev</a>
-            <% } %>
-
-            <% for (let i = 1; i <= totalPages; i++) { %>
-              <a href="?page=<%= i %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
-            <% } %>
-
-            <% if (currentPage < totalPages) { %>
-              <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
-            <% } %>
-          </div>
-        <% } %>
-      </div>
-    </section>
+              <% }) %> <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
     <%- include("partials/footer") %>
   </body>
 </html>

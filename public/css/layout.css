@@ -10,7 +10,28 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   height: 117px;
 }
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+main {
+  flex: 1;
+}
+body.layout-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
+main.layout-main {
+  flex: 1;
+}
+footer {
+  text-align: center;
+  margin-top: auto;
+  padding: 20px;
+}
 .welcome-text {
   float: left;
   font-size: 20px;

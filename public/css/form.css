@@ -319,6 +319,7 @@ body.dark-mode .google-btn:hover {
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 550px;
+  margin-bottom: 40px;
 }
 .delete-popup {
   margin-top: 20px;
@@ -397,7 +398,6 @@ body.dark-mode .google-btn:hover {
   text-decoration: none;
 }
 .profile-container {
-  height: 800px;
   padding-top: 90px;
   display: flex;
   justify-content: center;

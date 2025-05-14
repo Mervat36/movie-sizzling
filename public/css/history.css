@@ -13,18 +13,58 @@
   color: #1e1e2f;
   margin-bottom: 20px;
 }
-
-
+.video-container {
+  position: relative;
+  display: inline-block;
+  margin: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.video-container video {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px;
+}
+.prev-btn,
+.next-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.3s ease;
+  z-index: 5;
+}
+.prev-btn:hover,
+.next-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.prev-btn {
+  left: 10px;
+}
+.next-btn {
+  right: 10px;
+}
+.caption .time-range {
+  font-size: 12px;
+  color: #aaa;
+}
 .history-table-wrapper {
+  min-height: 400px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 20px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  max-width: 1500px;
-  margin: 0 auto;
-  height: 500px;
-  width: 100%;
-  max-width: 1200px;
 }
 .history-table {
   width: 100%;
@@ -38,6 +78,64 @@
   text-align: center;
   vertical-align: middle;
   padding: 10px;
+}
+.caption {
+  color: #ddd;
+  margin: 8px 0 5px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.actions {
+  margin-top: 5px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.actions .btn-download,
+.actions .btn-remove {
+  font-size: 14px;
+  min-width: 100px;
+  text-align: center;
+  padding: 6px 10px;
+  height: 38px;
+  line-height: 1.5;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.actions .btn-download {
+  background-color: #0f4662;
+  color: white;
+  text-decoration: none;
+}
+
+.actions .btn-remove {
+  background-color: #b00020;
+  color: white;
+}
+
+.actions a,
+.actions button {
+  line-height: 1.6;
+}
+.btn-download {
+  background-color: #0f4662;
+  color: white;
+  text-decoration: none;
+}
+.btn-download:hover {
+  background-color: #155f84;
+}
+.btn-remove {
+  background-color: #b00020;
+  color: white;
+}
+.btn-remove:hover {
+  background-color: #d32f2f;
 }
 /* 2. Dark Mode. */
 body.dark-mode .center-title {

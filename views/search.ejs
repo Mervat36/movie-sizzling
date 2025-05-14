@@ -1,44 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/images/logo.png" />
-    <title>Search for a Specific Scene </title>
-    <link rel="stylesheet" href="/css/common.css">
-    <link rel="stylesheet" href="/css/form.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/images/logo.png" />
+  <title>Search for a Specific Scene</title>
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/form.css" />
 </head>
-<body>
-    <body>
-        <%- include('partials/header') %>
-        <section class="auth-container">
-          <div class="login-box">
-            <h2>Search for a Specific Scene </h2>
-            <form action="/search/result" method="POST">
-              <input type="hidden" name="videoId" value="<%= typeof videoId !== 'undefined' ? videoId : '' %>" />
-              <div class="form-group">
-                <input type="text" name="query" placeholder="Enter a keyword (e.g., 'car chase')" required />
-              </div>
-                <button type="submit" class="btn-primary">Search</button>
-            </form>
+<body class="layout-body">
+  <%- include('partials/header') %>
+
+  <main class="layout-main">
+    <section class="auth-container">
+      <div class="login-box">
+        <h2>Search for a Specific Scene</h2>
+        <form id="searchForm" action="/search/result" method="POST">
+          <input type="hidden" name="videoId" value="<%= typeof videoId !== 'undefined' ? videoId : '' %>" />
+          <div class="form-group">
+            <input type="text" name="query" placeholder="Enter a keyword (e.g., 'car chase')" required />
           </div>
-        </section>   
-    <script>
-        async function searchScene() {
-            const query = document.getElementById("searchInput").value;
-            const response = await fetch(`/api/search?query=${query}`);
-            const data = await response.json();
-            let output = "";
-            if (data.length > 0) {
-                data.forEach(scene => {
-                    output += `<p>${scene.description}</p>`;
-                });
-            } else {
-                output = "<p>No results found.</p>";
-            }
-            document.getElementById("results").innerHTML = output;
-        }
-    </script>
-    <%- include("partials/footer") %>
+          <button type="submit" class="btn-primary">Search</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- 🔄 Loading Spinner -->
+  <div id="loading-spinner" class="spinner-overlay" style="display: none;">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- ✅ Trigger spinner on form submit -->
+  <script>
+    const searchForm = document.getElementById("searchForm");
+    searchForm.addEventListener("submit", () => {
+      const spinner = document.getElementById("loading-spinner");
+      if (spinner) spinner.style.display = "flex";
+    });
+  </script>
+
+  <!-- Optional: async search logic -->
+  <script>
+    async function searchScene() {
+      const query = document.getElementById("searchInput").value;
+      const response = await fetch(`/api/search?query=${query}`);
+      const data = await response.json();
+      let output = "";
+      if (data.length > 0) {
+        data.forEach(scene => {
+          output += `<p>${scene.description}</p>`;
+        });
+      } else {
+        output = "<p>No results found.</p>";
+      }
+      document.getElementById("results").innerHTML = output;
+    }
+  </script>
+
+  <%- include("partials/footer") %>
 </body>
 </html>
