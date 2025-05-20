@@ -1,6 +1,7 @@
 const path = require("path");
 const { exec } = require("child_process");
-const UserQuery = require("../models/UserQuery"); // ✅ Required for saving search history
+const UserQuery = require("../models/UserQuery");
+const ResultVideo = require("../models/ResultVideo"); // ✅ NEW: import your new model
 
 exports.showResult = async (req, res) => {
   try {
@@ -17,33 +18,45 @@ exports.showResult = async (req, res) => {
       "../public/output/clips",
       outputFile
     );
+    const videoUrl = `/output/clips/${outputFile}`;
 
     const command = `ffmpeg -i "${inputPath}" -ss ${start} -to ${end} -c copy "${outputPath}"`;
 
-    exec(command, (err) => {
+    exec(command, async (err) => {
       if (err) {
         console.error("FFmpeg error:", err);
         return res.status(500).send("Error generating video clip");
       }
 
-      const videoUrl = `/output/clips/${outputFile}`;
-
-      // ✅ Save the search result in user history if logged in
-      if (req.session.user) {
-        UserQuery.create({
-          userId: req.session.user._id,
-          query: q || "Unknown Query",
-          resultVideoUrl: videoUrl,
-        })
-          .then(() => {
-            res.render("results", { videoPath: videoUrl });
-          })
-          .catch((saveErr) => {
-            console.error("Error saving history:", saveErr);
-            res.render("results", { videoPath: videoUrl });
+      try {
+        if (req.session.user) {
+          // ✅ 1. Save the query
+          const newQuery = await UserQuery.create({
+            userId: req.user._id,
+            videoId: videoId,
+            query: q || "Unknown Query",
           });
-      } else {
-        res.render("results", { videoPath: videoUrl });
+
+          // ✅ 2. Save the result linked to the query
+          await ResultVideo.create({
+            queryId: newQuery._id,
+            clipFilename: outputFile,
+            timeRange: `${start} - ${end}`,
+          });
+        }
+
+        res.render("results", {
+          videoPath: videoUrl,
+          query: q || "Unknown Query",
+          results: [],
+        });
+      } catch (saveErr) {
+        console.error("Error saving to DB:", saveErr);
+        res.render("results", {
+          videoPath: videoUrl,
+          query: q || "Unknown Query",
+          results: [],
+        });
       }
     });
   } catch (error) {

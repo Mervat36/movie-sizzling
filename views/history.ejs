@@ -10,90 +10,146 @@
     <script defer src="/js/history.js"></script>
   </head>
   <body class="layout-body">
-    <%- include("partials/header") %>
+    <%- include("partials/header") %> 
+    <% if (toast) { %>
+    <script>
+      var toast = <%- JSON.stringify(toast) %>;
+    </script>
+    <% } %>
+
     <main class="layout-main">
       <section class="history-section">
         <h2 class="center-title">Search History</h2>
-        <div class="history-table-wrapper">
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>Query Text</th>
-                <th>Retrieved Scenes</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (queries.length === 0) { %>
-              <tr>
-                <td colspan="2" style="text-align: center">
-                  No search history found.
-                </td>
-              </tr>
-              <% } else { %> <% queries.forEach((item, index) => { %>
-              <tr>
-                <td><%= item.query %></td>
-                <td>
-                  <% if (item.videos && item.videos.length > 0) { %>
-                  <div
-                    class="video-container"
-                    data-index="0"
-                    data-videos="<%- JSON.stringify(item.videos.map(v => ({ url: v.url, caption: v.caption }))) %>"
-                  >
-                    <button class="prev-btn">&#8249;</button>
 
-                    <video controls>
-                      <source
-                        src="<%= item.videos[0].url %>"
-                        type="video/mp4"
-                      />
-                    </video>
-
-                    <div class="caption">
-                      <div><%= item.videos[0].caption %></div>
-                      <% if (item.videos[0].startTime && item.videos[0].endTime)
-                      { %>
-                      <div class="time-range">
-                        <%= item.videos[0].startTime %> – <%=
-                        item.videos[0].endTime %>
-                      </div>
-                      <% } %>
-                    </div>
-
-                    <div class="actions">
-                      <a
-                        href="<%= item.videos[0].url %>"
-                        download
-                        class="btn-download"
-                        >Download</a
-                      >
-
-                      <form
-                        action="/history/remove"
-                        method="POST"
-                        style="display: inline"
-                      >
-                        <input
-                          type="hidden"
-                          name="videoUrl"
-                          value="<%= item.videos[0].url %>"
-                        />
-                        <button type="submit" class="btn-remove">Remove</button>
-                      </form>
-                    </div>
-
-                    <button class="next-btn">&#8250;</button>
-                  </div>
-                  <% } else { %>
-                  <p>No video results available.</p>
-                  <% } %>
-                </td>
-              </tr>
-              <% }) %> <% } %>
-            </tbody>
-          </table>
+        <!-- 🔍 Filter input -->
+        <div class="filter-bar">
+          <input
+            type="text"
+            id="historySearchInput"
+            placeholder="Search by video name or query..."
+          />
         </div>
+
+        <% if (Object.keys(videoMap).length === 0) { %>
+        <p>No videos uploaded yet.</p>
+        <% } else { %> 
+          <% for (let videoId in videoMap) { let { video, queries } = videoMap[videoId]; %>
+
+        <div class="history-table-wrapper">
+          <div class="video-container">
+            <video controls>
+              <source src="/uploads/<%= video.filename %>" type="video/mp4" />
+            </video>
+            <div class="caption"><%= video.title || video.filename %></div>
+            <div class="actions">
+              <a class="btn-download" href="/videos/download/<%= video._id %>">Download Video</a>
+              <button
+                class="btn-remove trigger-delete"
+                data-delete-url="/videos/delete/<%= video._id %>"
+              >
+                Delete Video
+              </button>
+              <a class="btn-download" href="/search-again/<%= video._id %>">Search Again</a>
+            </div>
+          </div>
+
+          <% if (Object.keys(queries).length === 0) { %>
+          <p style="text-align: center; margin-top: 1rem">No queries for this video.</p>
+          <% } else { %> 
+            <% for (let queryId in queries) { let { query, results } = queries[queryId]; %>
+          <div class="history-table">
+            <table>
+              <thead>
+                <tr>
+                  <th colspan="3">Query: <%= query.query %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="3">
+                    <form action="/queries/delete/<%= query._id %>" method="POST">
+                      <button class="btn-remove" onclick="return confirm('Delete this query and all its results?')">
+                        Delete Query
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+
+                <% if (results.length === 0) { %>
+                <tr>
+                  <td colspan="3">No results found.</td>
+                </tr>
+                <% } else { %> 
+                  <% results.forEach(result => { %>
+                <tr>
+                  <td>
+                    <video width="240" controls>
+                      <source src="/output/clips/<%= result.clipFilename %>" type="video/mp4" />
+                    </video>
+                  </td>
+                  <td class="caption">Time: <%= result.timeRange %></td>
+                  <td class="actions">
+                    <a class="btn-download" href="/results/download/<%= result._id %>">Download</a>
+                    <form action="/results/delete/<%= result._id %>" method="POST">
+                      <button class="btn-remove" onclick="return confirm('Delete this result?')">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                <% }); %> 
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+          <% } %> 
+          <% } %>
+        </div>
+        <% } %> 
+        <% } %>
       </section>
+
+      <div class="pagination">
+        <% if (totalPages > 1) { %> 
+          <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="/history?page=<%= i %>" class="page-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+        <% } %> 
+        <% } %>
+      </div>
     </main>
+
+    <!-- Custom delete confirmation modal -->
+    <div id="deleteModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Delete This Video?</h3>
+        <p>This will permanently delete the video and all related queries and results.</p>
+        <div class="modal-buttons">
+          <button id="cancelDelete" class="btn-cancel">Cancel</button>
+          <a id="confirmDelete" class="btn-delete">Yes, Delete</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const deleteButtons = document.querySelectorAll(".trigger-delete");
+        const modal = document.getElementById("deleteModal");
+        const confirmBtn = document.getElementById("confirmDelete");
+        const cancelBtn = document.getElementById("cancelDelete");
+
+        deleteButtons.forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const deleteUrl = btn.getAttribute("data-delete-url");
+            confirmBtn.setAttribute("href", deleteUrl);
+            modal.classList.remove("hidden");
+          });
+        });
+
+        cancelBtn.addEventListener("click", () => {
+          modal.classList.add("hidden");
+        });
+      });
+    </script>
+
     <%- include("partials/footer") %>
   </body>
 </html>

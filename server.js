@@ -15,6 +15,7 @@ const crypto = require("crypto");
 const { ensureAuthenticated } = require("./middleware/auth");
 require("./middleware/auth");
 require("events").EventEmitter.defaultMaxListeners = 20;
+const Video = require("./models/Video");
 
 const { getProfile } = require("./controllers/UserController");
 
@@ -26,8 +27,6 @@ const UserQuery = require("./models/UserQuery");
 
 const SceneMetadata = require("./models/SceneMetadata");
 const SceneResults = require("./models/SceneSearchResult");
-
-
 
 const connectDB = require("./config/db");
 const videoRoutes = require("./routes/VideoRoutes");
@@ -54,7 +53,8 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
-
+const attachUser = require("./middleware/attachUser");
+app.use(attachUser); // ✅ before all your routes
 // Session and Passport
 app.use(
   session({
@@ -101,7 +101,12 @@ app.get("/", (req, res) => {
 app.get("/login", (req, res) => res.render("login"));
 app.get("/register", (req, res) => res.render("register"));
 app.get("/upload", ensureAuthenticated, (req, res) => res.render("upload"));
-app.get("/search", ensureAuthenticated, (req, res) => res.render("search"));
+app.get("/search", ensureAuthenticated, (req, res) => {
+  res.render("search", {
+    videoId: req.query.videoId || "",
+  });
+});
+
 app.get("/results", ensureAuthenticated, (req, res) => res.render("results"));
 app.get("/scene-history", ensureAuthenticated, (req, res) =>
   res.render("scene-history")
@@ -354,6 +359,14 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     });
     const writer = fs.createWriteStream(localDownloadPath);
     response.data.pipe(writer);
+
+    await Video.create({
+      title: movieTitle,
+      filename: `dl_${supaFileName}`,
+      originalName: req.file.originalname,
+      user: req.user._id,
+      createdAt: new Date(),
+    });
 
     writer.on("finish", async () => {
       console.log("🟡 Starting shot segmentation...");
@@ -705,7 +718,14 @@ app.post("/upload", upload.single("video"), async (req, res) => {
 });
 app.post("/search/result", ensureAuthenticated, async (req, res) => {
   const userQuery = req.body.query;
-  const videoTitle = req.session.videoTitle;
+  const videoTitle =
+    req.session.videoTitle ||
+    req.body.videoTitle ||
+    (req.body.videoId
+      ? req.body.videoId.replace(/^dl_/, "").replace(/\.mp4$/, "")
+      : null);
+
+  req.session.videoTitle = videoTitle;
 
   if (!videoTitle || !userQuery) {
     return res.status(400).render("error", {
@@ -817,6 +837,7 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
       try {
         await UserQuery.create({
           userId: req.session.user._id,
+          videoId: req.body.videoId,
           query: userQuery,
           resultVideoUrl: clipToSave,
         });

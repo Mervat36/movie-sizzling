@@ -137,6 +137,145 @@
 .btn-remove:hover {
   background-color: #d32f2f;
 }
+
+.filter-bar {
+  text-align: center;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 900px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+}
+
+#historySearchInput {
+  width: 90%;
+  max-width: 300px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+.pagination {
+  display: flex;
+  margin: 40px 0 60px;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  padding: 8px 14px;
+  font-size: 15px;
+  background-color: #0f4662;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.page-btn:hover {
+  background-color: #155f84;
+}
+
+.page-btn.active {
+  background-color: #00bfa6;
+  color: #ffffff;
+  font-weight: bold;
+}
+/* 🔧 Enhanced Modal Style (Theme-Aware) */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 10, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: var(--card-bg);
+  padding: 30px 30px 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  color: var(--text-color);
+  width: 90%;
+  max-width: 420px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.modal-content p {
+  font-size: 14px;
+  color: var(--text-color);
+  margin-bottom: 24px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.modal-buttons .btn-cancel,
+.modal-buttons .btn-delete {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  width: 48%;
+  transition: background-color 0.25s ease;
+  text-decoration: none;
+}
+
+.modal-buttons .btn-cancel {
+  background-color: #444;
+  color: #fff;
+}
+
+.modal-buttons .btn-cancel:hover {
+  background-color: #666;
+}
+
+.modal-buttons .btn-delete {
+  background-color: var(--button-hover-color);
+  color: white;
+}
+
+.modal-buttons .btn-delete:hover {
+  background-color: #c9302c;
+}
+
+/* Optional: fade-in animation */
+@keyframes fadeIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
 /* 2. Dark Mode. */
 body.dark-mode .center-title {
   color: #ffffff;
@@ -183,6 +322,16 @@ body.dark-mode .btn-view:hover {
   background-color: #00bfa6;
   color: #fff;
 }
+body.dark-mode .page-btn {
+  background-color: var(--link-color);
+  color: var(--bg-color);
+}
+
+body.dark-mode .page-btn.active {
+  background-color: #00bfa6;
+  color: #fff;
+}
+
 /* 3. Responsive Styles. */
 @media (max-width: 768px) {
   .container,
