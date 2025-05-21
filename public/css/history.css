@@ -305,6 +305,17 @@
     opacity: 1;
   }
 }
+.query-card.hidden {
+  display: none !important;
+}
+
+.result-video {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+}
 
 
 /* 2. Dark Mode. */
