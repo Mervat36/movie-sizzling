@@ -6,22 +6,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const keyword = input.value.toLowerCase();
     const wrappers = document.querySelectorAll(".history-table-wrapper");
 
-    wrappers.forEach(wrapper => {
-      const videoCaption = wrapper.querySelector(".caption")?.textContent.toLowerCase();
-      const queries = wrapper.querySelectorAll(".history-table");
+    wrappers.forEach((wrapper) => {
+      const videoCaption = wrapper
+        .querySelector(".caption")
+        ?.textContent.toLowerCase();
+      const queries = wrapper.querySelectorAll(".history-table, .query-card");
 
       let videoMatch = videoCaption.includes(keyword);
       let anyQueryVisible = false;
 
-      queries.forEach(queryTable => {
-        const queryText = queryTable.querySelector("th")?.textContent.toLowerCase();
+      queries.forEach((queryBlock) => {
+        const queryText = queryBlock
+          .querySelector("h3")
+          ?.textContent.toLowerCase();
         const match = queryText.includes(keyword);
 
-        queryTable.style.display = match ? "block" : "none";
+        queryBlock.style.display = match ? "block" : "none";
         if (match) anyQueryVisible = true;
       });
 
-      wrapper.style.display = (videoMatch || anyQueryVisible) ? "block" : "none";
+      wrapper.style.display = videoMatch || anyQueryVisible ? "block" : "none";
     });
 
     updateVideoPagination(); // Reset pagination on filter
@@ -55,91 +59,156 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPage = 1;
 
   function updateVideoPagination() {
-    const wrappers = Array.from(document.querySelectorAll(".history-table-wrapper"))
-      .filter(w => w.style.display !== "none");
+    const wrappers = Array.from(
+      document.querySelectorAll(".history-table-wrapper")
+    ).filter((w) => w.style.display !== "none");
     const totalPages = Math.ceil(wrappers.length / itemsPerPage);
 
     wrappers.forEach((wrapper, index) => {
-      wrapper.style.display = (index >= (currentPage - 1) * itemsPerPage && index < currentPage * itemsPerPage)
-        ? "block"
-        : "none";
+      wrapper.style.display =
+        index >= (currentPage - 1) * itemsPerPage &&
+        index < currentPage * itemsPerPage
+          ? "flex"
+          : "none";
     });
 
     renderPaginationControls(totalPages);
   }
+  function setupQueryPagination() {
+    document.querySelectorAll(".query-card").forEach((queryCard) => {
+      const results = Array.from(queryCard.querySelectorAll(".result-card"));
+      if (results.length <= 1) return;
+
+      let current = 0;
+      const container = document.createElement("div");
+      container.className = "pagination";
+
+      function renderQueryPageButtons() {
+        container.innerHTML = "";
+        for (let i = 0; i < results.length; i++) {
+          const btn = document.createElement("button");
+          btn.innerText = i + 1;
+          btn.className = "page-btn";
+          if (i === current) btn.classList.add("active");
+          btn.addEventListener("click", () => {
+            results[current].style.display = "none";
+            current = i;
+            results[current].style.display = "block";
+            renderQueryPageButtons();
+            results[current].scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          });
+
+          container.appendChild(btn);
+        }
+      }
+
+      results.forEach((res, i) => {
+        res.style.display = i === 0 ? "block" : "none";
+      });
+
+      renderQueryPageButtons();
+      queryCard.appendChild(container);
+    });
+  }
+
+  setupQueryPagination();
+  function setupQuerySlider() {
+    document.querySelectorAll(".history-table-wrapper").forEach((wrapper) => {
+      const cards = wrapper.querySelectorAll(".query-card");
+      const navs = wrapper.querySelectorAll(".query-nav");
+
+      if (cards.length <= 1) return;
+
+      navs.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = parseInt(btn.dataset.idx);
+          cards.forEach((card, i) => {
+            card.style.display = i === target ? "block" : "none";
+          });
+          navs.forEach((n) => n.classList.remove("active"));
+          btn.classList.add("active");
+          cards[target].scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
+    });
+  }
+  setupQuerySlider();
 
   function renderPaginationControls(totalPages) {
     let container = document.getElementById("video-pagination");
     if (!container) {
       container = document.createElement("div");
       container.id = "video-pagination";
-      container.style.textAlign = "center";
-      container.style.marginTop = "20px";
-      document.querySelector(".history-section")?.appendChild(container);
+      container.className = "pagination";
+      document.querySelector(".filter-bar")?.after(container); // Insert just below filter
     }
+
     container.innerHTML = "";
 
     if (totalPages <= 1) return;
 
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement("button");
-      btn.innerText = i;
-      btn.style.margin = "0 5px";
-      btn.className = "btn-page";
-      if (i === currentPage) btn.style.fontWeight = "bold";
-      btn.addEventListener("click", () => {
-        currentPage = i;
+    const prevBtn = document.createElement("button");
+    prevBtn.innerText = "←";
+    prevBtn.className = "page-btn";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
         updateVideoPagination();
-      });
-      container.appendChild(btn);
-    }
+      }
+    });
+    container.appendChild(prevBtn);
+
+    const nextBtn = document.createElement("button");
+    nextBtn.innerText = "→";
+    nextBtn.className = "page-btn";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        updateVideoPagination();
+      }
+    });
+    container.appendChild(nextBtn);
   }
 
-  // ========== 🎞 RESULT PAGINATION ==========
-  const resultsPerPage = 3;
-  document.querySelectorAll(".history-table").forEach(queryBlock => {
-    const results = Array.from(queryBlock.querySelectorAll("tbody tr")).filter(tr => {
-      return !tr.querySelector("button.btn-remove")?.closest("form[action^='/queries/delete']");
+  // ========== 💣 DELETE MODAL ==========
+  const modal = document.getElementById("deleteModal");
+  const confirmForm = document.getElementById("confirmDeleteForm");
+  const cancelBtn = document.getElementById("cancelDelete");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalText = document.getElementById("modalText");
+
+  document.querySelectorAll(".trigger-delete").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const deleteUrl = btn.getAttribute("data-delete-url");
+      modalTitle.textContent = "Delete This Video?";
+      modalText.textContent =
+        "This will permanently delete the video and all related queries and results.";
+      confirmForm.setAttribute("action", deleteUrl);
+      modal.classList.remove("hidden");
     });
+  });
 
-    const totalResultsPages = Math.ceil(results.length / resultsPerPage);
-    if (totalResultsPages <= 1) return;
+  document.querySelectorAll(".trigger-query-delete").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const queryId = btn.getAttribute("data-query-id");
+      const deleteUrl = `/queries/delete/${queryId}`;
+      modalTitle.textContent = "Delete This Query?";
+      modalText.textContent =
+        "This will permanently delete the query and all related results.";
+      confirmForm.setAttribute("action", deleteUrl);
+      modal.classList.remove("hidden");
+    });
+  });
 
-    let currentResultPage = 1;
-
-    const controlDiv = document.createElement("div");
-    controlDiv.className = "results-pagination";
-    controlDiv.style.textAlign = "center";
-    controlDiv.style.marginTop = "10px";
-
-    for (let i = 1; i <= totalResultsPages; i++) {
-      const btn = document.createElement("button");
-      btn.innerText = i;
-      btn.style.margin = "0 4px";
-      btn.className = "btn-page";
-      if (i === 1) btn.style.fontWeight = "bold";
-      btn.addEventListener("click", () => {
-        currentResultPage = i;
-        updateResultView();
-      });
-      controlDiv.appendChild(btn);
-    }
-
-    queryBlock.appendChild(controlDiv);
-
-    function updateResultView() {
-      results.forEach((row, index) => {
-        row.style.display = (index >= (currentResultPage - 1) * resultsPerPage && index < currentResultPage * resultsPerPage)
-          ? "table-row"
-          : "none";
-      });
-
-      controlDiv.querySelectorAll("button").forEach((btn, idx) => {
-        btn.style.fontWeight = (idx + 1 === currentResultPage) ? "bold" : "normal";
-      });
-    }
-
-    updateResultView(); // Initial call
+  cancelBtn.addEventListener("click", () => {
+    modal.classList.add("hidden");
   });
 
   updateVideoPagination(); // Initial call

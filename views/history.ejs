@@ -10,8 +10,7 @@
     <script defer src="/js/history.js"></script>
   </head>
   <body class="layout-body">
-    <%- include("partials/header") %> 
-    <% if (toast) { %>
+    <%- include("partials/header") %> <% if (toast) { %>
     <script>
       var toast = <%- JSON.stringify(toast) %>;
     </script>
@@ -32,124 +31,123 @@
 
         <% if (Object.keys(videoMap).length === 0) { %>
         <p>No videos uploaded yet.</p>
-        <% } else { %> 
-          <% for (let videoId in videoMap) { let { video, queries } = videoMap[videoId]; %>
+        <% } else { %> <% for (let videoId in videoMap) { let { video, queries } = videoMap[videoId]; %>
 
-        <div class="history-table-wrapper">
-          <div class="video-container">
-            <video controls>
-              <source src="/uploads/<%= video.filename %>" type="video/mp4" />
-            </video>
-            <div class="caption"><%= video.title || video.filename %></div>
-            <div class="actions">
-              <a class="btn-download" href="/videos/download/<%= video._id %>">Download Video</a>
-              <button
-                class="btn-remove trigger-delete"
-                data-delete-url="/videos/delete/<%= video._id %>"
-              >
-                Delete Video
-              </button>
-              <a class="btn-download" href="/api/search/search-again/<%= video._id %>">Search Again</a>
-            </div>
-          </div>
+        <div class="history-table-wrapper" style="display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;">
+  <!-- Video Left -->
+  <div class="video-container" style="flex: 1; min-width: 320px; max-width: 480px;">
+    <video controls>
+      <source src="/uploads/<%= video.filename %>" type="video/mp4" />
+    </video>
+    <div class="caption"><%= video.title || video.filename %></div>
+    <div class="actions">
+      <a class="btn-download" href="/videos/download/<%= video._id %>">Download Video</a>
+      <button class="btn-remove trigger-delete" data-delete-url="/videos/delete/<%= video._id %>">Delete Video</button>
+      <a class="btn-download" href="/api/search/search-again/<%= video._id %>">Search Again</a>
+    </div>
+  </div>
 
-          <% if (Object.keys(queries).length === 0) { %>
-          <p style="text-align: center; margin-top: 1rem">No queries for this video.</p>
-          <% } else { %> 
-            <% for (let queryId in queries) { let { query, results } = queries[queryId]; %>
-          <div class="history-table">
-            <table>
-              <thead>
-                <tr>
-                  <th colspan="3">Query: <%= query.query %></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="3">
-                    <form action="/queries/delete/<%= query._id %>" method="POST">
-                      <button class="btn-remove" onclick="return confirm('Delete this query and all its results?')">
-                        Delete Query
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-
-                <% if (results.length === 0) { %>
-                <tr>
-                  <td colspan="3">No results found.</td>
-                </tr>
-                <% } else { %> 
-                  <% results.forEach(result => { %>
-                <tr>
-                  <td>
-                    <video width="240" controls>
-                      <source src="/output/clips/<%= result.clipFilename %>" type="video/mp4" />
-                    </video>
-                  </td>
-                  <td class="caption">Time: <%= result.timeRange %></td>
-                  <td class="actions">
-                    <a class="btn-download" href="/results/download/<%= result._id %>">Download</a>
-                    <form action="/results/delete/<%= result._id %>" method="POST">
-                      <button class="btn-remove" onclick="return confirm('Delete this result?')">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-                <% }); %> 
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-          <% } %> 
-          <% } %>
-        </div>
-        <% } %> 
-        <% } %>
-      </section>
-
-      <div class="pagination">
-        <% if (totalPages > 1) { %> 
-          <% for (let i = 1; i <= totalPages; i++) { %>
-        <a href="/history?page=<%= i %>" class="page-btn <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
-        <% } %> 
-        <% } %>
-      </div>
-    </main>
-
-    <!-- Custom delete confirmation modal -->
-    <div id="deleteModal" class="modal hidden">
-      <div class="modal-content">
-        <h3>Delete This Video?</h3>
-        <p>This will permanently delete the video and all related queries and results.</p>
-        <div class="modal-buttons">
-          <button id="cancelDelete" class="btn-cancel">Cancel</button>
-          <a id="confirmDelete" class="btn-delete">Yes, Delete</a>
-        </div>
+  <!-- Queries Right -->
+  <div style="flex: 2; min-width: 400px;">
+    <% if (Object.keys(queries).length === 0) { %>
+      <p style="margin-top: 2rem">No queries for this video.</p>
+    <% } else { %>
+<% const queryIds = Object.keys(queries); %>
+<div class="query-slider">
+<% queryIds.forEach((queryId, idx) => { %>
+  <% const { query, results } = queries[queryId]; %>
+  <div class="query-card <%= idx === 0 ? '' : 'hidden' %>">
+    <div class="actions" style="justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 style="margin: 0;">Query: <%= query.query %></h3>
+      <div class="actions">
+        <button class="btn-remove trigger-query-delete" data-query-id="<%= query._id %>">Delete Query</button>
       </div>
     </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const deleteButtons = document.querySelectorAll(".trigger-delete");
-        const modal = document.getElementById("deleteModal");
-        const confirmBtn = document.getElementById("confirmDelete");
-        const cancelBtn = document.getElementById("cancelDelete");
 
-        deleteButtons.forEach(btn => {
-          btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            const deleteUrl = btn.getAttribute("data-delete-url");
-            confirmBtn.setAttribute("href", deleteUrl);
-            modal.classList.remove("hidden");
-          });
-        });
+  <%
+    const merged = {};
+    results.forEach(r => {
+      const key = r.timeRange;
+      if (!merged[key]) merged[key] = [];
+      merged[key].push(r);
+    });
+    const keys = Object.keys(merged);
+  %>
 
-        cancelBtn.addEventListener("click", () => {
-          modal.classList.add("hidden");
-        });
-      });
-    </script>
+  <% keys.forEach(key => {
+    const group = merged[key];
+    const first = group[0];
+    const clipPath = '/output/clips/' + first.clipFilename;
+  %>
+    <div class="result-card">
+      <video controls width="100%">
+        <source src="<%= clipPath %>" type="video/mp4" />
+      </video>
+      <div class="actions">
+        <a class="btn-download" href="/results/download/<%= first._id %>">Download</a>
+        <form action="/results/delete/<%= first._id %>" method="POST">
+          <button class="btn-remove" onclick="return confirm('Delete this result?')">Delete</button>
+        </form>
+      </div>
+      <div class="result-info">
+        <p
+          style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; margin-top: 4px;"
+          title="<%= first.caption %>">
+          <%= first.caption || '' %>
+        </p>
+        <p style="font-size: 13px; color: #888; text-align: center; margin-top: 4px;">
+          <%= first.timeRange %>
+        </p>
+      </div>
+    </div>
+  <% }); %>
+  </div>
+  <% }); %>
 
+  <% if (queryIds.length > 1) { %>
+    <div class="pagination">
+      <% queryIds.forEach((_, i) => { %>
+        <button class="page-btn query-nav <%= i === 0 ? 'active' : '' %>" data-idx="<%= i %>"><%= i + 1 %></button>
+      <% }); %>
+    </div>
+</div>
+
+</div>
+
+      <% } %>
+    <% } %>
+  </div>
+</div>
+        </div>
+        <% } %> <% } %>
+      </section>
+
+      <div class="pagination">
+        <% if (totalPages > 1) { %> <% for (let i = 1; i <= totalPages; i++) {
+        %>
+        <a
+          href="/history?page=<%= i %>"
+          class="page-btn <%= currentPage === i ? 'active' : '' %>"
+          ><%= i %></a
+        >
+        <% } %> <% } %>
+      </div>
+    </main>
+
+<!-- Shared Delete Confirmation Modal -->
+<div id="deleteModal" class="modal hidden">
+  <div class="modal-content">
+    <h3 id="modalTitle">Delete Item?</h3>
+    <p id="modalText">This will permanently delete the item and all related data.</p>
+    <div class="modal-buttons">
+      <button id="cancelDelete" class="btn-cancel">Cancel</button>
+      <form id="confirmDeleteForm" method="POST">
+  <button type="submit" class="btn-delete">Yes, Delete</button>
+</form>
+    </div>
+  </div>
+</div>
     <%- include("partials/footer") %>
   </body>
 </html>

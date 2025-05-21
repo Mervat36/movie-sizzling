@@ -24,6 +24,7 @@ const supabase = require("./supabaseClient");
 const ShotMetadata = require("./models/ShotData");
 
 const UserQuery = require("./models/UserQuery");
+const ResultVideo = require("./models/ResultVideo");
 
 const SceneMetadata = require("./models/SceneMetadata");
 const SceneResults = require("./models/SceneSearchResult");
@@ -830,23 +831,34 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
         clip: clipUrl,
       });
     }
-    const UserQuery = require("./models/UserQuery");
+
     const clipToSave = trimmedResults[0]?.clip || null;
 
-    if (clipToSave && req.session.user) {
+    if (trimmedResults.length > 0 && req.session.user) {
       try {
-        await UserQuery.create({
+        // Save the user query
+        const newQuery = await UserQuery.create({
           userId: req.session.user._id,
           videoId: req.body.videoId,
           query: userQuery,
-          resultVideoUrl: clipToSave,
         });
-        console.log("✅ Saved search to history.");
+
+        // Save each result video
+        for (const match of trimmedResults) {
+          const clipFilename = match.clip.split("/").pop();
+          await ResultVideo.create({
+            queryId: newQuery._id,
+            clipFilename,
+            timeRange: `${match.start_time} - ${match.end_time}`,
+            caption: match.caption 
+          });
+        }
+
+        console.log("✅ Query and results saved to history.");
       } catch (err) {
-        console.warn("⚠️ Failed to save to history:", err.message);
+        console.warn("⚠️ Failed to save query/results:", err.message);
       }
     }
-
     res.render("results", {
       results: trimmedResults,
       query: userQuery,

@@ -158,32 +158,37 @@
   text-align: center;
 }
 .pagination {
+  all: unset;
   display: flex;
-  margin: 40px 0 60px;
   justify-content: center;
   gap: 10px;
-  margin-top: 30px;
   flex-wrap: wrap;
+  margin: 30px 0 60px;
 }
-
+.pagination * {
+  all: unset;
+}
 .page-btn {
+  all: unset;
+  display: inline-block;
   padding: 8px 14px;
   font-size: 15px;
   background-color: #0f4662;
   color: #fff;
   border-radius: 6px;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
+  text-align: center;
+  cursor: pointer;
 }
-
 .page-btn:hover {
   background-color: #155f84;
 }
-
 .page-btn.active {
   background-color: #00bfa6;
-  color: #ffffff;
   font-weight: bold;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 /* 🔧 Enhanced Modal Style (Theme-Aware) */
 .modal {
@@ -226,6 +231,13 @@
   margin-bottom: 24px;
 }
 
+.modal-buttons form {
+  width: 48%;
+}
+
+.modal-buttons form .btn-delete {
+  width: 100%;
+}
 .modal-buttons {
   display: flex;
   justify-content: space-between;
@@ -261,6 +273,25 @@
 
 .modal-buttons .btn-delete:hover {
   background-color: #c9302c;
+}
+.query-card {
+  margin-bottom: 40px;
+  margin-top: 20px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #1e1e2f;
+  border: 1px solid #ddd;
+}
+.query-card:first-of-type {
+  margin-top: 0;
+}
+.query-separator {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 40px 0;
+  width: 100%;
 }
 
 /* Optional: fade-in animation */
@@ -330,6 +361,10 @@ body.dark-mode .page-btn {
 body.dark-mode .page-btn.active {
   background-color: #00bfa6;
   color: #fff;
+}
+body.dark-mode .query-card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
 }
 
 /* 3. Responsive Styles. */
