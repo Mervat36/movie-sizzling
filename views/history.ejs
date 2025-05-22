@@ -19,6 +19,22 @@
     <main class="layout-main">
       <section class="history-section">
         <h2 class="center-title">Search History</h2>
+
+        <% if (Object.keys(videoMap).length === 0) { %>
+        <div class="empty-state">
+          <img
+            src="/images/no-videos.png"
+            alt="No videos"
+            class="empty-illustration"
+          />
+          <h3 class="empty-title">You haven't uploaded any videos yet</h3>
+          <p class="empty-subtext">
+            Start by uploading your first video to begin searching and saving
+            results.
+          </p>
+          <a href="/upload" class="btn-primary">Upload a Video</a>
+        </div>
+        <% } else { %>
         <div class="filter-bar">
           <input
             type="text"
@@ -27,10 +43,8 @@
           />
         </div>
 
-        <% if (Object.keys(videoMap).length === 0) { %>
-        <p>No videos uploaded yet.</p>
-        <% } else { %> <% for (let videoId in videoMap) { let { video, queries }
-        = videoMap[videoId]; %>
+        <% for (let videoId in videoMap) { let { video, queries } =
+        videoMap[videoId]; %>
         <div class="history-table-wrapper history-flex-wrapper">
           <!-- Video Left -->
           <div class="video-container">
@@ -174,8 +188,9 @@
         <a
           href="/history?page=<%= i %>"
           class="page-btn <%= currentPage === i ? 'active' : '' %>"
-          ><%= i %></a
         >
+          <%= i %>
+        </a>
         <% } %> <% } %>
       </div>
     </main>

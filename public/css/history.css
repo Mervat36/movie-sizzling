@@ -2,7 +2,7 @@
 .history-section {
   background-color: var(--bg-color);
   color: var(--text-color);
-  padding: 40px 20px;
+  padding: 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -467,9 +467,58 @@ body.dark-mode .page-btn:hover {
 * {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+body.dark-mode .btn-primary {
+  background-color: var(--link-color);
+  color: var(--bg-color);
+  transition: background-color 0.3s ease;
+}
+body.dark-mode .btn-primary:hover {
+  background-color: #02c1ab;
+  color: #fff;
+}
 body.dark-mode .result-card,
 body.dark-mode .query-card {
   background-color: var(--card-bg);
   color: var(--text-color);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+}
+.empty-state {
+  text-align: center;
+  margin: 60px auto;
+  padding: 10px 10px;
+  max-width: 600px;
+}
+.empty-illustration {
+  width: 160px;
+  height: auto;
+  opacity: 0.85;
+}
+.empty-title {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+.empty-subtext {
+  color: var(--placeholder-color);
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+.btn-primary {
+  width: 100%;
+  background-color: #00dfc4;
+  color: #191d3a;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 223, 196, 0.3);
+}
+a.btn-primary {
+  text-decoration: none;
+}
+.btn-primary:hover {
+  background-color: #02c1ab;
 }
