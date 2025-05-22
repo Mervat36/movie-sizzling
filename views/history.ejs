@@ -31,94 +31,144 @@
 
         <% if (Object.keys(videoMap).length === 0) { %>
         <p>No videos uploaded yet.</p>
-        <% } else { %> <% for (let videoId in videoMap) { let { video, queries } = videoMap[videoId]; %>
+        <% } else { %> <% for (let videoId in videoMap) { let { video, queries }
+        = videoMap[videoId]; %>
+<div class="history-table-wrapper history-flex-wrapper">
 
-        <div class="history-table-wrapper" style="display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;">
-  <!-- Video Left -->
-  <div class="video-container" style="flex: 1; min-width: 320px; max-width: 480px;">
-    <video controls>
-      <source src="/uploads/<%= video.filename %>" type="video/mp4" />
-    </video>
-    <div class="caption"><%= video.title || video.filename %></div>
-    <div class="actions">
-      <a class="btn-download" href="/videos/download/<%= video._id %>">Download Video</a>
-      <button class="btn-remove trigger-delete" data-delete-url="/videos/delete/<%= video._id %>">Delete Video</button>
-      <a class="btn-download" href="/api/search/search-again/<%= video._id %>">Search Again</a>
-    </div>
-  </div>
+          <!-- Video Left -->
+          <div
+            class="video-container"
+          >
+            <video controls>
+              <source src="/uploads/<%= video.filename %>" type="video/mp4" />
+            </video>
+            <div class="caption"><%= video.title || video.filename %></div>
+            <div class="actions">
+              <a class="btn-download" href="/videos/download/<%= video._id %>"
+                >Download Video</a
+              >
+              <button
+                class="btn-remove trigger-delete"
+                data-delete-url="/videos/delete/<%= video._id %>"
+              >
+                Delete Video
+              </button>
+              <a
+                class="btn-download"
+                href="/api/search/search-again/<%= video._id %>"
+                >Search Again</a
+              >
+            </div>
+          </div>
 
-  <!-- Queries Right -->
-  <div style="flex: 2; min-width: 400px;">
-    <% if (Object.keys(queries).length === 0) { %>
-      <p style="margin-top: 2rem">No queries for this video.</p>
-    <% } else { %>
-<% const queryIds = Object.keys(queries); %>
-<div class="query-slider">
-<% queryIds.forEach((queryId, idx) => { %>
-  <% const { query, results } = queries[queryId]; %>
-  <div class="query-card <%= idx === 0 ? '' : 'hidden' %>">
-    <div class="actions" style="justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <h3 style="margin: 0;">Query: <%= query.query %></h3>
-      <div class="actions">
-        <button class="btn-remove trigger-query-delete" data-query-id="<%= query._id %>">Delete Query</button>
-      </div>
-    </div>
+          <!-- Queries Right -->
+          <div style="flex: 2; min-width: 400px" class="query-list">
+            <% if (Object.keys(queries).length === 0) { %>
+            <p style="margin-top: 2rem">No queries for this video.</p>
+            <% } else { %> <% const queryIds = Object.keys(queries); %>
 
+            <div class="query-tabs">
+              <% queryIds.forEach((queryId, idx) => { const { query } =
+              queries[queryId]; %>
+              <button
+                class="query-tab <%= idx === 0 ? 'active' : '' %>"
+                data-tab="<%= videoId %>-<%= idx %>"
+              >
+                <%= query.query.length > 20 ? query.query.slice(0, 20) + '...' :
+                query.query %>
+              </button>
+              <% }); %>
+            </div>
 
-  <%
-    const merged = {};
-    results.forEach(r => {
-      const key = r.timeRange;
-      if (!merged[key]) merged[key] = [];
-      merged[key].push(r);
-    });
-    const keys = Object.keys(merged);
-  %>
+            <div class="query-panels">
+              <% queryIds.forEach((queryId, idx) => { const { query, results } =
+              queries[queryId]; %>
+              <div
+                class="query-panel <%= idx === 0 ? 'active' : '' %>"
+                id="<%= videoId %>-<%= idx %>"
+              >
+                <div class="query-card">
+                  <div
+                    class="actions"
+                    style="
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    <h3 style="margin: 0">Query: <%= query.query %></h3>
+                    <div class="actions">
+                      <button
+                        class="btn-remove trigger-query-delete"
+                        data-query-id="<%= query._id %>"
+                      >
+                        Delete Query
+                      </button>
+                    </div>
+                  </div>
 
-  <% keys.forEach(key => {
-    const group = merged[key];
-    const first = group[0];
-    const clipPath = '/output/clips/' + first.clipFilename;
-  %>
-    <div class="result-card">
-      <video controls class="result-video">
-        <source src="<%= clipPath %>" type="video/mp4" />
-      </video>
-      <div class="actions">
-        <a class="btn-download" href="/results/download/<%= first._id %>">Download</a>
-        <form action="/results/delete/<%= first._id %>" method="POST">
-          <button class="btn-remove" onclick="return confirm('Delete this result?')">Delete</button>
-        </form>
-      </div>
-      <div class="result-info">
-        <p
-          style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; margin-top: 4px;"
-          title="<%= first.caption %>">
-          <%= first.caption || '' %>
-        </p>
-        <p style="font-size: 13px; color: #888; text-align: center; margin-top: 4px;">
-          <%= first.timeRange %>
-        </p>
-      </div>
-    </div>
-  <% }); %>
-  </div>
-  <% }); %>
-
-  <% if (queryIds.length > 1) { %>
-    <div class="pagination">
-      <% queryIds.forEach((_, i) => { %>
-        <button class="page-btn query-nav <%= i === 0 ? 'active' : '' %>" data-idx="<%= i %>"><%= i + 1 %></button>
-      <% }); %>
-    </div>
-</div>
-
-</div>
-
-      <% } %>
-    <% } %>
-  </div>
-</div>
+                  <% const merged = {}; results.forEach(r => { const key =
+                  r.timeRange; if (!merged[key]) merged[key] = [];
+                  merged[key].push(r); }); const keys = Object.keys(merged); %>
+                  <% keys.forEach(key => { const group = merged[key]; const
+                  first = group[0]; const clipPath = '/output/clips/' +
+                  first.clipFilename; %>
+                  <div class="result-card">
+                    <video controls class="result-video">
+                      <source src="<%= clipPath %>" type="video/mp4" />
+                    </video>
+                    <div class="actions">
+                      <a
+                        class="btn-download"
+                        href="/results/download/<%= first._id %>"
+                        >Download</a
+                      >
+                      <form
+                        action="/results/delete/<%= first._id %>"
+                        method="POST"
+                      >
+                        <button
+                          class="btn-remove"
+                          onclick="return confirm('Delete this result?')"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                    <div class="result-info">
+                      <p
+                        style="
+                          font-weight: 500;
+                          white-space: nowrap;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          max-width: 100%;
+                          text-align: center;
+                          margin-top: 4px;
+                        "
+                        title="<%= first.caption %>"
+                      >
+                        <%= first.caption || '' %>
+                      </p>
+                      <p
+                        style="
+                          font-size: 13px;
+                          color: #888;
+                          text-align: center;
+                          margin-top: 4px;
+                        "
+                      >
+                        <%= first.timeRange %>
+                      </p>
+                    </div>
+                  </div>
+                  <% }); %>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+            <% } %>
+          </div>
         </div>
         <% } %> <% } %>
       </section>
@@ -135,19 +185,41 @@
       </div>
     </main>
 
-<!-- Shared Delete Confirmation Modal -->
-<div id="deleteModal" class="modal hidden">
-  <div class="modal-content">
-    <h3 id="modalTitle">Delete Item?</h3>
-    <p id="modalText">This will permanently delete the item and all related data.</p>
-    <div class="modal-buttons">
-      <button id="cancelDelete" class="btn-cancel">Cancel</button>
-      <form id="confirmDeleteForm" method="POST">
-  <button type="submit" class="btn-delete">Yes, Delete</button>
-</form>
+    <!-- Shared Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal hidden">
+      <div class="modal-content">
+        <h3 id="modalTitle">Delete Item?</h3>
+        <p id="modalText">
+          This will permanently delete the item and all related data.
+        </p>
+        <div class="modal-buttons">
+          <button id="cancelDelete" class="btn-cancel">Cancel</button>
+          <form id="confirmDeleteForm" method="POST">
+            <button type="submit" class="btn-delete">Yes, Delete</button>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
     <%- include("partials/footer") %>
+
+    <script>
+      // Basic tab switching logic
+      document.addEventListener("DOMContentLoaded", () => {
+        const allTabs = document.querySelectorAll(".query-tab");
+        const allPanels = document.querySelectorAll(".query-panel");
+
+        allTabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            const targetId = tab.dataset.tab;
+            allTabs.forEach((t) => t.classList.remove("active"));
+            allPanels.forEach((p) => p.classList.remove("active"));
+
+            tab.classList.add("active");
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) targetPanel.classList.add("active");
+          });
+        });
+      });
+    </script>
   </body>
 </html>
