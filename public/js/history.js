@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderPaginationControls(totalPages);
   }
+
   function setupQueryPagination() {
     document.querySelectorAll(".query-card").forEach((queryCard) => {
       const results = Array.from(queryCard.querySelectorAll(".result-card"));
@@ -115,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setupQueryPagination();
+
   function setupQuerySlider() {
     document.querySelectorAll(".history-table-wrapper").forEach((wrapper) => {
       const cards = wrapper.querySelectorAll(".query-card");
@@ -147,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
       container = document.createElement("div");
       container.id = "video-pagination";
       container.className = "pagination";
-      document.querySelector(".filter-bar")?.after(container); // Insert just below filter
+      document.querySelector(".filter-bar")?.after(container);
     }
 
     container.innerHTML = "";
@@ -190,10 +192,16 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       const deleteUrl = btn.getAttribute("data-delete-url");
+      const wrapper = btn.closest(".history-table-wrapper");
+      const videoId = wrapper?.getAttribute("data-video-id");
+
       modalTitle.textContent = "Delete This Video?";
       modalText.textContent =
-        "This will permanently delete the video and all related queries and results.";
+        "This will permanently delete the video.";
+
       confirmForm.setAttribute("action", deleteUrl);
+
+
       modal.classList.remove("hidden");
     });
   });
@@ -203,9 +211,10 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const queryId = btn.getAttribute("data-query-id");
       const deleteUrl = `/queries/delete/${queryId}`;
+
       modalTitle.textContent = "Delete This Query?";
       modalText.textContent =
-        "This will permanently delete the query and all related results.";
+        "This will permanently delete the query only.";
       confirmForm.setAttribute("action", deleteUrl);
       modal.classList.remove("hidden");
     });

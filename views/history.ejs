@@ -48,13 +48,14 @@
         <div class="history-table-wrapper history-flex-wrapper">
           <!-- Video Left -->
           <div class="video-container">
+            <h3 class="section-label">Uploaded Video</h3>
             <video controls>
               <source src="/uploads/<%= video.filename %>" type="video/mp4" />
             </video>
             <div class="caption"><%= video.title || video.filename %></div>
             <div class="actions">
               <a class="btn-download" href="/videos/download/<%= video._id %>"
-                >Download Video</a
+                >Download</a
               >
               <button
                 class="btn-remove trigger-delete"
@@ -73,10 +74,11 @@
           <!-- Queries Right -->
           <div style="flex: 2; min-width: 400px" class="query-list">
             <% if (Object.keys(queries).length === 0) { %>
-            <p style="margin-top: 2rem">No queries for this video.</p>
+            <p> You haven't searched any queries for this video yet.</p>
             <% } else { %> <% const queryIds = Object.keys(queries); %>
 
             <div class="query-tabs">
+              <h3 class="section-label">Search Queries & Results</h3>
               <% queryIds.forEach((queryId, idx) => { const { query } =
               queries[queryId]; %>
               <button
@@ -132,17 +134,12 @@
                         href="/results/download/<%= first._id %>"
                         >Download</a
                       >
-                      <form
-                        action="/results/delete/<%= first._id %>"
-                        method="POST"
+                      <button
+                        class="btn-remove trigger-delete"
+                        data-delete-url="/results/delete/<%= first._id %>"
                       >
-                        <button
-                          class="btn-remove"
-                          onclick="return confirm('Delete this result?')"
-                        >
-                          Delete
-                        </button>
-                      </form>
+                        Delete
+                      </button>
                     </div>
                     <div class="result-info">
                       <p
@@ -213,7 +210,6 @@
     <%- include("partials/footer") %>
 
     <script>
-      // Basic tab switching logic
       document.addEventListener("DOMContentLoaded", () => {
         const allTabs = document.querySelectorAll(".query-tab");
         const allPanels = document.querySelectorAll(".query-panel");
@@ -228,6 +224,39 @@
             const targetPanel = document.getElementById(targetId);
             if (targetPanel) targetPanel.classList.add("active");
           });
+        });
+
+        const modal = document.getElementById("deleteModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalText = document.getElementById("modalText");
+        const confirmForm = document.getElementById("confirmDeleteForm");
+        const cancelBtn = document.getElementById("cancelDelete");
+
+        const deleteTriggers = document.querySelectorAll(
+          ".trigger-delete, .trigger-query-delete"
+        );
+
+        deleteTriggers.forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const isQuery = btn.classList.contains("trigger-query-delete");
+            const deleteUrl = isQuery
+              ? `/queries/delete/${btn.dataset.queryId}`
+              : btn.dataset.deleteUrl;
+
+            modalTitle.textContent = isQuery
+              ? "Delete Query?"
+              : "Delete Video?";
+            modalText.textContent = isQuery
+              ? "This will permanently delete the query and its results."
+              : "This will permanently delete the video and all related data.";
+            confirmForm.action = deleteUrl;
+            modal.classList.remove("hidden");
+          });
+        });
+
+        cancelBtn.addEventListener("click", () => {
+          modal.classList.add("hidden");
         });
       });
     </script>

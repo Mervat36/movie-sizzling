@@ -41,7 +41,6 @@ exports.getHistoryPage = async (req, res) => {
   });
 };
 
-
 exports.downloadVideo = async (req, res) => {
   const video = await Video.findById(req.params.id);
   const filePath = path.join(__dirname, "../uploads", video.filename);
@@ -92,17 +91,30 @@ exports.downloadResult = async (req, res) => {
 };
 
 exports.deleteResult = async (req, res) => {
-  const result = await ResultVideo.findByIdAndDelete(req.params.id);
-  const clipPath = path.join(
-    __dirname,
-    "../public/output/clips",
-    result.clipFilename
-  );
+  const result = await ResultVideo.findById(req.params.id);
+  if (!result) {
+    req.session.toast = {
+      type: "error",
+      message: "Result not found or already deleted.",
+    };
+    return res.redirect("/history");
+  }
+
+  const clipFilename = result.clipFilename;
+
+  // Delete all result entries that share this clip in the SAME query only
+  await ResultVideo.deleteMany({
+    queryId: result.queryId,
+    clipFilename: clipFilename,
+  });
+
+  // Remove the clip file
+  const clipPath = path.join(__dirname, "../public/output/clips", clipFilename);
   if (fs.existsSync(clipPath)) fs.unlinkSync(clipPath);
 
   req.session.toast = {
     type: "success",
-    message: "Result deleted successfully.",
+    message: "Result deleted from this query.",
   };
   res.redirect("/history");
 };
