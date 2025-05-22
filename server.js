@@ -54,8 +54,8 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
-const attachUser = require("./middleware/attachUser");
-app.use(attachUser); // ✅ before all your routes
+
+// Session and Passport
 // Session and Passport
 app.use(
   session({
@@ -66,7 +66,12 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-// ✅ Global middleware to pass user to all views
+
+// ✅ Attach user after session + passport are ready
+const attachUser = require("./middleware/attachUser");
+app.use(attachUser);
+
+// Then your global middleware
 app.use((req, res, next) => {
   res.locals.user = req.user || req.session.user || null;
   res.locals.session = req.session;
@@ -76,6 +81,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 
 // View Engine
 app.set("view engine", "ejs");

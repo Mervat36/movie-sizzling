@@ -19,8 +19,6 @@
     <main class="layout-main">
       <section class="history-section">
         <h2 class="center-title">Search History</h2>
-
-        <!-- 🔍 Filter input -->
         <div class="filter-bar">
           <input
             type="text"
@@ -33,12 +31,9 @@
         <p>No videos uploaded yet.</p>
         <% } else { %> <% for (let videoId in videoMap) { let { video, queries }
         = videoMap[videoId]; %>
-<div class="history-table-wrapper history-flex-wrapper">
-
+        <div class="history-table-wrapper history-flex-wrapper">
           <!-- Video Left -->
-          <div
-            class="video-container"
-          >
+          <div class="video-container">
             <video controls>
               <source src="/uploads/<%= video.filename %>" type="video/mp4" />
             </video>
@@ -56,7 +51,7 @@
               <a
                 class="btn-download"
                 href="/api/search/search-again/<%= video._id %>"
-                >Search Again</a
+                >Search</a
               >
             </div>
           </div>
