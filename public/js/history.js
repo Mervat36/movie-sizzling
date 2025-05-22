@@ -126,7 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
           const target = parseInt(btn.dataset.idx);
           cards.forEach((card, i) => {
-            card.style.display = i === target ? "block" : "none";
+            if (i === target) {
+              card.classList.remove("hidden");
+            } else {
+              card.classList.add("hidden");
+            }
           });
           navs.forEach((n) => n.classList.remove("active"));
           btn.classList.add("active");
