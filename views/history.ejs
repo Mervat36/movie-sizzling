@@ -74,7 +74,14 @@
           <!-- Queries Right -->
           <div style="flex: 2; min-width: 400px" class="query-list">
             <% if (Object.keys(queries).length === 0) { %>
-            <p>You haven't searched any queries for this video yet.</p>
+            <div class="empty-query-message">
+              <img src="/images/search-empty.png" alt="No queries" />
+              <h4>No Queries Found</h4>
+              <p>
+                You haven't searched any queries for this video yet. Try
+                exploring a scene!
+              </p>
+            </div>
             <% } else { %> <% const queryIds = Object.keys(queries); %>
 
             <div class="query-tabs">

@@ -54,6 +54,7 @@
   border: 1px solid var(--border-color);
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   margin-top: 0;
+  border-radius: 10px;
 }
 .caption {
   color: var(--text-color);
@@ -133,6 +134,41 @@ body.dark-mode .btn-download:hover {
   display: flex;
   justify-content: center;
 }
+.empty-query-message {
+  text-align: center;
+  background: #f1f3f7;
+  border: 1px solid #d3d8e0;
+  border-radius: 8px;
+  padding: 16px 12px;
+  margin: 16px 0;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  max-width: 90%;
+  width: 100%;
+}
+
+.empty-query-message h4 {
+  font-size: 15px;
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.empty-query-message p {
+  font-size: 13px;
+  color: #666;
+  margin-top: 6px;
+}
+
+.empty-query-message img {
+  width: 50px;
+  height: 50px;
+  opacity: 0.5;
+  margin-bottom: 10px;
+}
+
 
 #historySearchInput {
   background-color: var(--input-bg);
@@ -327,8 +363,6 @@ body.dark-mode .history-section {
 }
 body.dark-mode .history-table-wrapper {
   background-color: var(--card-bg);
-  border-radius: 10px;
-  padding: 20px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 body.dark-mode .history-table {
@@ -511,6 +545,21 @@ body.dark-mode .query-card {
   color: var(--text-color);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
+body.dark-mode .empty-query-message {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .empty-query-message h4 {
+  color: var(--text-color);
+}
+
+body.dark-mode .empty-query-message p {
+  color: var(--placeholder-color);
+}
+
 .empty-state {
   text-align: center;
   margin: 60px auto;
