@@ -445,4 +445,29 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       });
     });
+
+  // ========== ✅ QUERY TABS SWITCHING ==========
+  function setupQueryTabs() {
+    const tabs = document.querySelectorAll(".query-tab");
+    const panels = document.querySelectorAll(".query-panel");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const targetId = tab.getAttribute("data-tab");
+
+        // Deactivate all tabs and panels
+        tabs.forEach((t) => t.classList.remove("active"));
+        panels.forEach((p) => p.classList.remove("active"));
+
+        // Activate the selected tab and panel
+        tab.classList.add("active");
+        const targetPanel = document.getElementById(targetId);
+        if (targetPanel) {
+          targetPanel.classList.add("active");
+        }
+      });
+    });
+  }
+
+  setupQueryTabs(); // ← Make sure this is called
 });

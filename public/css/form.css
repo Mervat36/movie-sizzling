@@ -15,8 +15,6 @@
   background: linear-gradient(to right, #e60000, #cc0000);
 }
 
-
-
 /* 1. Common Form Layout. */
 .auth-container {
   height: 700px;
@@ -26,15 +24,14 @@
   justify-content: center;
   align-items: center;
   min-height: 80vh;
-  margin-bottom: 50px; 
+  margin-bottom: 50px;
 }
 
 .login-box,
 .profile-card,
 .upload-box,
 .reset-container,
-.container
-.search-container {
+.container .search-container {
   background-color: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--input-bg);
@@ -402,7 +399,6 @@ body.dark-mode .google-btn:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  
 }
 .profile-photo {
   max-width: 100%;
@@ -410,8 +406,6 @@ body.dark-mode .google-btn:hover {
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
-
-
 
 .profile-title {
   text-align: center;
@@ -574,7 +568,7 @@ body.dark-mode .google-btn:hover {
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 30px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s;
 }
 .result-card video {
@@ -593,7 +587,6 @@ body.dark-mode .google-btn:hover {
 .result-info p {
   margin: 4px 0;
 }
-
 
 /* 13. Transition and Dark Mode. */
 body,
@@ -739,3 +732,15 @@ body.dark-mode .btn-toggle-password:hover {
   }
 }
 
+.video-preview {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.video-responsive {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}

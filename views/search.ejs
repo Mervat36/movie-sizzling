@@ -15,6 +15,17 @@
       <section class="auth-container">
         <div class="login-box">
           <h2>Search for a Specific Scene</h2>
+          <% if (videoId) { %>
+          <div class="video-preview">
+            <video controls class="video-responsive">
+              <source src="/uploads/<%= videoFilename %>" />
+              Your browser does not support the video tag.
+            </video>
+            <% if (videoTitle) { %>
+            <p class="video-title"><%= videoTitle %></p>
+            <% } %>
+          </div>
+          <% } %>
           <form id="searchForm" action="/search/result" method="POST">
             <input type="hidden" name="videoId" value="<%= videoId || '' %>" />
             <input type="hidden" name="videoTitle" value="<%= videoId ?
