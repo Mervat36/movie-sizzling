@@ -61,6 +61,14 @@ exports.deleteVideo = async (req, res) => {
   const filePath = path.join(__dirname, "../uploads", video.filename);
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
+  if (
+    req.headers.accept &&
+    req.headers.accept.toLowerCase().includes("application/json")
+  ) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({ success: true });
+  }
+
   req.session.toast = {
     type: "success",
     message: "Video and related data deleted.",
@@ -72,6 +80,14 @@ exports.deleteQuery = async (req, res) => {
   const queryId = req.params.id;
   await ResultVideo.deleteMany({ queryId });
   await UserQuery.findByIdAndDelete(queryId);
+
+  if (
+    req.headers.accept &&
+    req.headers.accept.toLowerCase().includes("application/json")
+  ) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({ success: true });
+  }
 
   req.session.toast = {
     type: "success",
@@ -93,6 +109,15 @@ exports.downloadResult = async (req, res) => {
 exports.deleteResult = async (req, res) => {
   const result = await ResultVideo.findById(req.params.id);
   if (!result) {
+    if (
+      req.headers.accept &&
+      req.headers.accept.toLowerCase().includes("application/json")
+    ) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Result not found." });
+    }
+
     req.session.toast = {
       type: "error",
       message: "Result not found or already deleted.",
@@ -111,6 +136,14 @@ exports.deleteResult = async (req, res) => {
   // Remove the clip file
   const clipPath = path.join(__dirname, "../public/output/clips", clipFilename);
   if (fs.existsSync(clipPath)) fs.unlinkSync(clipPath);
+
+  if (
+    req.headers.accept &&
+    req.headers.accept.toLowerCase().includes("application/json")
+  ) {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({ success: true });
+  }
 
   req.session.toast = {
     type: "success",

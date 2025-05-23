@@ -27,4 +27,13 @@ document.addEventListener("DOMContentLoaded", () => {
     staticToast.classList.add("show");
     setTimeout(() => staticToast.classList.remove("show"), 4000);
   }
+  function showToast(message, type = "success") {
+    const toastDiv = document.createElement("div");
+    toastDiv.className = `toast ${type}`;
+    toastDiv.innerText = message;
+    document.body.appendChild(toastDiv);
+    setTimeout(() => toastDiv.classList.add("show"), 50);
+    setTimeout(() => toastDiv.remove(), 3500);
+  }
+  window.showToast = showToast;
 });

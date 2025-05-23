@@ -74,7 +74,7 @@
           <!-- Queries Right -->
           <div style="flex: 2; min-width: 400px" class="query-list">
             <% if (Object.keys(queries).length === 0) { %>
-            <p> You haven't searched any queries for this video yet.</p>
+            <p>You haven't searched any queries for this video yet.</p>
             <% } else { %> <% const queryIds = Object.keys(queries); %>
 
             <div class="query-tabs">
@@ -208,57 +208,5 @@
       </div>
     </div>
     <%- include("partials/footer") %>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const allTabs = document.querySelectorAll(".query-tab");
-        const allPanels = document.querySelectorAll(".query-panel");
-
-        allTabs.forEach((tab) => {
-          tab.addEventListener("click", () => {
-            const targetId = tab.dataset.tab;
-            allTabs.forEach((t) => t.classList.remove("active"));
-            allPanels.forEach((p) => p.classList.remove("active"));
-
-            tab.classList.add("active");
-            const targetPanel = document.getElementById(targetId);
-            if (targetPanel) targetPanel.classList.add("active");
-          });
-        });
-
-        const modal = document.getElementById("deleteModal");
-        const modalTitle = document.getElementById("modalTitle");
-        const modalText = document.getElementById("modalText");
-        const confirmForm = document.getElementById("confirmDeleteForm");
-        const cancelBtn = document.getElementById("cancelDelete");
-
-        const deleteTriggers = document.querySelectorAll(
-          ".trigger-delete, .trigger-query-delete"
-        );
-
-        deleteTriggers.forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            const isQuery = btn.classList.contains("trigger-query-delete");
-            const deleteUrl = isQuery
-              ? `/queries/delete/${btn.dataset.queryId}`
-              : btn.dataset.deleteUrl;
-
-            modalTitle.textContent = isQuery
-              ? "Delete Query?"
-              : "Delete Video?";
-            modalText.textContent = isQuery
-              ? "This will permanently delete the query and its results."
-              : "This will permanently delete the video and all related data.";
-            confirmForm.action = deleteUrl;
-            modal.classList.remove("hidden");
-          });
-        });
-
-        cancelBtn.addEventListener("click", () => {
-          modal.classList.add("hidden");
-        });
-      });
-    </script>
   </body>
 </html>

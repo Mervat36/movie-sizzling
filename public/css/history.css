@@ -269,6 +269,7 @@ body.dark-mode .page-info {
 .modal-buttons .btn-delete {
   background-color: var(--button-hover-color);
   color: white;
+  white-space: nowrap;
 }
 
 .modal-buttons .btn-delete:hover {
