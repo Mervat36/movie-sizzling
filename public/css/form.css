@@ -556,7 +556,7 @@ body.dark-mode .google-btn:hover {
   background-color: var(--bg-color);
   display: block;
   min-height: calc(100vh - 200px);
-  padding: 100px 20px 40px;
+  padding: 10px 20px 0 20px;
 }
 .results-wrapper {
   padding: 30px 20px;
