@@ -3,32 +3,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("historySearchInput");
 
   input?.addEventListener("input", () => {
-    const keyword = input.value.toLowerCase();
+    currentSearchTerm = input.value.toLowerCase();
     const wrappers = document.querySelectorAll(".history-table-wrapper");
+    let matchCount = 0;
 
     wrappers.forEach((wrapper) => {
-      const videoCaption = wrapper
-        .querySelector(".caption")
-        ?.textContent.toLowerCase();
-      const queries = wrapper.querySelectorAll(".history-table, .query-card");
+      const videoTitle =
+        wrapper.querySelector("input.rename-input")?.value.toLowerCase() || "";
+      const queries = [...wrapper.querySelectorAll(".query-tab")].map((tab) =>
+        tab.textContent.toLowerCase()
+      );
+      const matches =
+        videoTitle.includes(currentSearchTerm) ||
+        queries.some((q) => q.includes(currentSearchTerm));
 
-      let videoMatch = videoCaption.includes(keyword);
-      let anyQueryVisible = false;
-
-      queries.forEach((queryBlock) => {
-        const queryText = queryBlock
-          .querySelector("h3")
-          ?.textContent.toLowerCase();
-        const match = queryText.includes(keyword);
-
-        queryBlock.style.display = match ? "block" : "none";
-        if (match) anyQueryVisible = true;
-      });
-
-      wrapper.style.display = videoMatch || anyQueryVisible ? "block" : "none";
+      wrapper.style.display = matches ? "flex" : "none";
+      if (matches) matchCount++;
     });
 
-    updateVideoPagination(); // Reset pagination on filter
+    // Clear old message
+    const oldMessage = document.getElementById("noResultsMessage");
+    if (oldMessage) oldMessage.remove();
+
+    // Handle no results
+    if (currentSearchTerm && matchCount === 0) {
+      const message = document.createElement("div");
+      message.id = "noResultsMessage";
+      message.className = "empty-state";
+      message.innerHTML = `
+      <img src="/images/search-empty.png" alt="No results" class="empty-illustration" />
+      <h3 class="empty-title">No results found</h3>
+      <p class="empty-subtext">Try adjusting your search term above.</p>`;
+      document.querySelector(".history-section").appendChild(message);
+    }
+
+    currentPage = 1;
+    updateVideoPagination(matchCount);
   });
 
   // ========== ✅ TOAST FEATURE ==========
@@ -57,24 +67,49 @@ document.addEventListener("DOMContentLoaded", () => {
   // ========== 📄 VIDEO PAGINATION ==========
   const itemsPerPage = 3;
   let currentPage = 1;
+  let currentSearchTerm = "";
 
   function updateVideoPagination() {
-    const wrappers = Array.from(
+    const allWrappers = Array.from(
       document.querySelectorAll(".history-table-wrapper")
-    ).filter((w) => w.style.display !== "none");
-    const totalPages = Math.ceil(wrappers.length / itemsPerPage);
+    );
+    const filteredWrappers = allWrappers.filter((wrapper) => {
+      const videoTitle =
+        wrapper.querySelector("input.rename-input")?.value.toLowerCase() || "";
+      const queries = [...wrapper.querySelectorAll(".query-tab")].map((tab) =>
+        tab.textContent.toLowerCase()
+      );
 
-    let visibleCount = 0;
-    wrappers.forEach((wrapper) => {
-      const isVisible = wrapper.style.display !== "none";
-      if (isVisible) {
-        visibleCount++;
-        const start = (currentPage - 1) * itemsPerPage + 1;
-        const end = currentPage * itemsPerPage;
-        wrapper.style.display =
-          visibleCount >= start && visibleCount <= end ? "flex" : "none";
+      const matches =
+        videoTitle.includes(currentSearchTerm) ||
+        queries.some((q) => q.includes(currentSearchTerm));
+      wrapper.style.display = matches ? "flex" : "none";
+      return matches;
+    });
+
+    const matchCount = filteredWrappers.length;
+    const totalPages = Math.ceil(matchCount / itemsPerPage);
+
+    if (currentPage > totalPages) currentPage = 1;
+
+    // Show only items for the current page
+    filteredWrappers.forEach((wrapper, index) => {
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = currentPage * itemsPerPage;
+      wrapper.style.display = index >= start && index < end ? "flex" : "none";
+    });
+
+    // Hide others
+    allWrappers.forEach((wrapper) => {
+      if (!filteredWrappers.includes(wrapper)) {
+        wrapper.style.display = "none";
       }
     });
+
+    const container = document.getElementById("video-pagination");
+    if (container) {
+      container.style.display = matchCount > itemsPerPage ? "flex" : "none";
+    }
 
     renderPaginationControls(totalPages);
   }
@@ -151,41 +186,67 @@ document.addEventListener("DOMContentLoaded", () => {
   setupQuerySlider();
 
   function renderPaginationControls(totalPages) {
-    let container = document.getElementById("video-pagination");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "video-pagination";
-      container.className = "pagination";
-      document.querySelector(".filter-bar")?.after(container);
-    }
+    const container = document.getElementById("video-pagination");
+    if (!container) return;
 
     container.innerHTML = "";
 
-    if (totalPages <= 1) return;
+    function createButton(label, page, isActive = false) {
+      const btn = document.createElement("button");
+      btn.innerText = label;
+      btn.className = "page-btn";
+      if (isActive) btn.classList.add("active");
 
-    const prevBtn = document.createElement("button");
-    prevBtn.innerText = "←";
-    prevBtn.className = "page-btn";
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.addEventListener("click", () => {
-      if (currentPage > 1) {
-        currentPage--;
+      btn.addEventListener("click", () => {
+        currentPage = page;
         updateVideoPagination();
-      }
-    });
-    container.appendChild(prevBtn);
+        input.value = currentSearchTerm;
+      });
 
-    const nextBtn = document.createElement("button");
-    nextBtn.innerText = "→";
-    nextBtn.className = "page-btn";
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.addEventListener("click", () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        updateVideoPagination();
+      return btn;
+    }
+
+    const maxButtons = 5;
+    const pageButtons = [];
+
+    if (totalPages <= maxButtons) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageButtons.push(createButton(i, i, i === currentPage));
       }
-    });
-    container.appendChild(nextBtn);
+    } else {
+      // Always show first
+      pageButtons.push(createButton(1, 1, currentPage === 1));
+
+      if (currentPage > 3) {
+        const ellipsis = document.createElement("span");
+        ellipsis.innerText = "• • •";
+        ellipsis.className = "ellipsis";
+        pageButtons.push(ellipsis);
+      }
+
+      // Middle numbers
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        if (i !== 1 && i !== totalPages) {
+          pageButtons.push(createButton(i, i, i === currentPage));
+        }
+      }
+
+      if (currentPage < totalPages - 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.innerText = "• • •";
+        ellipsis.className = "ellipsis";
+        pageButtons.push(ellipsis);
+      }
+
+      // Always show last
+      pageButtons.push(
+        createButton(totalPages, totalPages, currentPage === totalPages)
+      );
+    }
+
+    pageButtons.forEach((btn) => container.appendChild(btn));
   }
 
   // ========== 💣 DELETE MODAL ==========
@@ -326,7 +387,13 @@ document.addEventListener("DOMContentLoaded", () => {
                   const remainingPanels =
                     queryList.querySelectorAll(".query-panel");
                   if (remainingPanels.length === 0) {
-                    queryList.innerHTML = `<p>You haven't searched any queries for this video yet.</p>`;
+                    queryList.innerHTML = `
+                    <div class="empty-query-message">
+                      <img src="/images/search-empty.png" alt="No queries" />
+                      <h4>No Queries Found</h4>
+                      <p>You haven't searched any queries for this video yet. Try exploring a scene!</p>
+                    </div>
+                    `;
                   } else {
                     const nextTab = document.querySelector(".query-tab");
                     const nextPanelId = nextTab?.dataset.tab;
@@ -370,7 +437,13 @@ document.addEventListener("DOMContentLoaded", () => {
               const remainingPanels =
                 queryList.querySelectorAll(".query-panel");
               if (remainingPanels.length === 0) {
-                queryList.innerHTML = `<p>You haven't searched any queries for this video yet.</p>`;
+                queryList.innerHTML = queryList.innerHTML = `
+                  <div class="empty-query-message">
+                    <img src="/images/search-empty.png" alt="No queries" />
+                    <h4>No Queries Found</h4>
+                    <p>You haven't searched any queries for this video yet. Try exploring a scene!</p>
+                  </div>  
+                  `;
               } else {
                 const tabsInGroup = queryList.querySelectorAll(".query-tab");
                 const panelsInGroup =
@@ -485,21 +558,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-  // ========== 🔍 SEARCH FILTER FOR VIDEOS AND QUERIES ==========
-  const searchInput = document.getElementById("historySearchInput");
-  searchInput?.addEventListener("input", function () {
-    const term = this.value.toLowerCase();
-    document.querySelectorAll(".history-table-wrapper").forEach((wrapper) => {
-      const caption =
-        wrapper.querySelector(".caption")?.textContent.toLowerCase() || "";
-      const queries = [...wrapper.querySelectorAll(".query-tab")].map((btn) =>
-        btn.textContent.toLowerCase()
-      );
-      const matches =
-        caption.includes(term) || queries.some((q) => q.includes(term));
-      wrapper.style.display = matches ? "flex" : "none";
-    });
-  });
 
   // ========== ✏️ AJAX RENAME WITHOUT PAGE RELOAD ==========
   document.querySelectorAll(".rename-form").forEach((form) => {
@@ -529,10 +587,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await response.json();
         if (res.success) {
           showToast("Video renamed successfully!", "success");
-          const caption = form
-            .closest(".video-container")
-            .querySelector(".caption");
-          if (caption) caption.textContent = newTitle;
         } else {
           showToast("Rename failed.", "error");
         }

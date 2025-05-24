@@ -169,7 +169,6 @@ body.dark-mode .btn-download:hover {
   margin-bottom: 10px;
 }
 
-
 #historySearchInput {
   background-color: var(--input-bg);
   color: var(--input-text);
@@ -180,6 +179,7 @@ body.dark-mode .btn-download:hover {
   text-align: center;
   width: 90%;
   max-width: 300px;
+  margin-bottom: 20px;
 }
 .pagination {
   color: var(--button-color);
@@ -226,6 +226,22 @@ body.dark-mode .page-info {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.ellipsis {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 6px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+}
+
+body.dark-mode .ellipsis {
+  color: white;
+}
+
 /* 🔧 Enhanced Modal Style (Theme-Aware) */
 .modal {
   position: fixed;

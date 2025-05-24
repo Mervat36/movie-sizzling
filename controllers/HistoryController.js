@@ -16,8 +16,6 @@ exports.getHistoryPage = async (req, res) => {
 
   const videos = await Video.find({ user: userId })
     .sort({ createdAt: 1 })
-    .skip(skip)
-    .limit(limit);
 
   const videoMap = {};
 

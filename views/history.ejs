@@ -201,17 +201,7 @@
         <!-- ✅ closes outer if -->
       </section>
 
-      <div class="pagination">
-        <% if (totalPages > 1) { %> <% for (let i = 1; i <= totalPages; i++) {
-        %>
-        <a
-          href="/history?page=<%= i %>"
-          class="page-btn <%= currentPage === i ? 'active' : '' %>"
-        >
-          <%= i %>
-        </a>
-        <% } %> <% } %>
-      </div>
+      <div id="video-pagination" class="pagination"></div>
     </main>
 
     <div id="deleteModal" class="modal hidden">
