@@ -15,21 +15,23 @@
       <section class="auth-container">
         <div class="login-box">
           <h2>Search for a Specific Scene</h2>
-          <% if (videoId) { %>
+          <% if (typeof videoFilename !== "undefined" && videoFilename) { %>
           <div class="video-preview">
             <video controls class="video-responsive">
               <source src="/uploads/<%= videoFilename %>" />
               Your browser does not support the video tag.
             </video>
-            <% if (videoTitle) { %>
-            <p class="video-title"><%= videoTitle %></p>
-            <% } %>
+            <p class="video-title"><%= videoTitle || videoFilename %></p>
           </div>
           <% } %>
+
           <form id="searchForm" action="/search/result" method="POST">
             <input type="hidden" name="videoId" value="<%= videoId || '' %>" />
-            <input type="hidden" name="videoTitle" value="<%= videoId ?
-            videoId.replace(/^dl_/, "").replace(/\.mp4$/, "") : '' %>" />
+            <input
+              type="hidden"
+              name="videoTitle"
+              value="<%= videoTitle || '' %>"
+            />
             <div class="form-group">
               <input
                 type="text"

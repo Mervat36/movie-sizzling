@@ -82,7 +82,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // View Engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -111,6 +110,8 @@ app.get("/upload", ensureAuthenticated, (req, res) => res.render("upload"));
 app.get("/search", ensureAuthenticated, (req, res) => {
   res.render("search", {
     videoId: req.query.videoId || "",
+    videoFilename: null,
+    videoTitle: null,
   });
 });
 
@@ -309,7 +310,12 @@ app.post("/search/user", ensureAuthenticated, async (req, res) => {
     const videoPath = path.join("uploads", `dl_${safeTitle}.mp4`);
 
     if (!fs.existsSync(captionsPath) || !fs.existsSync(videoPath)) {
-      return res.status(400).send("Captions or video not found.");
+      return res.status(400).render("error", {
+        error: { status: 400, message: "Missing captions or video." },
+        theme: req.session.theme || "light",
+        friendlyMessage:
+          "The video or its subtitles couldn't be found. Please re-upload your video.",
+      });
     }
 
     const pyCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search_user_query.py "${captionsPath}" "${query}" "${videoPath}"`;
@@ -318,7 +324,12 @@ app.post("/search/user", ensureAuthenticated, async (req, res) => {
       if (error) {
         console.error("❌ Python search failed:", error.message);
         console.error("🔴 STDERR:", stderr);
-        return res.status(500).send("Search failed.");
+        return res.status(500).render("error", {
+          error: { status: 500, message: "Search processing failed." },
+          theme: req.session.theme || "light",
+          friendlyMessage:
+            "There was a problem analyzing your search. Please try again later.",
+        });
       }
 
       console.log("✅ Search finished:", stdout);
@@ -326,7 +337,12 @@ app.post("/search/user", ensureAuthenticated, async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Error saving query or executing search:", err.message);
-    res.status(500).send("Internal Server Error");
+    return res.status(500).render("error", {
+      error: { status: 500, message: "Unexpected server error." },
+      theme: req.session.theme || "light",
+      friendlyMessage:
+        "Something went wrong on our end. Please try again shortly.",
+    });
   }
 });
 
@@ -351,7 +367,12 @@ app.post("/upload", upload.single("video"), async (req, res) => {
 
     if (error) {
       console.error("❌ Supabase upload error:", error);
-      return res.status(500).send("Upload to Supabase failed.");
+      return res.status(500).render("error", {
+        error: { status: 500, message: "Upload to Supabase failed." },
+        theme: req.session.theme || "light",
+        friendlyMessage:
+          "We couldn't upload your video. Please try again. If the issue persists, contact support.",
+      });
     }
     console.log("✅ Supabase video upload complete.");
     fs.unlinkSync(localTempPath);
@@ -367,7 +388,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
     const writer = fs.createWriteStream(localDownloadPath);
     response.data.pipe(writer);
 
-    await Video.create({
+    const savedVideo = await Video.create({
       title: movieTitle,
       filename: `dl_${supaFileName}`,
       originalName: req.file.originalname,
@@ -382,13 +403,23 @@ app.post("/upload", upload.single("video"), async (req, res) => {
         async (error) => {
           if (error) {
             console.error("❌ Shot model failed:", error.message);
-            return res.status(500).send("Shot model failed.");
+            return res.status(500).render("error", {
+              error: { status: 500, message: "Shot segmentation failed." },
+              theme: req.session.theme || "light",
+              friendlyMessage:
+                "We couldn't process the video shots. Try uploading a different video.",
+            });
           }
 
           const jsonPath = path.join("output", `${safeTitle}_shots.json`);
           const shotFolder = path.join("shots", safeTitle);
           if (!fs.existsSync(jsonPath)) {
-            return res.status(500).send("Shot JSON file missing.");
+            return res.status(500).render("error", {
+              error: { status: 500, message: "Missing JSON output." },
+              theme: req.session.theme || "light",
+              friendlyMessage:
+                "We couldn't find the generated video data. Please try uploading again.",
+            });
           }
 
           let jsonData;
@@ -433,7 +464,12 @@ app.post("/upload", upload.single("video"), async (req, res) => {
             if (sceneErr) {
               console.error("❌ Scene segmentation failed:", sceneErr.message);
               console.error("🔴 STDERR:", stderr);
-              return res.status(500).send("Scene segmentation failed.");
+              return res.status(500).render("error", {
+                error: { status: 500, message: "Scene segmentation failed." },
+                theme: req.session.theme || "light",
+                friendlyMessage:
+                  "We couldn’t analyze your video’s scenes. Please try re-uploading the video.",
+              });
             }
 
             console.log("✅ Scene segmentation output:", stdout);
@@ -607,13 +643,26 @@ app.post("/upload", upload.single("video"), async (req, res) => {
             console.log("🚀 Running scene captioning pipeline...");
             const searchCommand = `set PYTHONPATH=. && venv_search\\Scripts\\python.exe AI/search/search.py "${localSceneFolder}" "${metadataPath}"`;
             exec(searchCommand, async (searchErr, stdout, stderr) => {
-              if (searchErr) {
+              if (
+                searchErr &&
+                !fs.existsSync(
+                  path.join("output", `${safeTitle}_captions.json`)
+                )
+              ) {
                 console.error("❌ Search pipeline failed:", searchErr.message);
                 console.error("🔴 STDERR:", stderr);
-                return res
-                  .status(500)
-                  .send("Scene captioning pipeline failed.");
+                return res.status(500).render("error", {
+                  error: {
+                    status: 500,
+                    message: "Scene captioning pipeline failed.",
+                  },
+                  theme: req.session.theme || "light",
+                  friendlyMessage:
+                    "Something went wrong while processing your video. Please try again or contact support.",
+                });
               }
+
+              console.log("✅ Search captioning completed:\n", stdout);
 
               console.log("✅ Search captioning completed:\n", stdout);
 
@@ -660,9 +709,12 @@ app.post("/upload", upload.single("video"), async (req, res) => {
                     "❌ Captions file contains unexpected HTML (possibly an error page):\n",
                     data.slice(0, 200)
                   );
-                  return res
-                    .status(500)
-                    .send("Invalid captions file content (HTML detected).");
+                  return res.status(500).render("error", {
+                    error: { status: 500, message: "Invalid captions file." },
+                    theme: req.session.theme || "light",
+                    friendlyMessage:
+                      "There was an issue reading your video’s subtitles. Try uploading the video again.",
+                  });
                 }
 
                 let parsedJson;
@@ -695,10 +747,7 @@ app.post("/upload", upload.single("video"), async (req, res) => {
                 const SceneResults = require("./models/SceneSearchResult");
                 await SceneResults.create(formattedData);
                 console.log("✅ Captions JSON inserted to MongoDB.");
-                res.render("search", {
-                  uploadedVideoTitle: safeTitle,
-                  videoId: safeTitle,
-                });
+                return res.redirect(`/search?videoId=${savedVideo._id}`);
               } catch (mongoErr) {
                 console.error(
                   "❌ Failed to insert captions JSON to MongoDB:",
@@ -725,12 +774,13 @@ app.post("/upload", upload.single("video"), async (req, res) => {
 });
 app.post("/search/result", ensureAuthenticated, async (req, res) => {
   const userQuery = req.body.query;
-  const videoTitle =
-    req.session.videoTitle ||
-    req.body.videoTitle ||
-    (req.body.videoId
-      ? req.body.videoId.replace(/^dl_/, "").replace(/\.mp4$/, "")
-      : null);
+  let videoTitle;
+  if (req.body.videoId) {
+    const video = await Video.findById(req.body.videoId);
+    videoTitle = video?.filename.replace(/^dl_/, "").replace(/\.mp4$/, "");
+  } else {
+    videoTitle = req.session.videoTitle || req.body.videoTitle || null;
+  }
 
   req.session.videoTitle = videoTitle;
 
@@ -856,7 +906,7 @@ app.post("/search/result", ensureAuthenticated, async (req, res) => {
             queryId: newQuery._id,
             clipFilename,
             timeRange: `${match.start_time} - ${match.end_time}`,
-            caption: match.caption 
+            caption: match.caption,
           });
         }
 

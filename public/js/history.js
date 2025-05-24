@@ -64,12 +64,16 @@ document.addEventListener("DOMContentLoaded", () => {
     ).filter((w) => w.style.display !== "none");
     const totalPages = Math.ceil(wrappers.length / itemsPerPage);
 
-    wrappers.forEach((wrapper, index) => {
-      wrapper.style.display =
-        index >= (currentPage - 1) * itemsPerPage &&
-        index < currentPage * itemsPerPage
-          ? "flex"
-          : "none";
+    let visibleCount = 0;
+    wrappers.forEach((wrapper) => {
+      const isVisible = wrapper.style.display !== "none";
+      if (isVisible) {
+        visibleCount++;
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = currentPage * itemsPerPage;
+        wrapper.style.display =
+          visibleCount >= start && visibleCount <= end ? "flex" : "none";
+      }
     });
 
     renderPaginationControls(totalPages);
@@ -368,13 +372,26 @@ document.addEventListener("DOMContentLoaded", () => {
               if (remainingPanels.length === 0) {
                 queryList.innerHTML = `<p>You haven't searched any queries for this video yet.</p>`;
               } else {
-                const firstTab = document.querySelector(".query-tab");
-                const firstPanelId = firstTab?.dataset.tab;
-                if (firstPanelId) {
-                  document
-                    .getElementById(firstPanelId)
-                    ?.classList.add("active");
-                  firstTab?.classList.add("active");
+                const tabsInGroup = queryList.querySelectorAll(".query-tab");
+                const panelsInGroup =
+                  queryList.querySelectorAll(".query-panel");
+
+                // Deactivate all remaining tabs and panels
+                tabsInGroup.forEach((t) => t.classList.remove("active"));
+                panelsInGroup.forEach((p) => p.classList.remove("active"));
+
+                // Activate first remaining
+                const firstTab = tabsInGroup[0];
+                const firstPanelId = firstTab.dataset.tab;
+                const firstPanel = document.getElementById(firstPanelId);
+
+                if (firstTab && firstPanel) {
+                  firstTab.classList.add("active");
+                  firstPanel.classList.add("active");
+                  firstPanel.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
                 }
               }
 
@@ -468,6 +485,64 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+  // ========== 🔍 SEARCH FILTER FOR VIDEOS AND QUERIES ==========
+  const searchInput = document.getElementById("historySearchInput");
+  searchInput?.addEventListener("input", function () {
+    const term = this.value.toLowerCase();
+    document.querySelectorAll(".history-table-wrapper").forEach((wrapper) => {
+      const caption =
+        wrapper.querySelector(".caption")?.textContent.toLowerCase() || "";
+      const queries = [...wrapper.querySelectorAll(".query-tab")].map((btn) =>
+        btn.textContent.toLowerCase()
+      );
+      const matches =
+        caption.includes(term) || queries.some((q) => q.includes(term));
+      wrapper.style.display = matches ? "flex" : "none";
+    });
+  });
+
+  // ========== ✏️ AJAX RENAME WITHOUT PAGE RELOAD ==========
+  document.querySelectorAll(".rename-form").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const videoId = form.dataset.videoId;
+      const newTitle = form
+        .querySelector("input[name='newTitle']")
+        .value.trim();
+
+      if (!newTitle) {
+        alert("Title cannot be empty.");
+        return;
+      }
+      const submitBtn = form.querySelector("button");
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch(`/videos/rename/${videoId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ newTitle }),
+        });
+
+        const res = await response.json();
+        if (res.success) {
+          showToast("Video renamed successfully!", "success");
+          const caption = form
+            .closest(".video-container")
+            .querySelector(".caption");
+          if (caption) caption.textContent = newTitle;
+        } else {
+          showToast("Rename failed.", "error");
+        }
+      } catch (err) {
+        showToast("An error occurred while renaming.", "error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  });
 
   setupQueryTabs(); // ← Make sure this is called
 });

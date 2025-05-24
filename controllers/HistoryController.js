@@ -15,25 +15,33 @@ exports.getHistoryPage = async (req, res) => {
   const totalPages = Math.ceil(totalVideos / limit);
 
   const videos = await Video.find({ user: userId })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: 1 })
     .skip(skip)
     .limit(limit);
 
   const videoMap = {};
-  for (const video of videos) {
-    const queries = await UserQuery.find({ videoId: video._id });
-    const queryMap = {};
-    for (const query of queries) {
-      const results = await ResultVideo.find({ queryId: query._id });
-      queryMap[query._id] = { query, results };
-    }
-    videoMap[video._id] = { video, queries: queryMap };
-  }
+
+  await Promise.all(
+    videos.map(async (video) => {
+      const queries = await UserQuery.find({ videoId: video._id });
+      const queryMap = {};
+
+      await Promise.all(
+        queries.map(async (query) => {
+          const results = await ResultVideo.find({ queryId: query._id });
+          queryMap[query._id] = { query, results };
+        })
+      );
+
+      videoMap[video._id] = { video, queries: queryMap };
+    })
+  );
 
   const toast = req.session.toast || null;
   delete req.session.toast;
 
   res.render("history", {
+    videos,
     videoMap,
     toast,
     currentPage: page,
@@ -149,5 +157,80 @@ exports.deleteResult = async (req, res) => {
     type: "success",
     message: "Result deleted from this query.",
   };
+  res.redirect("/history");
+};
+exports.renameVideo = async (req, res) => {
+  const videoId = req.params.id;
+  const newTitle = req.body.newTitle?.trim();
+
+  if (!newTitle) {
+    req.session.toast = { type: "error", message: "Title cannot be empty." };
+    return res.redirect("/history");
+  }
+
+  try {
+    const video = await Video.findById(videoId);
+    if (!video) {
+      req.session.toast = { type: "error", message: "Video not found." };
+      return res.redirect("/history");
+    }
+
+    const oldFilename = video.filename;
+    const oldSafeTitle = oldFilename.replace(/^dl_/, "").replace(/\.mp4$/, "");
+    const newSafeTitle = newTitle.replace(/[^a-z0-9_\-]/gi, "_").toLowerCase();
+    const fileExt = path.extname(oldFilename);
+
+    const newFilename = `dl_${newSafeTitle}${fileExt}`;
+    const newVideoPath = path.join(__dirname, "../uploads", newFilename);
+    const oldVideoPath = path.join(__dirname, "../uploads", oldFilename);
+
+    // Rename video file
+    if (fs.existsSync(oldVideoPath)) {
+      fs.renameSync(oldVideoPath, newVideoPath);
+    }
+
+    // Rename caption JSON
+    const oldCaptions = path.join(
+      __dirname,
+      "..",
+      `${oldSafeTitle}_captions.json`
+    );
+    const newCaptions = path.join(
+      __dirname,
+      "..",
+      `${newSafeTitle}_captions.json`
+    );
+    if (fs.existsSync(oldCaptions)) {
+      fs.renameSync(oldCaptions, newCaptions);
+    }
+
+    // Rename output folder (optional but recommended)
+    const oldOutput = path.join(__dirname, "../output", oldSafeTitle);
+    const newOutput = path.join(__dirname, "../output", newSafeTitle);
+    if (fs.existsSync(oldOutput)) {
+      fs.renameSync(oldOutput, newOutput);
+    }
+
+    // Update DB
+    video.title = newTitle;
+    video.filename = newFilename;
+    await video.save();
+
+    req.session.toast = {
+      type: "success",
+      message: "Video and files renamed successfully.",
+    };
+  } catch (err) {
+    console.error("Rename error:", err);
+    req.session.toast = {
+      type: "error",
+      message: "Failed to rename video or files.",
+    };
+  }
+
+  if (req.headers.accept.includes("application/json")) {
+    return res.json({ success: true });
+  }
+
   res.redirect("/history");
 };

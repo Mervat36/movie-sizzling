@@ -8,6 +8,7 @@ const {
   deleteQuery,
   downloadResult,
   deleteResult,
+  renameVideo,
 } = require("../controllers/HistoryController");
 
 const { ensureAuthenticated } = require("../middleware/auth");
@@ -19,5 +20,6 @@ router.post("/videos/delete/:id", ensureAuthenticated, deleteVideo);
 router.post("/queries/delete/:id", ensureAuthenticated, deleteQuery);
 router.get("/results/download/:id", ensureAuthenticated, downloadResult);
 router.post("/results/delete/:id", ensureAuthenticated, deleteResult);
+router.post("/videos/rename/:id", ensureAuthenticated, renameVideo);
 
 module.exports = router;

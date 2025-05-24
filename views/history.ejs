@@ -43,8 +43,8 @@
           />
         </div>
 
-        <% for (let videoId in videoMap) { let { video, queries } =
-        videoMap[videoId]; %>
+        <% videos.forEach(video => { const queries =
+        videoMap[video._id]?.queries || {}; %>
         <div class="history-table-wrapper history-flex-wrapper">
           <!-- Video Left -->
           <div class="video-container">
@@ -52,7 +52,21 @@
             <video controls>
               <source src="/uploads/<%= video.filename %>" type="video/mp4" />
             </video>
-            <div class="caption"><%= video.title || video.filename %></div>
+            <form
+              action="/videos/rename/<%= video._id %>"
+              method="POST"
+              class="rename-form"
+              data-video-id="<%= video._id %>"
+            >
+              <input
+                type="text"
+                name="newTitle"
+                value="<%= video.title || video.filename %>"
+                class="rename-input"
+              />
+              <button type="submit" class="btn-rename">Rename</button>
+            </form>
+
             <div class="actions">
               <a class="btn-download" href="/videos/download/<%= video._id %>"
                 >Download</a
@@ -70,7 +84,6 @@
               >
             </div>
           </div>
-
           <!-- Queries Right -->
           <div style="flex: 2; min-width: 400px" class="query-list">
             <% if (Object.keys(queries).length === 0) { %>
@@ -90,7 +103,7 @@
               queries[queryId]; %>
               <button
                 class="query-tab <%= idx === 0 ? 'active' : '' %>"
-                data-tab="<%= videoId %>-<%= idx %>"
+                data-tab="<%= video._id %>-<%= idx %>"
               >
                 <%= query.query.length > 20 ? query.query.slice(0, 20) + '...' :
                 query.query %>
@@ -103,7 +116,7 @@
               queries[queryId]; %>
               <div
                 class="query-panel <%= idx === 0 ? 'active' : '' %>"
-                id="<%= videoId %>-<%= idx %>"
+                id="<%= video._id %>-<%= idx %>"
               >
                 <div class="query-card">
                   <div
@@ -124,7 +137,6 @@
                       </button>
                     </div>
                   </div>
-
                   <% const merged = {}; results.forEach(r => { const key =
                   r.timeRange; if (!merged[key]) merged[key] = [];
                   merged[key].push(r); }); const keys = Object.keys(merged); %>
@@ -183,7 +195,10 @@
             <% } %>
           </div>
         </div>
-        <% } %> <% } %>
+        <% }); %>
+        <!-- ✅ closes videos.forEach -->
+        <% } %>
+        <!-- ✅ closes outer if -->
       </section>
 
       <div class="pagination">
@@ -199,7 +214,6 @@
       </div>
     </main>
 
-    <!-- Shared Delete Confirmation Modal -->
     <div id="deleteModal" class="modal hidden">
       <div class="modal-content">
         <h3 id="modalTitle">Delete Item?</h3>

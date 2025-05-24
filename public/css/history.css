@@ -600,3 +600,48 @@ a.btn-primary {
 .btn-primary:hover {
   background-color: #02c1ab;
 }
+.rename-form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.rename-input {
+  font-size: 14px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  width: 160px;
+}
+
+.btn-rename {
+  font-size: 13px;
+  background-color: var(--button-color);
+  color: var(--button-text);
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-rename:hover {
+  background-color: vconstar(--button-hover-color);
+  color: white;
+}
+/* 🌙 Dark Mode Styling for Rename Feature */
+body.dark-mode .rename-input {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--border-color);
+}
+
+body.dark-mode .btn-rename {
+  background-color: var(--link-color);
+  color: var(--bg-color);
+}
+
+body.dark-mode .btn-rename:hover {
+  background-color: #00bfa6;
+  color: white;
+}
