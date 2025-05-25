@@ -49,6 +49,7 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/output/clips", express.static(path.join(__dirname, "output/clips")));
 app.use(express.static(path.join(__dirname, "public")));
 
 // Session and Passport Setup
