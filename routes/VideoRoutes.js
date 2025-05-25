@@ -4,13 +4,17 @@ const multer = require("multer");
 const path = require("path");
 const { exec } = require("child_process");
 const { ensureAuthenticated } = require("../middleware/auth");
+
 const {
   uploadVideo,
   getAllVideos,
   getVideoById,
+  deleteVideoByTitle,
 } = require("../controllers/VideoController");
+
 const { searchEngine, saveSearchHistory } = require("../utils/searchEngine");
 
+// Multer Storage Config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
@@ -22,30 +26,36 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Updated route
+// === Routes ===
+
+// Upload
+router.post(
+  "/upload",
+  ensureAuthenticated,
+  upload.single("video"),
+  uploadVideo
+);
+
+// Search Result Generation
 router.post("/result", ensureAuthenticated, async (req, res) => {
   const { query, videoId } = req.body;
-
   try {
-    // Call your search AI model (dummy logic for now)
     const result = await searchEngine(query, videoId);
-
-    // Save search query to DB (for history)
     const userId = req.session.user?._id || "guest";
     await saveSearchHistory(userId, videoId, query, result);
 
-    // Redirect to result page with video + timestamps
     res.redirect(
       `/search/result?videoId=${videoId}&segment=${JSON.stringify(
         result.bestMatch
       )}&q=${encodeURIComponent(query)}`
     );
   } catch (error) {
-    console.error(error);
+    console.error("Search error:", error);
     res.status(500).send("Search error");
   }
 });
 
+// Render Result Clip
 router.get("/result", async (req, res) => {
   const { videoId, segment } = req.query;
   const { start, end } = JSON.parse(segment);
@@ -58,17 +68,20 @@ router.get("/result", async (req, res) => {
   const outputPath = path.join(__dirname, "../output/clips", outputFile);
 
   const command = `ffmpeg -i "${inputPath}" -ss ${start} -to ${end} -c copy "${outputPath}"`;
-
   exec(command, (err) => {
     if (err) {
       console.error("FFmpeg error:", err);
       return res.status(500).send("Error generating clip");
     }
-
     res.render("results", { videoPath: `/output/clips/${outputFile}` });
   });
 });
 
+// Fetch video data
+router.get("/", getAllVideos);
 router.get("/:id", getVideoById);
+
+// Delete a video and all data
+router.delete("/delete/:title", ensureAuthenticated, deleteVideoByTitle);
 
 module.exports = router;

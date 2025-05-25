@@ -15,7 +15,9 @@
       var toast = <%- JSON.stringify(toast) %>;
     </script>
     <% } %>
-
+    <div id="loading-spinner" class="spinner-overlay" style="display: none">
+      <div class="spinner"></div>
+    </div>
     <main class="layout-main">
       <section class="history-section">
         <h2 class="center-title">Search History</h2>
@@ -218,6 +220,7 @@
         </div>
       </div>
     </div>
+    <button id="scrollToTop" class="scroll-to-top" title="Back to top">↑</button>
     <%- include("partials/footer") %>
   </body>
 </html>

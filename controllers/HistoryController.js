@@ -4,6 +4,10 @@ const path = require("path");
 const Video = require("../models/Video");
 const ResultVideo = require("../models/ResultVideo");
 const UserQuery = require("../models/UserQuery");
+const ShotMetadata = require("../models/ShotData");
+const SceneMetadata = require("../models/SceneMetadata");
+const SceneResults = require("../models/SceneSearchResult");
+const supabase = require("../supabaseClient");
 
 exports.getHistoryPage = async (req, res) => {
   const userId = req.user._id;
@@ -14,8 +18,7 @@ exports.getHistoryPage = async (req, res) => {
   const totalVideos = await Video.countDocuments({ user: userId });
   const totalPages = Math.ceil(totalVideos / limit);
 
-  const videos = await Video.find({ user: userId })
-    .sort({ createdAt: 1 })
+  const videos = await Video.find({ user: userId }).sort({ createdAt: 1 });
 
   const videoMap = {};
 
@@ -55,29 +58,119 @@ exports.downloadVideo = async (req, res) => {
 
 exports.deleteVideo = async (req, res) => {
   const videoId = req.params.id;
-  const queries = await UserQuery.find({ videoId });
+  const video = await Video.findById(videoId);
+  if (!video) {
+    return res
+      .status(404)
+      .json({ success: false, message: "Video not found." });
+  }
 
+  const title =
+    video.title || video.filename.replace(/^dl_/, "").replace(/\.mp4$/, "");
+  const safeTitle = title.trim().replace(/[^a-z0-9_\-]/gi, "_");
+
+  // MongoDB cleanup
+  const queries = await UserQuery.find({ videoId });
   for (const query of queries) {
     await ResultVideo.deleteMany({ queryId: query._id });
   }
-
   await UserQuery.deleteMany({ videoId });
-  const video = await Video.findByIdAndDelete(videoId);
+  await ShotMetadata.deleteMany({ movieTitle: title });
+  await SceneMetadata.deleteMany({ title });
+  await SceneResults.deleteMany({ movie_name: title });
+  await Video.findByIdAndDelete(videoId);
 
-  const filePath = path.join(__dirname, "../uploads", video.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  // Supabase cleanup
+  try {
+    await supabase.storage.from("movies").remove([`${safeTitle}.mp4`]);
+    try {
+      // Delete video file
+      await supabase.storage.from("movies").remove([`${safeTitle}.mp4`]);
 
-  if (
-    req.headers.accept &&
-    req.headers.accept.toLowerCase().includes("application/json")
-  ) {
-    res.setHeader("Content-Type", "application/json");
+      // 🔥 Delete all shot files in 'shots/<safeTitle>/'
+      const { data: shotFiles, error: shotErr } = await supabase.storage
+        .from("shots")
+        .list(safeTitle, { limit: 100 });
+
+      if (shotFiles && shotFiles.length > 0) {
+        const shotPaths = shotFiles.map((file) => `${safeTitle}/${file.name}`);
+        await supabase.storage.from("shots").remove(shotPaths);
+      }
+
+      // 🔥 Delete all scene result files in 'scene-results/<safeTitle>/'
+      const { data: sceneFiles, error: sceneErr } = await supabase.storage
+        .from("scene-results")
+        .list(safeTitle, { limit: 100 });
+
+      if (sceneFiles && sceneFiles.length > 0) {
+        const scenePaths = sceneFiles.map(
+          (file) => `${safeTitle}/${file.name}`
+        );
+        await supabase.storage.from("scene-results").remove(scenePaths);
+      }
+    } catch (err) {
+      console.error("❌ Error cleaning Supabase buckets:", err.message);
+    }
+
+    const { data: shots } = await supabase.storage
+      .from("shots")
+      .list(`${safeTitle}`);
+    const { data: scenes } = await supabase.storage
+      .from("scene-results")
+      .list(`${safeTitle}`);
+
+    const shotPaths = shots?.map((f) => `${safeTitle}/${f.name}`) || [];
+    const scenePaths = scenes?.map((f) => `${safeTitle}/${f.name}`) || [];
+
+    if (shotPaths.length > 0) {
+      await supabase.storage.from("shots").remove(shotPaths);
+    }
+    if (scenePaths.length > 0) {
+      await supabase.storage.from("scene-results").remove(scenePaths);
+    }
+  } catch (err) {
+    console.error("❌ Error deleting from Supabase:", err.message);
+  }
+
+  // Local file cleanup
+  const localVideoPath = path.join(__dirname, "../uploads", video.filename);
+  if (fs.existsSync(localVideoPath)) fs.unlinkSync(localVideoPath);
+
+  const localCaptions = path.join(
+    __dirname,
+    "..",
+    `${safeTitle}_captions.json`
+  );
+  const localOutputFolder = path.join(__dirname, "../output", safeTitle);
+
+  [localCaptions].forEach((f) => {
+    if (fs.existsSync(f)) fs.unlinkSync(f);
+  });
+  if (fs.existsSync(localOutputFolder)) {
+    fs.rmSync(localOutputFolder, { recursive: true, force: true });
+  }
+  // Delete optional scene summary file(s)
+  const sceneSummaryVariants = [
+    `${title}_scene_summaries.json`,
+    `${safeTitle}_scene_summaries.json`,
+    `${title}_summary.json`,
+  ];
+
+  sceneSummaryVariants.forEach((file) => {
+    const filePath = path.join(__dirname, "..", file);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  });
+
+  // Response
+  if (req.headers.accept?.toLowerCase().includes("application/json")) {
     return res.status(200).json({ success: true });
   }
 
   req.session.toast = {
     type: "success",
-    message: "Video and related data deleted.",
+    message: "Video and all related data deleted.",
   };
   res.redirect("/history");
 };

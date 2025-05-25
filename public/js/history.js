@@ -297,11 +297,12 @@ document.addEventListener("DOMContentLoaded", () => {
           modalText.textContent =
             "This will permanently delete the video and all related data.";
         }
-
         modal.classList.remove("hidden");
-
         confirmForm.onsubmit = async function (ev) {
           ev.preventDefault();
+          modal.classList.add("hidden");
+          const spinner = document.getElementById("loading-spinner");
+          if (spinner) spinner.style.display = "flex";
           try {
             const res = await fetch(deleteUrl, {
               method: "POST",
@@ -320,13 +321,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 `An error occurred while deleting the ${deleteType}.`,
                 "error"
               );
-              modal.classList.add("hidden");
+              if (spinner) spinner.style.display = "none";
               return;
+            } finally {
+              if (spinner) spinner.style.display = "none";
             }
-
             if (!res.ok || !json.success) {
               showToast(`Failed to delete ${deleteType}.`, "error");
-              modal.classList.add("hidden");
               return;
             }
 
@@ -595,6 +596,23 @@ document.addEventListener("DOMContentLoaded", () => {
       } finally {
         submitBtn.disabled = false;
       }
+    });
+  });
+  // Scroll-to-top button logic
+  const scrollBtn = document.getElementById("scrollToTop");
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 400) {
+      scrollBtn.style.display = "block";
+    } else {
+      scrollBtn.style.display = "none";
+    }
+  });
+
+  scrollBtn.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
     });
   });
 
