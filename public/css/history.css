@@ -525,6 +525,7 @@ body.dark-mode .page-btn:hover {
   transition: background-color 0.3s ease;
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
+  margin-bottom: 10px;
 }
 .query-tab.active {
   background-color: var(--button-color);

@@ -365,8 +365,24 @@ exports.handleUpload = async (req, res) => {
                   );
                   return res.status(500).send("Captions file missing.");
                 }
-
                 const data = fs.readFileSync(captionsJsonPath, "utf-8").trim();
+
+                if (data.startsWith("<")) {
+                  const debugPath = path.join(
+                    "output",
+                    `${safeTitle}_captions_ERROR.html`
+                  );
+                  fs.writeFileSync(debugPath, data);
+                  return res.status(500).render("error", {
+                    error: {
+                      status: 500,
+                      message: "Captions file contained HTML.",
+                    },
+                    theme: req.session.theme || "light",
+                    friendlyMessage:
+                      "The video failed to generate subtitles. Please try again.",
+                  });
+                }
 
                 if (data.startsWith("<")) {
                   console.error(

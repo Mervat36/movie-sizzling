@@ -9,4 +9,5 @@ router.post("/submit", ensureAuthenticated, searchController.searchSubmit);
 router.post("/user", ensureAuthenticated, searchController.searchUser);
 router.post("/result", ensureAuthenticated, searchController.searchResult);
 
+
 module.exports = router;

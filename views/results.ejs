@@ -35,7 +35,15 @@
         >
           Search Results
         </h2>
-        <p class="query-label" style="text-align: center; font-size: 16px; padding-top: 10px; padding-bottom: 10px;">
+        <p
+          class="query-label"
+          style="
+            text-align: center;
+            font-size: 16px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+          "
+        >
           <strong>Search Query:</strong> <%= query %>
         </p>
 
@@ -45,9 +53,18 @@
           videoId = result.image?.split("_shot")[0]; if (!seen.has(videoId)) {
           seen.add(videoId); %>
           <div class="result-card">
-            <video controls width="100%">
-              <source src="<%= result.clip %>" type="video/mp4" />
+            <video
+              controls
+              width="100%"
+              preload="metadata"
+              onerror="console.error('Failed to load video:', this.src)"
+            >
+              <source
+                src="<%= result.clip.replace(/\\/g, '/') %>"
+                type="video/mp4"
+              />
             </video>
+
             <a
               href="<%= result.clip %>"
               download

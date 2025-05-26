@@ -3,154 +3,108 @@ import sys
 import json
 import torch
 import clip
-import subprocess
 import cv2
 from datetime import datetime
+from sentence_transformers import SentenceTransformer, util
+from rapidfuzz import fuzz
+from nltk.corpus import wordnet
 
-# Define timestamp_to_seconds function
+# Helper functions
 def timestamp_to_seconds(ts):
-    """Convert HH:MM:SS.MS to float seconds"""
     h, m, s = ts.split(':')
     return int(h) * 3600 + int(m) * 60 + float(s)
 
-# CLI args: [captions_json, user_query, video_path]
+def clean_text(text):
+    import re
+    return re.sub(r'[^a-zA-Z0-9 ]', '', text.lower()).strip()
+
+def expand_query(text):
+    words = clean_text(text).split()
+    expanded = set(words)
+    for word in words:
+        for syn in wordnet.synsets(word):
+            for lemma in syn.lemmas():
+                expanded.add(lemma.name().replace('_', ' '))
+    return list(expanded)
+
+# Custom synonyms to manually boost weak NLP pairs
+custom_synonyms = {
+    "guy": "man",
+    "vehicle": "car",
+    "automobile": "car",
+    "lady": "woman",
+    "kid": "child",
+    "road": "street",
+    "truck": "car",
+    "boy": "man"
+}
+
+def apply_custom_synonym_boost(query_tokens, caption_tokens):
+    for q in query_tokens:
+        for c in caption_tokens:
+            if custom_synonyms.get(q) == c or custom_synonyms.get(c) == q:
+                return 0.1  # add bonus boost
+    return 0.0
+
+# CLI args
 captions_path = sys.argv[1]
 query = sys.argv[2]
 video_path = sys.argv[3]
 
-# Load caption metadata
+# Load data
 with open(captions_path, "r") as f:
     data = json.load(f)
 metadata = data["shots_metadata"]
 
-# Load model
+# Load models
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model, preprocess = clip.load("ViT-B/32", device=device)
-
-from sentence_transformers import SentenceTransformer, util
+clip_model, preprocess = clip.load("ViT-B/32", device=device)
 sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Process query
-query_embedding = model.encode_text(clip.tokenize([query]).to(device)).squeeze()
+# Expand query and encode
+expanded_queries = expand_query(query)
+expanded_embeddings = sentence_model.encode(expanded_queries, convert_to_tensor=True)
+query_tokens = clean_text(query).split()
+
 caption_results = []
 
 # Match captions
 for path, info in metadata.items():
     caption = info["caption"]
-    caption_embedding = model.encode_text(clip.tokenize([caption]).to(device)).squeeze()
-    score = torch.cosine_similarity(query_embedding, caption_embedding, dim=0).item()
+    caption_clean = clean_text(caption)
+    caption_embedding = sentence_model.encode(caption_clean, convert_to_tensor=True)
+    caption_tokens = caption_clean.split()
 
-    if score > 0.28:
+    # Highest semantic similarity
+    max_semantic_score = max([util.cos_sim(query_emb, caption_embedding).item() for query_emb in expanded_embeddings])
+    fuzzy_score = fuzz.token_set_ratio(clean_text(query), caption_clean) / 100.0
+    synonym_boost = apply_custom_synonym_boost(query_tokens, caption_tokens)
+
+    combined_score = 0.65 * max_semantic_score + 0.25 * fuzzy_score + synonym_boost
+
+    if combined_score > 0.3:
         caption_results.append({
-            "score": round(score, 3),
+            "score": round(combined_score, 3),
             "caption": caption,
             "start_time": info["start_time"],
             "end_time": info["end_time"],
             "image": path
         })
 
-# Sort and remove duplicates by start_time (ascending order)
+# Sort and filter duplicates
 seen_paths = set()
 final_matches = []
 for result in sorted(caption_results, key=lambda x: timestamp_to_seconds(x["start_time"])):
-    video_file = os.path.basename(result["image"]).split("_shot")[0] # base video path, adjust if structure differs
+    video_file = os.path.basename(result["image"]).split("_shot")[0]
     if video_file not in seen_paths:
         seen_paths.add(video_file)
         final_matches.append(result)
 
-
-# Create folder for scene clips
+# Create output folder
 scene_clips_folder = "output_scene_clips"
 os.makedirs(scene_clips_folder, exist_ok=True)
 
-# Initialize list to store scene video files
-scene_video_files = []
+# Optionally print results
+import json
+print(json.dumps(final_matches))
 
-# Open the video file using OpenCV
-cap = cv2.VideoCapture(video_path)
-fps = cap.get(cv2.CAP_PROP_FPS)
-frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-# Prepare to write the final concatenated video
-final_output_filename = "final_concatenated_video.mp4"
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4
-out = cv2.VideoWriter(final_output_filename, fourcc, fps, (frame_width, frame_height))
-
-# Process and cut scenes from video
-i = 0
-clips_to_concatenate = []
-for match in final_matches:
-    start = timestamp_to_seconds(match["start_time"])
-    end = timestamp_to_seconds(match["end_time"])
-
-    # Set the position to the start frame
-    cap.set(cv2.CAP_PROP_POS_FRAMES, int(start * fps))
-
-    # Create a VideoWriter object to save the cut scene
-    output_filename = os.path.join(scene_clips_folder, f"scene_{i:03}.mp4")
-    temp_out = cv2.VideoWriter(output_filename, fourcc, fps, (frame_width, frame_height))
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        current_frame = cap.get(cv2.CAP_PROP_POS_FRAMES)
-
-        # Check if we've reached the end of the scene
-        if current_frame >= (end * fps):
-            break
-
-        # Write the frame to the temporary video file
-        temp_out.write(frame)
-
-    # Release the temporary video writer
-    temp_out.release()
-
-    # If current scene is similar to the previous one (same caption or close in time), merge
-    if i > 0 and (final_matches[i]["caption"] == final_matches[i-1]["caption"] or 
-                  timestamp_to_seconds(final_matches[i]["start_time"]) - timestamp_to_seconds(final_matches[i-1]["end_time"]) < 5):
-        # Concatenate with previous scene
-        prev_clip = cv2.VideoCapture(output_filename)
-        while prev_clip.isOpened():
-            ret, frame = prev_clip.read()
-            if ret:
-                out.write(frame)  # Write to final output
-            else:
-                break
-        prev_clip.release()
-    else:
-        # Add the current clip to the final output video
-        temp_clip = cv2.VideoCapture(output_filename)
-        while temp_clip.isOpened():
-            ret, frame = temp_clip.read()
-            if ret:
-                out.write(frame)  # Write to final output
-            else:
-                break
-        temp_clip.release()
-
-    # Save the scene metadata
-    scene_video_files.append({
-        "file": output_filename,
-        "video_id": os.path.basename(match["image"]).split("_shot")[0],
-        "start_time": match["start_time"],
-        "end_time": match["end_time"],
-        "caption": match["caption"],
-        "score": match["score"]
-    })
-
-    # Increase scene counter
-    i += 1
-
-# Release the video capture object
-cap.release()
-
-# Save JSON of matched scenes
-with open("matched_scenes.json", "w") as f:
-    json.dump(scene_video_files, f, indent=2)
-
-# Release the final output file
-out.release()
-
-print(f"✅ Finished. Total scenes: {len(scene_video_files)}")

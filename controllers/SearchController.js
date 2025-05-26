@@ -1,7 +1,7 @@
 // controllers/searchController.js
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const { exec, execSync } = require("child_process");
 const Video = require("../models/Video");
 const UserQuery = require("../models/UserQuery");
 const ResultVideo = require("../models/ResultVideo");
@@ -10,20 +10,28 @@ const { searchEngine, saveSearchHistory } = require("../utils/searchEngine");
 exports.searchUser = async (req, res) => {
   const { query } = req.body;
   const userId = req.user?._id || req.session.user?._id;
+  const videoId = req.body.videoId;
 
   // ✅ Get videoTitle from session
-  const safeTitle = req.session.videoTitle;
+  const safeTitle = (req.session.videoTitle || "").trim().replace(/ /g, "_");
 
   if (!safeTitle) {
     return res.status(400).send("No video linked to this search.");
   }
 
   try {
-    const newQuery = new UserQuery({ userId, query });
+    const newQuery = new UserQuery({ userId, query, videoId });
+
     await newQuery.save();
 
-    const captionsPath = path.join(__dirname, `${safeTitle}_captions.json`);
+    const captionsPath = path.join(
+      __dirname,
+      "..",
+      `${safeTitle}_captions.json`
+    );
     const videoPath = path.join("uploads", `dl_${safeTitle}.mp4`);
+    console.log("📁 Looking for captions at:", captionsPath);
+    console.log("📁 Looking for video at:", videoPath);
 
     if (!fs.existsSync(captionsPath) || !fs.existsSync(videoPath)) {
       return res.status(400).render("error", {
@@ -49,7 +57,25 @@ exports.searchUser = async (req, res) => {
       }
 
       console.log("✅ Search finished:", stdout);
-      res.redirect("/search-results");
+
+      let parsedResults;
+      try {
+        parsedResults = JSON.parse(stdout);
+        console.log("📦 Parsed Results Count:", parsedResults.length);
+        console.log("📝 First result:", parsedResults[0]);
+      } catch (e) {
+        console.error("❌ Failed to parse Python output:", e.message);
+        return res.status(500).render("error", {
+          error: { status: 500, message: "Search result parse error" },
+          theme: req.session.theme || "light",
+          friendlyMessage:
+            "We couldn't understand the search results. Please try again.",
+        });
+      }
+
+      req.session.searchResults = parsedResults;
+      req.session.searchQuery = query;
+      res.redirect(307, "/api/search/result");
     });
   } catch (err) {
     console.error("❌ Error saving query or executing search:", err.message);
@@ -63,7 +89,7 @@ exports.searchUser = async (req, res) => {
 };
 
 exports.searchResult = async (req, res) => {
-  const userQuery = req.body.query;
+  const userQuery = req.session.searchQuery || "";
   let videoTitle;
   if (req.body.videoId) {
     const video = await Video.findById(req.body.videoId);
@@ -93,46 +119,10 @@ exports.searchResult = async (req, res) => {
   }
 
   try {
-    const rawData = fs.readFileSync(captionPath, "utf-8").trim();
-
-    if (rawData.startsWith("<")) {
-      console.error("❌ Captions file contains HTML, not JSON");
-      return res.status(500).render("error", {
-        error: { status: 500, message: "Corrupted captions file" },
-        theme: req.session.theme || "light",
-        friendlyMessage:
-          "Something went wrong while reading the video data. Please try re-uploading your video.",
-      });
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(rawData);
-    } catch (e) {
-      console.error("❌ Failed to parse captions JSON:", e.message);
-      return res.status(500).render("error", {
-        error: { status: 500, message: "Invalid JSON format" },
-        theme: req.session.theme || "light",
-        friendlyMessage:
-          "We couldn’t process your video results. Please try again later.",
-      });
-    }
-
-    const metadata = parsed.shots_metadata;
-
-    const results = [];
-
-    for (const [imgPath, shot] of Object.entries(metadata)) {
-      if (shot.caption.toLowerCase().includes(userQuery.toLowerCase())) {
-        results.push({
-          caption: shot.caption,
-          tags: shot.tags,
-          start_time: shot.start_time,
-          end_time: shot.end_time,
-          image: imgPath,
-        });
-      }
-    }
+    console.log("🔍 SESSION searchResults:", req.session.searchResults?.length);
+    console.log("🔍 SESSION searchQuery:", req.session.searchQuery);
+    const results = req.session.searchResults || [];
+    const userQuery = req.session.searchQuery || "";
 
     if (results.length === 0) {
       return res.render("results", {
@@ -143,9 +133,9 @@ exports.searchResult = async (req, res) => {
       });
     }
 
-    const { execSync } = require("child_process");
+    const { exec, execSync } = require("child_process");
 
-    const inputPath = path.join("uploads", `dl_${videoTitle}.mp4`);
+    const inputPath = path.resolve("uploads", `dl_${videoTitle}.mp4`);
     const clipsDir = path.join("output", "clips");
     if (!fs.existsSync(clipsDir)) {
       fs.mkdirSync(clipsDir, { recursive: true });
@@ -158,13 +148,25 @@ exports.searchResult = async (req, res) => {
         /:/g,
         "-"
       )}_${match.end_time.replace(/:/g, "-")}_clip.mp4`;
-      const outputClipPath = path.join(clipsDir, clipName);
-      const clipUrl = `/output/clips/${clipName}`;
+      const outputClipPath = path.resolve(clipsDir, clipName);
+      const clipUrl = `/output/clips/${clipName.replace(/\\/g, "/")}`;
 
       if (!fs.existsSync(outputClipPath)) {
-        const trimCommand = `ffmpeg -y -i "${inputPath}" -ss ${match.start_time} -to ${match.end_time} -preset ultrafast -crf 28 "${outputClipPath}"`;
+        const trimCommand = `ffmpeg -y -i "${inputPath}" -ss "${match.start_time}" -to "${match.end_time}" -vcodec libx264 -acodec aac -strict experimental -preset ultrafast -crf 28 "${outputClipPath}"`;
+
         try {
+          console.log("🔧 Running FFmpeg:", trimCommand);
           execSync(trimCommand);
+          if (
+            !fs.existsSync(outputClipPath) ||
+            fs.statSync(outputClipPath).size === 0
+          ) {
+            console.error(
+              "⚠️ FFmpeg created an invalid or empty file:",
+              outputClipPath
+            );
+            continue;
+          }
           console.log("✅ Created clip:", clipName);
         } catch (error) {
           console.error("❌ Failed to trim clip:", error.message);
@@ -205,6 +207,8 @@ exports.searchResult = async (req, res) => {
         console.warn("⚠️ Failed to save query/results:", err.message);
       }
     }
+    console.log("📥 Using results from session:", results.length);
+
     res.render("results", {
       results: trimmedResults,
       query: userQuery,
@@ -267,7 +271,9 @@ exports.searchSubmit = async (req, res) => {
       });
     }
 
-    const safeTitle = video.filename.replace(/^dl_/, "").replace(/\.mp4$/, "");
+    const rawTitle = video.title || video.filename;
+    const safeTitle = rawTitle.trim().replace(/ /g, "_");
+
     req.session.videoTitle = safeTitle;
 
     const result = await searchEngine(query, videoId);

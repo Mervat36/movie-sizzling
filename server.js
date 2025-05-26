@@ -100,7 +100,19 @@ app.get("/register", (req, res) => res.render("register"));
 app.get("/upload", ensureAuthenticated, (req, res) => res.render("upload"));
 const searchController = require("./controllers/SearchController");
 app.get("/search", ensureAuthenticated, searchController.renderSearchPage);
-app.get("/results", ensureAuthenticated, (req, res) => res.render("results"));
+app.get("/results", ensureAuthenticated, (req, res) => {
+  const results = req.session.searchResults || [];
+  const query = req.session.searchQuery || "";
+  const videoTitle = req.session.videoTitle || "unknown";
+
+  res.render("results", {
+    results,
+    query,
+    video: `/uploads/dl_${videoTitle}.mp4`,
+    message: results.length === 0 ? "No results matched your query." : null,
+  });
+});
+
 app.get("/scene-history", ensureAuthenticated, (req, res) =>
   res.render("scene-history")
 );
