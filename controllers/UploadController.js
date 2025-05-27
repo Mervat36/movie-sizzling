@@ -8,6 +8,23 @@ const Video = require("../models/Video");
 const ShotMetadata = require("../models/ShotData");
 const SceneMetadata = require("../models/SceneMetadata");
 const SceneResults = require("../models/SceneSearchResult");
+// Retry wrapper for Supabase video upload
+const uploadVideoWithRetry = async (buffer, path, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    const { error } = await supabase.storage
+      .from("movies")
+      .upload(path, buffer, {
+        contentType: "video/mp4",
+        upsert: true,
+      });
+
+    if (!error) return;
+    console.warn(`⚠️ Retry ${i + 1} for video upload failed:`, error.message);
+
+    if (i === retries - 1) throw error;
+    await new Promise((r) => setTimeout(r, 1000 * (i + 1))); // exponential backoff
+  }
+};
 
 exports.handleUpload = async (req, res) => {
   const localTempPath = req.file.path;
@@ -21,22 +38,22 @@ exports.handleUpload = async (req, res) => {
   try {
     console.log("🟡 Uploading video to Supabase...");
     const fileBuffer = fs.readFileSync(localTempPath);
-    const { error } = await supabase.storage
-      .from("movies")
-      .upload(supaFileName, fileBuffer, {
-        contentType: "video/mp4",
-        upsert: true,
-      });
-
-    if (error) {
-      console.error("❌ Supabase upload error:", error);
+    try {
+      await uploadVideoWithRetry(fileBuffer, supaFileName);
+      console.log("✅ Supabase video upload complete.");
+    } catch (error) {
+      console.error("❌ Supabase upload error after retries:", error.message);
       return res.status(500).render("error", {
-        error: { status: 500, message: "Upload to Supabase failed." },
+        error: {
+          status: 500,
+          message: "Upload to Supabase failed after retries.",
+        },
         theme: req.session.theme || "light",
         friendlyMessage:
           "We couldn't upload your video. Please try again. If the issue persists, contact support.",
       });
     }
+
     console.log("✅ Supabase video upload complete.");
     fs.unlinkSync(localTempPath);
 
@@ -94,27 +111,85 @@ exports.handleUpload = async (req, res) => {
 
           console.log("🟡 Uploading shots to Supabase...");
           const allShotImagePaths = [];
+          const uploadTasks = [];
+
           for (const shot of jsonData.shots) {
             for (const [key, imagePath] of Object.entries(shot.images)) {
               const imageBuffer = fs.readFileSync(imagePath);
               const imageName = path.basename(imagePath);
-              const { error: uploadError } = await supabase.storage
-                .from("shots")
-                .upload(`${safeTitle}/${imageName}`, imageBuffer, {
-                  contentType: "image/jpeg",
-                  upsert: true,
-                });
-              if (uploadError) {
-                console.error(
-                  "❌ Failed to upload shot image:",
-                  uploadError.message
-                );
-                return res
-                  .status(500)
-                  .send("Shot image upload to Supabase failed.");
-              }
-              allShotImagePaths.push(imagePath);
+
+              const uploadFn = () =>
+                supabase.storage
+                  .from("shots")
+                  .upload(`${safeTitle}/${imageName}`, imageBuffer, {
+                    contentType: "image/jpeg",
+                    upsert: true,
+                  });
+
+              uploadTasks.push(() => uploadFn());
             }
+          }
+
+          let uploadedImages;
+          try {
+            const batchUpload = async (tasks, batchSize = 10) => {
+              const results = [];
+              for (let i = 0; i < tasks.length; i += batchSize) {
+                const batch = tasks.slice(i, i + batchSize);
+                const batchResult = await Promise.allSettled(batch);
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                for (const result of batchResult) {
+                  if (result.status === "rejected") {
+                    console.error(
+                      "❌ Upload failed:",
+                      result.reason.message || result.reason
+                    );
+                  }
+                }
+                results.push(...batchResult);
+              }
+              return results;
+            };
+
+            try {
+              const retryUpload = async (fn, name, retries = 3) => {
+                for (let i = 0; i < retries; i++) {
+                  try {
+                    return await fn();
+                  } catch (err) {
+                    console.warn(
+                      `Retry ${i + 1} for ${name} failed:`,
+                      err.message
+                    );
+                    if (i === retries - 1) throw err;
+                    await new Promise((res) => setTimeout(res, 1000 * (i + 1)));
+                  }
+                }
+              };
+
+              const batchUpload = async (fns, batchSize = 3) => {
+                const results = [];
+                for (let i = 0; i < fns.length; i += batchSize) {
+                  const batch = fns
+                    .slice(i, i + batchSize)
+                    .map((fn) => retryUpload(fn, fn.name || "unnamed upload"));
+                  const batchResults = await Promise.allSettled(batch);
+                  results.push(...batchResults);
+                  await new Promise((res) => setTimeout(res, 500));
+                }
+                return results;
+              };
+
+              uploadedImages = await batchUpload(uploadTasks, 3);
+
+              console.log(`✅ Uploaded ${uploadedImages.length} shot images.`);
+            } catch (err) {
+              console.error("❌ One or more uploads failed:", err.message);
+              return res.status(500).send("Failed to upload shot images.");
+            }
+          } catch (err) {
+            console.error("❌ One or more uploads failed:", err.message);
+            return res.status(500).send("Failed to upload shot images.");
           }
 
           await ShotMetadata.create(jsonData);
@@ -174,17 +249,16 @@ exports.handleUpload = async (req, res) => {
                   }
                 );
 
+              fs.unlinkSync(localThumbPath);
               if (uploadError) {
                 console.error(
-                  "❌ Scene image upload failed:",
+                  "❌ Scene thumbnail upload failed:",
                   uploadError.message
                 );
                 return res
                   .status(500)
-                  .send("Scene image upload to Supabase failed.");
+                  .send("Failed to upload scene thumbnail.");
               }
-
-              fs.unlinkSync(localThumbPath);
 
               const sceneFolder = path.join(
                 "output",
@@ -212,10 +286,17 @@ exports.handleUpload = async (req, res) => {
                     );
                   }
 
-                  fs.unlinkSync(filePath);
+                  setImmediate(() => fs.unlinkSync(filePath));
                 }
 
-                fs.rmdirSync(sceneFolder);
+                const shouldKeepData = await Video.exists({ title: safeTitle });
+
+                if (!shouldKeepData) {
+                  fs.rmSync(sceneFolder, { recursive: true, force: true });
+                  console.log("🧹 Cleaned up temp folder:", sceneFolder);
+                } else {
+                  console.log("📂 Preserved folder for history:", sceneFolder);
+                }
               }
             }
 
@@ -236,57 +317,57 @@ exports.handleUpload = async (req, res) => {
             );
             fs.mkdirSync(localSceneFolder, { recursive: true });
 
-            console.log("📥 Downloading scene images from Supabase...");
+            console.log(
+              "📥 Downloading all scene shot images from Supabase..."
+            );
             for (const scene of scenesData.scenes) {
-              const baseName = path.basename(scene.thumbnail_path, ".jpg");
-              const pattern = new RegExp(
-                `^${baseName}_shot\\d+_(start|middle|end)\\.jpg$`
-              );
-              const { data: files, error: listErr } = await supabase.storage
-                .from("scene-results")
-                .list(`${safeTitle}`, { limit: 100 });
-              if (listErr) {
-                console.error(
-                  "❌ Failed to list scene files:",
-                  listErr.message
-                );
-                return res.status(500).send("Scene listing failed.");
-              }
+              for (
+                let shot = scene.start_shot;
+                shot <= scene.end_shot;
+                shot++
+              ) {
+                for (const view of ["start", "middle", "end"]) {
+                  const fileName = `${scene.scene_id}_shot${String(
+                    shot
+                  ).padStart(3, "0")}_${view}.jpg`;
+                  const localPath = path.join(localSceneFolder, fileName);
 
-              const matched = files.filter((f) => pattern.test(f.name));
-              for (const file of matched) {
-                const { data, error: downloadErr } = await supabase.storage
-                  .from("scene-results")
-                  .download(`${safeTitle}/${file.name}`);
+                  if (fs.existsSync(localPath)) continue;
 
-                if (
-                  downloadErr ||
-                  !data ||
-                  typeof data.arrayBuffer !== "function"
-                ) {
-                  console.error(
-                    "❌ Failed to download or invalid data for:",
-                    file.name
-                  );
-                  continue;
+                  const { data, error: downloadErr } = await supabase.storage
+                    .from("scene-results")
+                    .download(`${safeTitle}/${fileName}`);
+                  if (
+                    downloadErr ||
+                    !data ||
+                    typeof data.arrayBuffer !== "function"
+                  ) {
+                    console.warn(`⚠️ Download failed for ${fileName}`);
+                    if (downloadErr) {
+                      console.error("Supabase error:", downloadErr.message);
+                    } else {
+                      console.warn(
+                        `⚠️ File may not exist or is an HTML error page.`
+                      );
+                    }
+                    continue;
+                  }
+
+                  let buffer;
+                  try {
+                    buffer = Buffer.from(await data.arrayBuffer());
+                  } catch (e) {
+                    console.error(
+                      "❌ Buffer conversion failed:",
+                      fileName,
+                      e.message
+                    );
+                    continue;
+                  }
+
+                  fs.writeFileSync(localPath, buffer);
+                  console.log("✅ Downloaded:", fileName);
                 }
-
-                let buffer;
-                try {
-                  buffer = Buffer.from(await data.arrayBuffer());
-                } catch (e) {
-                  console.error(
-                    "❌ Buffer conversion failed for:",
-                    file.name,
-                    e.message
-                  );
-                  continue;
-                }
-
-                fs.writeFileSync(
-                  path.join(localSceneFolder, file.name),
-                  buffer
-                );
               }
             }
 
