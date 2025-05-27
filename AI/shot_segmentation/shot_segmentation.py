@@ -43,7 +43,7 @@ def load_video_high_res(filename):
         ret, frame = cap.read()
         if not ret:
             break
-        frame = cv2.resize(frame, (640, 360))  # reduce resolution
+        frame = cv2.resize(frame, (480, 270))
         frames.append(frame)
     cap.release()
     return frames
