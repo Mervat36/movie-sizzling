@@ -92,13 +92,19 @@ for path, info in metadata.items():
         })
 
 # Sort and filter duplicates
-seen_paths = set()
-final_matches = []
-for result in sorted(caption_results, key=lambda x: timestamp_to_seconds(x["start_time"])):
-    video_file = os.path.basename(result["image"]).split("_shot")[0]
-    if video_file not in seen_paths:
-        seen_paths.add(video_file)
-        final_matches.append(result)
+# Group results by (start_time, end_time)
+from collections import defaultdict
+
+segment_best = defaultdict(lambda: None)
+
+for result in caption_results:
+    key = (result["start_time"], result["end_time"])
+    if segment_best[key] is None or result["score"] > segment_best[key]["score"]:
+        segment_best[key] = result
+
+final_matches = list(segment_best.values())
+final_matches.sort(key=lambda x: timestamp_to_seconds(x["start_time"]))
+
 
 # Create output folder
 scene_clips_folder = "output_scene_clips"
