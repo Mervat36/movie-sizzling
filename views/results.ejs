@@ -108,6 +108,20 @@
           <% } }) %>
         </div>
         <% } else { %>
+        <!-- Pagination Controls -->
+        <div class="pagination" style="text-align: center; margin-top: 20px">
+          <% if (totalPages > 1) { %> <% if (currentPage > 1) { %>
+          <a href="?page=<%= currentPage - 1 %>" class="page-link">⟨ Prev</a>
+          <% } %> <% for (let i = 1; i <= totalPages; i++) { %>
+          <a
+            href="?page=<%= i %>"
+            class="page-link <%= i === currentPage ? 'active' : '' %>"
+            ><%= i %></a
+          >
+          <% } %> <% if (currentPage < totalPages) { %>
+          <a href="?page=<%= currentPage + 1 %>" class="page-link">Next ⟩</a>
+          <% } %> <% } %>
+        </div>
         <div
           class="alert error"
           style="margin: 0 auto; text-align: center; max-width: 250px"
