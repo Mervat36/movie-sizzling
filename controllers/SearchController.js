@@ -121,17 +121,14 @@ exports.searchResult = async (req, res) => {
   try {
     console.log("🔍 SESSION searchResults:", req.session.searchResults?.length);
     console.log("🔍 SESSION searchQuery:", req.session.searchQuery);
-    const results = req.session.searchResults || [];
-    const userQuery = req.session.searchQuery || "";
+    let allResults = req.session.searchResults || [];
+    allResults = allResults
+      .filter((result) => result.score >= 0.4)
+      .sort((a, b) => b.score - a.score);
 
-    if (results.length === 0) {
-      return res.render("results", {
-        results: [],
-        query: userQuery,
-        video: `/uploads/dl_${videoTitle}.mp4`,
-        message: "No results matched your query.",
-      });
-    }
+    const perPage = 5;
+    const currentPage = parseInt(req.query.page) || 1;
+    const userQuery = req.session.searchQuery || "";
 
     const { exec, execSync } = require("child_process");
 
@@ -143,7 +140,7 @@ exports.searchResult = async (req, res) => {
 
     const trimmedResults = [];
 
-    for (const match of results) {
+    for (const match of allResults) {
       const clipName = `${videoTitle}_${match.start_time.replace(
         /:/g,
         "-"
@@ -155,33 +152,31 @@ exports.searchResult = async (req, res) => {
         const trimCommand = `ffmpeg -y -i "${inputPath}" -ss "${match.start_time}" -to "${match.end_time}" -vcodec libx264 -acodec aac -strict experimental -preset ultrafast -crf 28 "${outputClipPath}"`;
 
         try {
-          console.log("🔧 Running FFmpeg:", trimCommand);
           execSync(trimCommand);
           if (
             !fs.existsSync(outputClipPath) ||
             fs.statSync(outputClipPath).size === 0
-          ) {
-            console.error(
-              "⚠️ FFmpeg created an invalid or empty file:",
-              outputClipPath
-            );
+          )
             continue;
-          }
-          console.log("✅ Created clip:", clipName);
         } catch (error) {
-          console.error("❌ Failed to trim clip:", error.message);
-          continue; // Skip this one if failed
+          console.error("❌ FFmpeg failed:", error.message);
+          continue;
         }
       }
 
-      trimmedResults.push({
-        ...match,
-        clip: clipUrl,
+      trimmedResults.push({ ...match, clip: clipUrl });
+    }
+    const start = (currentPage - 1) * perPage;
+    const paginatedResults = trimmedResults.slice(start, start + perPage);
+    const totalPages = Math.ceil(trimmedResults.length / perPage);
+    if (paginatedResults.length === 0) {
+      return res.render("results", {
+        results: [],
+        query: userQuery,
+        video: `/uploads/dl_${videoTitle}.mp4`,
+        message: "No results matched your query.",
       });
     }
-
-    const clipToSave = trimmedResults[0]?.clip || null;
-
     if (trimmedResults.length > 0 && req.session.user) {
       try {
         // Save the user query
@@ -207,13 +202,15 @@ exports.searchResult = async (req, res) => {
         console.warn("⚠️ Failed to save query/results:", err.message);
       }
     }
-    console.log("📥 Using results from session:", results.length);
+    console.log("📥 Using results from session:", paginatedResults.length);
 
     res.render("results", {
-      results: trimmedResults,
+      results: paginatedResults,
       query: userQuery,
       video: null,
       message: null,
+      currentPage,
+      totalPages,
     });
   } catch (err) {
     console.error("❌ Failed to process search results:", err.message);
