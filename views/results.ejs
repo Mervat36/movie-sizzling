@@ -107,21 +107,48 @@
           </div>
           <% } }) %>
         </div>
-        <% } else { %>
-        <!-- Pagination Controls -->
-        <div class="pagination" style="text-align: center; margin-top: 20px">
-          <% if (totalPages > 1) { %> <% if (currentPage > 1) { %>
-          <a href="?page=<%= currentPage - 1 %>" class="page-link">⟨ Prev</a>
-          <% } %> <% for (let i = 1; i <= totalPages; i++) { %>
-          <a
-            href="?page=<%= i %>"
-            class="page-link <%= i === currentPage ? 'active' : '' %>"
-            ><%= i %></a
-          >
-          <% } %> <% if (currentPage < totalPages) { %>
-          <a href="?page=<%= currentPage + 1 %>" class="page-link">Next ⟩</a>
-          <% } %> <% } %>
+        <div style="display: flex; justify-content: center;">
+          <button id="show-more-btn">Show More Results</button>
+        <script>
+          document
+            .getElementById("show-more-btn")
+            ?.addEventListener("click", async () => {
+              const res = await fetch("/api/search/show-more");
+              const data = await res.json();
+
+              if (data.results.length > 0) {
+                const container = document.querySelector(".results-wrapper");
+
+                data.results.forEach((result) => {
+                  const html = `
+        <div class="result-card">
+          <video controls width="100%" preload="metadata">
+            <source src="${result.clip.replace(/\\/g, "/")}" type="video/mp4" />
+          </video>
+          <a href="${
+            result.clip
+          }" download class="btn-primary" style="display:block;margin-top:10px;width:100%;text-align:center;">Download</a>
+          <div class="result-info">
+            <p style="font-weight:500;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${
+              result.caption
+            }">${result.caption}</p>
+            <p style="font-size:13px;color:#888;text-align:center;margin-top:4px;">${
+              result.start_time
+            } – ${result.end_time}</p>
+          </div>
         </div>
+        `;
+                  container.insertAdjacentHTML("beforeend", html);
+                });
+              }
+
+              if (data.done) {
+                document.getElementById("show-more-btn").style.display = "none";
+              }
+            });
+        </script>
+
+        <% } else { %>
         <div
           class="alert error"
           style="margin: 0 auto; text-align: center; max-width: 250px"

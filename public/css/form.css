@@ -587,6 +587,35 @@ body.dark-mode .google-btn:hover {
 .result-info p {
   margin: 4px 0;
 }
+/* Show More Button Style */
+#show-more-btn {
+  background-color: #00dfc4;
+  color: #191d3a;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 223, 196, 0.3);
+  display: inline-block;
+  margin: 10px auto 50px auto;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: auto !important;
+  max-width: fit-content;
+}
+#show-more-btn:hover {
+  background-color: #02c1ab;
+  transform: scale(1.03);
+}
+body.dark-mode #show-more-btn {
+  background-color: var(--link-color);
+  color: var(--bg-color);
+}
+body.dark-mode #show-more-btn:hover {
+  background-color: #00745c;
+}
 
 /* 13. Transition and Dark Mode. */
 body,
