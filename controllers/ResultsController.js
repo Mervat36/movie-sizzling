@@ -62,12 +62,19 @@ exports.showResult = async (req, res) => {
             query: q || "Unknown Query",
           });
 
-          // ✅ 2. Save the result linked to the query
-          await ResultVideo.create({
-            queryId: newQuery._id,
+          // ✅ 2. Save the result linked to the query only if it's not already saved
+          const existing = await ResultVideo.findOne({
             clipFilename: outputFile,
             timeRange: `${start} - ${end}`,
           });
+
+          if (!existing) {
+            await ResultVideo.create({
+              queryId: newQuery._id,
+              clipFilename: outputFile,
+              timeRange: `${start} - ${end}`,
+            });
+          }
         }
 
         res.render("results", {

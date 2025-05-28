@@ -177,32 +177,50 @@ exports.searchResult = async (req, res) => {
         message: "No results matched your query.",
       });
     }
-    if (trimmedResults.length > 0 && req.session.user) {
-      try {
-        // Save the user query
-        const newQuery = await UserQuery.create({
-          userId: req.session.user._id,
-          videoId: req.body.videoId,
+    console.log("📥 Using results from session:", paginatedResults.length);
+    req.session.trimmedResults = trimmedResults;
+    req.session.paginatedIndex = paginatedResults.length;
+    req.session.initialResultsSaved = true; // now we are saving the first 5 right here
+
+    // ✅ Save first 5 shown results into history
+    if (paginatedResults.length > 0 && req.session.user) {
+      const userId = req.session.user._id;
+      const video = await Video.findOne({ filename: `dl_${videoTitle}.mp4` });
+
+      if (video) {
+        let query = await UserQuery.findOne({
+          userId,
+          videoId: video._id,
           query: userQuery,
         });
 
-        // Save each result video
-        for (const match of trimmedResults) {
-          const clipFilename = match.clip.split("/").pop();
-          await ResultVideo.create({
-            queryId: newQuery._id,
-            clipFilename,
-            timeRange: `${match.start_time} - ${match.end_time}`,
-            caption: match.caption,
+        if (!query) {
+          query = await UserQuery.create({
+            userId,
+            videoId: video._id,
+            query: userQuery,
           });
         }
 
-        console.log("✅ Query and results saved to history.");
-      } catch (err) {
-        console.warn("⚠️ Failed to save query/results:", err.message);
+        for (const match of paginatedResults) {
+          const clipFilename = match.clip.split("/").pop();
+          const alreadySaved = await ResultVideo.findOne({
+            queryId: query._id,
+            clipFilename,
+            timeRange: `${match.start_time} - ${match.end_time}`,
+          });
+
+          if (!alreadySaved) {
+            await ResultVideo.create({
+              queryId: query._id,
+              clipFilename,
+              timeRange: `${match.start_time} - ${match.end_time}`,
+              caption: match.caption,
+            });
+          }
+        }
       }
     }
-    console.log("📥 Using results from session:", paginatedResults.length);
 
     res.render("results", {
       results: paginatedResults,
@@ -299,4 +317,69 @@ exports.rerunSearch = async (req, res) => {
     videoTitle: resolvedTitle,
     videoFilename: video.filename,
   });
+};
+exports.showMoreResults = async (req, res) => {
+  try {
+    const allResults = req.session.trimmedResults || [];
+    let currentIndex = req.session.paginatedIndex || 0;
+    const perPage = 5;
+
+    const nextBatch = allResults.slice(currentIndex, currentIndex + perPage);
+    req.session.paginatedIndex = currentIndex + nextBatch.length;
+
+    const done = req.session.paginatedIndex >= allResults.length;
+
+    res.json({ results: nextBatch, done });
+
+    // 🔁 Save initial + next batch on first click
+    if (req.session.user && nextBatch.length > 0) {
+      const userId = req.session.user._id;
+      const videoTitle = req.session.videoTitle;
+      const video = await Video.findOne({ filename: `dl_${videoTitle}.mp4` });
+
+      if (!video) return;
+
+      let query = await UserQuery.findOne({
+        userId,
+        videoId: video._id,
+        query: req.session.searchQuery,
+      });
+
+      if (!query) {
+        query = await UserQuery.create({
+          userId,
+          videoId: video._id,
+          query: req.session.searchQuery,
+        });
+      }
+
+      // 🔁 Combine initial 5 + current batch if not saved yet
+      const resultsToSave = req.session.initialResultsSaved
+        ? nextBatch
+        : allResults.slice(0, currentIndex + perPage);
+
+      for (const match of resultsToSave) {
+        const clipFilename = match.clip.split("/").pop();
+        const alreadySaved = await ResultVideo.findOne({
+          queryId: query._id,
+          clipFilename,
+          timeRange: `${match.start_time} - ${match.end_time}`,
+        });
+
+        if (!alreadySaved) {
+          await ResultVideo.create({
+            queryId: query._id,
+            clipFilename,
+            timeRange: `${match.start_time} - ${match.end_time}`,
+            caption: match.caption,
+          });
+        }
+      }
+
+      req.session.initialResultsSaved = true; // mark first 5 as saved
+    }
+  } catch (err) {
+    console.error("❌ Error in showMoreResults:", err.message);
+    res.status(500).json({ error: "Failed to load more results." });
+  }
 };
