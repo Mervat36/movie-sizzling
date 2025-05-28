@@ -117,42 +117,80 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupQueryPagination() {
     document.querySelectorAll(".query-card").forEach((queryCard) => {
       const results = Array.from(queryCard.querySelectorAll(".result-card"));
-      if (results.length <= 1) return;
+      const itemsPerPage = 1;
+      if (results.length <= itemsPerPage) return;
 
-      // ✅ Remove any existing pagination container before adding a new one
+      // Remove old pagination
       const existingPagination = queryCard.querySelector(".pagination");
       if (existingPagination) existingPagination.remove();
 
       let current = 0;
+      const totalPages = Math.ceil(results.length / itemsPerPage);
       const container = document.createElement("div");
       container.className = "pagination";
 
-      function renderQueryPageButtons() {
+      const showPage = (page) => {
+        results.forEach((res, i) => {
+          res.style.display =
+            i >= page * itemsPerPage && i < (page + 1) * itemsPerPage
+              ? "block"
+              : "none";
+        });
+      };
+
+      const renderButtons = () => {
         container.innerHTML = "";
-        for (let i = 0; i < results.length; i++) {
+
+        const createBtn = (label, page, active = false) => {
           const btn = document.createElement("button");
-          btn.innerText = i + 1;
+          btn.innerText = label;
           btn.className = "page-btn";
-          if (i === current) btn.classList.add("active");
+          if (active) btn.classList.add("active");
           btn.addEventListener("click", () => {
-            results[current].style.display = "none";
-            current = i;
-            results[current].style.display = "block";
-            renderQueryPageButtons();
-            results[current].scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
+            current = page;
+            showPage(current);
+            renderButtons();
           });
-          container.appendChild(btn);
+          return btn;
+        };
+
+        const maxButtons = 5;
+
+        if (totalPages <= maxButtons) {
+          for (let i = 0; i < totalPages; i++) {
+            container.appendChild(createBtn(i + 1, i, i === current));
+          }
+        } else {
+          container.appendChild(createBtn(1, 0, current === 0));
+
+          if (current > 2) {
+            const dot = document.createElement("span");
+            dot.className = "ellipsis";
+            dot.innerText = "• • •";
+            container.appendChild(dot);
+          }
+
+          const start = Math.max(1, current - 1);
+          const end = Math.min(totalPages - 2, current + 1);
+          for (let i = start; i <= end; i++) {
+            container.appendChild(createBtn(i + 1, i, i === current));
+          }
+
+          if (current < totalPages - 3) {
+            const dot = document.createElement("span");
+            dot.className = "ellipsis";
+            dot.innerText = "• • •";
+            container.appendChild(dot);
+          }
+
+          container.appendChild(
+            createBtn(totalPages, totalPages - 1, current === totalPages - 1)
+          );
         }
-      }
+      };
 
-      results.forEach((res, i) => {
-        res.style.display = i === 0 ? "block" : "none";
-      });
-
-      renderQueryPageButtons();
+      showPage(current);
+      renderButtons();
       queryCard.appendChild(container);
     });
   }
