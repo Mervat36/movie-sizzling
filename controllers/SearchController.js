@@ -8,10 +8,15 @@ const ResultVideo = require("../models/ResultVideo");
 const { searchEngine, saveSearchHistory } = require("../utils/searchEngine");
 
 exports.searchUser = async (req, res) => {
+  // Reset previous session search data
+  req.session.searchResults = null;
+  req.session.trimmedResults = null;
+  req.session.paginatedIndex = 0;
+  req.session.initialResultsSaved = false;
+  req.session.currentQueryId = null;
   const { query } = req.body;
   const userId = req.user?._id || req.session.user?._id;
   const videoId = req.body.videoId;
-
   // ✅ Get videoTitle from session
   const safeTitle = (req.session.videoTitle || "").trim().replace(/ /g, "_");
 
@@ -20,9 +25,8 @@ exports.searchUser = async (req, res) => {
   }
 
   try {
-    const newQuery = new UserQuery({ userId, query, videoId });
-
-    await newQuery.save();
+    const newQuery = await UserQuery.create({ userId, query, videoId });
+    req.session.currentQueryId = newQuery._id;
 
     const captionsPath = path.join(
       __dirname,
@@ -60,8 +64,21 @@ exports.searchUser = async (req, res) => {
 
       let parsedResults;
       try {
+        if (stdout.trim().startsWith("<html")) {
+          throw new Error(
+            "Received HTML instead of JSON. Possible server misconfig."
+          );
+        }
         parsedResults = JSON.parse(stdout);
         console.log("📦 Parsed Results Count:", parsedResults.length);
+        if (!Array.isArray(parsedResults) || parsedResults.length === 0) {
+          return res.status(200).render("results", {
+            results: [],
+            query,
+            video: `/uploads/dl_${safeTitle}.mp4`,
+            message: "No relatable scenes were found.",
+          });
+        }
         console.log("📝 First result:", parsedResults[0]);
       } catch (e) {
         console.error("❌ Failed to parse Python output:", e.message);
@@ -130,8 +147,6 @@ exports.searchResult = async (req, res) => {
     const currentPage = parseInt(req.query.page) || 1;
     const userQuery = req.session.searchQuery || "";
 
-    const { exec, execSync } = require("child_process");
-
     const inputPath = path.resolve("uploads", `dl_${videoTitle}.mp4`);
     const clipsDir = path.join("output", "clips");
     if (!fs.existsSync(clipsDir)) {
@@ -188,35 +203,27 @@ exports.searchResult = async (req, res) => {
       const video = await Video.findOne({ filename: `dl_${videoTitle}.mp4` });
 
       if (video) {
-        let query = await UserQuery.findOne({
-          userId,
-          videoId: video._id,
-          query: userQuery,
-        });
+        const queryId = req.session.currentQueryId;
+        if (queryId) {
+          const query = await UserQuery.findById(queryId);
+          if (query) {
+            for (const match of paginatedResults) {
+              const clipFilename = match.clip.split("/").pop();
+              const alreadySaved = await ResultVideo.findOne({
+                queryId,
+                clipFilename,
+                timeRange: `${match.start_time} - ${match.end_time}`,
+              });
 
-        if (!query) {
-          query = await UserQuery.create({
-            userId,
-            videoId: video._id,
-            query: userQuery,
-          });
-        }
-
-        for (const match of paginatedResults) {
-          const clipFilename = match.clip.split("/").pop();
-          const alreadySaved = await ResultVideo.findOne({
-            queryId: query._id,
-            clipFilename,
-            timeRange: `${match.start_time} - ${match.end_time}`,
-          });
-
-          if (!alreadySaved) {
-            await ResultVideo.create({
-              queryId: query._id,
-              clipFilename,
-              timeRange: `${match.start_time} - ${match.end_time}`,
-              caption: match.caption,
-            });
+              if (!alreadySaved) {
+                await ResultVideo.create({
+                  queryId,
+                  clipFilename,
+                  timeRange: `${match.start_time} - ${match.end_time}`,
+                  caption: match.caption,
+                });
+              }
+            }
           }
         }
       }
@@ -339,19 +346,9 @@ exports.showMoreResults = async (req, res) => {
 
       if (!video) return;
 
-      let query = await UserQuery.findOne({
-        userId,
-        videoId: video._id,
-        query: req.session.searchQuery,
-      });
-
-      if (!query) {
-        query = await UserQuery.create({
-          userId,
-          videoId: video._id,
-          query: req.session.searchQuery,
-        });
-      }
+      const queryId = req.session.currentQueryId;
+      const query = queryId ? await UserQuery.findById(queryId) : null;
+      if (!query) return;
 
       // 🔁 Combine initial 5 + current batch if not saved yet
       const resultsToSave = req.session.initialResultsSaved
@@ -361,14 +358,14 @@ exports.showMoreResults = async (req, res) => {
       for (const match of resultsToSave) {
         const clipFilename = match.clip.split("/").pop();
         const alreadySaved = await ResultVideo.findOne({
-          queryId: query._id,
+          queryId: queryId,
           clipFilename,
           timeRange: `${match.start_time} - ${match.end_time}`,
         });
 
         if (!alreadySaved) {
           await ResultVideo.create({
-            queryId: query._id,
+            queryId: queryId,
             clipFilename,
             timeRange: `${match.start_time} - ${match.end_time}`,
             caption: match.caption,
