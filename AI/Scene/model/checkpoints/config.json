@@ -151,7 +151,8 @@
                     "num_hidden_layers": 2,
                     "pooling_method": "center",
                     "vocab_size": 2048,
-                    "neighbor_size": 16
+                    "neighbor_size": 16,
+                    "_attn_implementation": "eager"
                 }
             }
         }

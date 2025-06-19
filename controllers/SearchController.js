@@ -228,6 +228,8 @@ exports.searchResult = async (req, res) => {
         }
       }
     }
+    const queryId = req.session.currentQueryId || null;
+    const done = paginatedResults.length + start >= trimmedResults.length;
 
     res.render("results", {
       results: paginatedResults,
@@ -236,7 +238,10 @@ exports.searchResult = async (req, res) => {
       message: null,
       currentPage,
       totalPages,
+      queryId,
+      done,
     });
+
   } catch (err) {
     console.error("❌ Failed to process search results:", err.message);
     return res.status(500).send("Server error processing results.");

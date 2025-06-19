@@ -1,86 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/images/logo.png" />
-    <title>Search Results</title>
-    <link rel="stylesheet" href="/css/common.css" />
-    <link rel="stylesheet" href="/css/form.css" />
-  </head>
-  <style>
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    main {
-      flex: 1;
-    }
-  </style>
-  <body>
-    <%- include("partials/header") %>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/images/logo.png" />
+  <title>Search Results</title>
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/form.css" />
+</head>
+<style>
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+  }
+</style>
+
+<body>
+  <%- include("partials/header") %>
     <main>
       <section class="results-container">
-        <h2
-          class="profile-title"
-          style="
+        <h2 class="profile-title" style="
             text-align: center;
             padding-bottom: 5px;
             padding-top: 30px;
             margin-bottom: 0;
-          "
-        >
+          ">
           Search Results
         </h2>
-        <p
-          class="query-label"
-          style="
+        <p class="query-label" style="
             text-align: center;
             font-size: 16px;
             padding-top: 10px;
             padding-bottom: 10px;
-          "
-        >
-          <strong>Search Query:</strong> <%= query %>
+          ">
+          <strong>Search Query:</strong>
+          <%= query %>
         </p>
 
-        <% if (results && results.length > 0) { %>
-        <div class="results-wrapper">
-          <% let seen = new Set(); %> <% results.forEach(result => { const
-          videoId = result.image?.split("_shot")[0]; if (!seen.has(videoId)) {
-          seen.add(videoId); %>
-          <div class="result-card">
-            <video
-              controls
-              width="100%"
-              preload="metadata"
-              onerror="console.error('Failed to load video:', this.src)"
-            >
-              <source
-                src="<%= result.clip.replace(/\\/g, '/') %>"
-                type="video/mp4"
-              />
-            </video>
+        <% if (results && results.length> 0) { %>
+          <div class="results-wrapper">
+            <% let seen=new Set(); %>
+              <% results.forEach(result=> { const
+                videoId = result.image?.split("_shot")[0]; if (!seen.has(videoId)) {
+                seen.add(videoId); %>
+                <div class="result-card">
+                  <video controls width="100%" preload="metadata"
+                    onerror="console.error('Failed to load video:', this.src)">
+                    <source src="<%= result.clip.replace(/\\/g, '/') %>" type="video/mp4" />
+                  </video>
 
-            <a
-              href="<%= result.clip %>"
-              download
-              class="btn-primary"
-              style="
+                  <a href="<%= result.clip %>" download class="btn-primary" style="
                 display: inline-block;
                 margin-top: 10px;
                 width: 100%;
                 text-align: center;
-              "
-            >
-              Download
-            </a>
-            <div class="result-info">
-              <p
-                style="
+              ">
+                    Download
+                  </a>
+                  <div class="result-info">
+                    <p style="
                   font-weight: 500;
                   white-space: nowrap;
                   overflow: hidden;
@@ -88,76 +74,77 @@
                   max-width: 100%;
                   text-align: center;
                   margin-top: 4px;
-                "
-                title="<%= result.caption %>"
-              >
-                <%= result.caption %>
-              </p>
-              <p
-                style="
+                " title="<%= result.caption %>">
+                      <%= result.caption %>
+                    </p>
+                    <p style="
                   font-size: 13px;
                   color: #888;
                   text-align: center;
                   margin-top: 4px;
-                "
-              >
-                <%= result.start_time %> – <%= result.end_time %>
-              </p>
+                ">
+                      <%= result.start_time %> – <%= result.end_time %>
+                    </p>
+                  </div>
+                </div>
+                <% } }) %>
+          </div>
+          <% if (!done) { %>
+            <div style="display: flex; justify-content: center;">
+              <button id="show-more-btn">Show More Results</button>
             </div>
-          </div>
-          <% } }) %>
-        </div>
-        <div style="display: flex; justify-content: center;">
-          <button id="show-more-btn">Show More Results</button>
-        <script>
-          document
-            .getElementById("show-more-btn")
-            ?.addEventListener("click", async () => {
-              const res = await fetch("/api/search/show-more");
-              const data = await res.json();
+            <script>
+              let offset = <%= results.length || 0 %>;
+              const queryId = "<%= queryId || '' %>";
 
-              if (data.results.length > 0) {
-                const container = document.querySelector(".results-wrapper");
-
-                data.results.forEach((result) => {
-                  const html = `
-        <div class="result-card">
-          <video controls width="100%" preload="metadata">
-            <source src="${result.clip.replace(/\\/g, "/")}" type="video/mp4" />
-          </video>
-          <a href="${
-            result.clip
-          }" download class="btn-primary" style="display:block;margin-top:10px;width:100%;text-align:center;">Download</a>
-          <div class="result-info">
-            <p style="font-weight:500;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${
-              result.caption
-            }">${result.caption}</p>
-            <p style="font-size:13px;color:#888;text-align:center;margin-top:4px;">${
-              result.start_time
-            } – ${result.end_time}</p>
-          </div>
-        </div>
-        `;
-                  container.insertAdjacentHTML("beforeend", html);
+              document.getElementById("show-more-btn")?.addEventListener("click", async () => {
+                const res = await fetch("/api/search/show-more", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ offset, queryId }),
                 });
-              }
 
-              if (data.done) {
-                document.getElementById("show-more-btn").style.display = "none";
-              }
-            });
-        </script>
+                const data = await res.json();
 
-        <% } else { %>
-        <div
-          class="alert error"
-          style="margin: 0 auto; text-align: center; max-width: 250px"
-        >
-          <%= message || "No relevant scenes were found for this video." %>
-        </div>
-        <% } %>
+                if (data.results.length > 0) {
+                  const container = document.querySelector(".results-wrapper");
+
+                  data.results.forEach((result) => {
+                    const html = `
+            <div class="result-card">
+              <video controls width="100%" preload="metadata">
+                <source src="${result.clip.replace(/\\/g, "/")}" type="video/mp4" />
+              </video>
+              <a href="${result.clip}" download class="btn-primary" style="display:block;margin-top:10px;width:100%;text-align:center;">Download</a>
+              <div class="result-info">
+                <p style="font-weight:500;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${result.caption}">${result.caption}</p>
+                <p style="font-size:13px;color:#888;text-align:center;margin-top:4px;">${result.start_time} – ${result.end_time}</p>
+              </div>
+            </div>
+          `;
+                    container.insertAdjacentHTML("beforeend", html);
+                  });
+
+                  offset += data.results.length;
+                }
+
+                if (data.done) {
+                  document.getElementById("show-more-btn").style.display = "none";
+                }
+              });
+            </script>
+            <% } %>
+
+              <% } else { %>
+                <div class="alert error" style="margin: 0 auto; text-align: center; max-width: 250px">
+                  <%= message || "No relevant scenes were found for this video." %>
+                </div>
+                <% } %>
       </section>
     </main>
     <%- include("partials/footer") %>
-  </body>
+</body>
+
 </html>

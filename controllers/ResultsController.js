@@ -76,18 +76,25 @@ exports.showResult = async (req, res) => {
             });
           }
         }
+        // Check if there are additional results
+        const totalResults = await ResultVideo.countDocuments({ queryId: newQuery._id });
+        const INITIAL_LIMIT = 5;
 
         res.render("results", {
           videoPath: videoUrl,
           query: q || "Unknown Query",
           results: [],
+          done: totalResults <= INITIAL_LIMIT,
         });
+
       } catch (saveErr) {
         console.error("Error saving to DB:", saveErr);
         res.render("results", {
           videoPath: videoUrl,
           query: q || "Unknown Query",
           results: [],
+          queryId: newQuery._id.toString(),
+          done: totalResults <= 5,
         });
       }
     });
@@ -96,3 +103,25 @@ exports.showResult = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
+exports.showMoreResults = async (req, res) => {
+  try {
+    const { queryId, offset = 0 } = req.body;
+    const BATCH_SIZE = 5;
+
+    const newResults = await ResultVideo.find({ queryId })
+      .skip(parseInt(offset))
+      .limit(BATCH_SIZE);
+
+    const totalResults = await ResultVideo.countDocuments({ queryId });
+
+    res.json({
+      results: newResults,
+      done: offset + BATCH_SIZE >= totalResults,
+    });
+  } catch (err) {
+    console.error("Show more error:", err);
+    res.status(500).json({ error: "Failed to load more results" });
+  }
+};
+
