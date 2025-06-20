@@ -9,6 +9,7 @@ venv_scene/
 venv_scene_class/
 venv_search/
 testing_last_scene_is/
+venv_scene_last/
 *.pt
 *.ckpt
 *.pkl

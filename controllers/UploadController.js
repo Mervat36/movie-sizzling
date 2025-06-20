@@ -8,6 +8,9 @@ const Video = require("../models/Video");
 const ShotMetadata = require("../models/ShotData");
 const SceneMetadata = require("../models/SceneMetadata");
 const SceneResults = require("../models/SceneSearchResult");
+const Caption = require("../models/Caption");
+const mongoose = require("mongoose");
+
 // Retry wrapper for Supabase video upload
 const uploadVideoWithRetry = async (buffer, path, retries = 3) => {
   for (let i = 0; i < retries; i++) {
@@ -206,7 +209,7 @@ exports.handleUpload = async (req, res) => {
                 error: { status: 500, message: "Scene segmentation failed." },
                 theme: req.session.theme || "light",
                 friendlyMessage:
-                  "We couldn’t analyze your video’s scenes. Please try re-uploading the video.",
+                  "We couldn't analyze your video's scenes. Please try re-uploading the video.",
               });
             }
 
@@ -474,7 +477,7 @@ exports.handleUpload = async (req, res) => {
                     error: { status: 500, message: "Invalid captions file." },
                     theme: req.session.theme || "light",
                     friendlyMessage:
-                      "There was an issue reading your video’s subtitles. Try uploading the video again.",
+                      "There was an issue reading your video's subtitles. Try uploading the video again.",
                   });
                 }
 
@@ -505,9 +508,14 @@ exports.handleUpload = async (req, res) => {
                   shots_metadata: parsedJson.shots_metadata,
                 };
 
-                const SceneResults = require("../models/SceneSearchResult");
-                await SceneResults.create(formattedData);
-                console.log("✅ Captions JSON inserted to MongoDB.");
+                // Check if movie already exists to avoid duplicates
+                const exists = await Caption.findOne({ movie_name: parsedJson.movie_name });
+                if (!exists) {
+                  await Caption.create(formattedData);
+                  console.log("✅ Captions stored to MongoDB.");
+                } else {
+                  console.log("⚠️ Movie already exists in database, skipping insertion.");
+                }
                 return res.redirect(`/search?videoId=${savedVideo._id}`);
               } catch (mongoErr) {
                 console.error(

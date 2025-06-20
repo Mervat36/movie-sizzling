@@ -29,6 +29,7 @@ const ResultVideo = require("./models/ResultVideo");
 const SceneMetadata = require("./models/SceneMetadata");
 const SceneResults = require("./models/SceneSearchResult");
 
+
 // DB Connection
 const connectDB = require("./config/db");
 connectDB();
@@ -252,12 +253,15 @@ const userRoutes = require("./routes/UserRoutes");
 const videoRoutes = require("./routes/VideoRoutes");
 const historyRoutes = require("./routes/HistoryRoutes");
 const searchRoutes = require("./routes/SearchRoutes");
+const catalogRoutes = require("./routes/CatalogRoutes");
 
 app.use("/api/videos", videoRoutes);
 app.use("/users", userRoutes);
 app.use("/", historyRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/", uploadRoutes);
+app.use("/", catalogRoutes);
+
 
 // 404 Fallback
 app.use("*", (req, res) => {
