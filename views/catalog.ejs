@@ -1,186 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="/css/common.css" />
-    <title>Movie Catalog</title>
-  </head>
-  <body class="layout-body">
-    <%- include("partials/header") %>
-    
-    <!-- 🎬 Hero Section -->
-    <section class="catalog-hero">
-      <h1>Movie Catalog</h1>
-      <p>Discover and search through your video collection with AI-powered content analysis</p>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/form.css" />
+  <link rel="stylesheet" href="/css/history.css" />
+  <link rel="stylesheet" href="/css/index.css" />
+  <title>Movie Catalog</title>
+</head>
+
+<body class="layout-body">
+  <%- include("partials/header") %>
+
+    <!-- Hero Section -->
+    <section class="centered-hero">
+      <div class="hero-content">
+        <h1>Movie Catalog</h1>
+        <p>Discover and search through your video collection with AI-powered content analysis</p>
+        <a href="/upload" class="btn-primary">Upload a Video</a>
+      </div>
     </section>
 
     <main class="layout-main">
-      <!-- 📊 Stats Section -->
+      <!-- Stats Section -->
       <div class="catalog-stats">
         <div class="stat-item">
-          <span class="stat-number"><%= videos.length %></span>
+          <span class="stat-number">
+            <%= videos.length %>
+          </span>
           <span class="stat-label">Total Videos</span>
         </div>
         <div class="stat-item">
-          <span class="stat-number"><%= videos.filter(v => v.createdAt > new Date(Date.now() - 7*24*60*60*1000)).length %></span>
+          <span class="stat-number">
+            <%= videos.filter(v=> v.createdAt > new Date(Date.now() - 7*24*60*60*1000)).length %>
+          </span>
           <span class="stat-label">Added This Week</span>
         </div>
         <div class="stat-item">
-          <span class="stat-number"><%= Math.round(videos.reduce((acc, v) => acc + (v.filename ? 1 : 0), 0) / videos.length * 100) || 0 %>%</span>
+          <span class="stat-number">
+            <%= Math.round(videos.reduce((acc, v)=> acc + (v.filename ? 1 : 0), 0) / videos.length * 100) || 0 %>%
+          </span>
           <span class="stat-label">Processed</span>
         </div>
       </div>
 
-      <!-- 🔍 Search Section -->
+      <!-- Search Section -->
       <div class="catalog-search">
         <input type="text" id="catalogSearch" placeholder="Search videos by title..." />
       </div>
 
-      <!-- 🎬 Video Grid -->
+      <!-- Video Grid -->
       <div class="catalog-grid" id="catalogGrid">
-        <% if (videos.length === 0) { %>
+        <% if (videos.length===0) { %>
           <div class="catalog-empty">
             <h3>No videos yet</h3>
             <p>Upload your first video to get started with AI-powered content search</p>
           </div>
-        <% } else { %>
-          <% videos.forEach(video => { %>
-            <div class="catalog-card" data-title="<%= video.title.toLowerCase() %>">
-              <div class="catalog-thumbnail" onclick="handleVideoClick('<%= video._id %>')">
-                <img src="/images/logo.png" alt="<%= video.title %>" class="thumbnail-bg-img" />
-                <div class="play-icon-overlay">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+          <% } else { %>
+            <% videos.forEach(video=> { %>
+              <div class="catalog-card" data-title="<%= video.title.toLowerCase() %>">
+                <div class="catalog-thumbnail" onclick="handleVideoClick('<%= video._id %>')">
+                  <img src="/images/logo.png" alt="<%= video.title %>" class="thumbnail-bg-img" />
+                  <div class="play-icon-overlay">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="white">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="catalog-content">
+                  <h3 class="catalog-title">
+                    <%= video.title %>
+                  </h3>
+                  <div class="catalog-meta">
+                    <span class="catalog-date">
+                      <%= new Date(video.createdAt).toLocaleDateString() %>
+                    </span>
+                    <span class="catalog-size">
+                      <%= video.originalName ? video.originalName.split('.').pop().toUpperCase() : 'MP4' %>
+                    </span>
+                  </div>
+                  <div class="catalog-actions">
+                    <button class="catalog-btn catalog-btn-primary" onclick="handleVideoClick('<%= video._id %>')">
+                      Watch & Search
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="catalog-content">
-                <h3 class="catalog-title"><%= video.title %></h3>
-                <div class="catalog-meta">
-                  <span class="catalog-date">
-                    <%= new Date(video.createdAt).toLocaleDateString() %>
-                  </span>
-                  <span class="catalog-size">
-                    <%= video.originalName ? video.originalName.split('.').pop().toUpperCase() : 'MP4' %>
-                  </span>
-                </div>
-                <div class="catalog-actions">
-                  <button class="catalog-btn catalog-btn-primary" onclick="handleVideoClick('<%= video._id %>')">
-                    🎬 Watch & Search
-                  </button>
-                </div>
-              </div>
-            </div>
-          <% }); %>
-        <% } %>
+              <% }); %>
+                <% } %>
       </div>
 
-      <!-- 🎬 Pagination -->
-      <div class="catalog-pagination" id="catalogPagination">
-        <!-- Pagination buttons will be generated here by script -->
-      </div>
+      <!-- Pagination -->
+      <div id="video-pagination" class="pagination"></div>
     </main>
 
     <%- include("partials/footer") %>
 
-    <script>
-      const itemsPerPage = 6;
-      const cards = document.querySelectorAll('.catalog-card');
-      const totalPages = Math.ceil(cards.length / itemsPerPage);
-      const paginationContainer = document.getElementById('catalogPagination');
-      let currentPage = 1;
+      <script>
+        const itemsPerPage = 6;
+        const cards = document.querySelectorAll('.catalog-card');
+        const totalPages = Math.ceil(cards.length / itemsPerPage);
+        const paginationContainer = document.getElementById('video-pagination');
+        let currentPage = 1;
 
-      function showPage(page) {
-        currentPage = page;
-        const startIndex = (page - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
+        function showPage(page) {
+          currentPage = page;
+          const startIndex = (page - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
 
-        cards.forEach((card, index) => {
-          card.style.display = (index >= startIndex && index < endIndex) ? 'block' : 'none';
-        });
+          cards.forEach((card, index) => {
+            card.style.display = (index >= startIndex && index < endIndex) ? 'block' : 'none';
+          });
 
-        updatePaginationButtons();
-      }
+          updatePaginationButtons();
+        }
 
-      function updatePaginationButtons() {
-        const pageButtons = document.querySelectorAll('.pagination-btn');
-        pageButtons.forEach(button => {
-          if (parseInt(button.dataset.page) === currentPage) {
-            button.classList.add('active');
+        function updatePaginationButtons() {
+          const pageButtons = document.querySelectorAll('.page-btn');
+          pageButtons.forEach(button => {
+            if (parseInt(button.dataset.page) === currentPage) {
+              button.classList.add('active');
+            } else {
+              button.classList.remove('active');
+            }
+          });
+        }
+
+        function setupPagination() {
+          paginationContainer.innerHTML = '';
+
+          const createButton = (label, page, isActive = false) => {
+            const btn = document.createElement('button');
+            btn.innerText = label;
+            btn.className = 'page-btn';
+            btn.dataset.page = page;
+            if (isActive) btn.classList.add('active');
+            btn.addEventListener('click', () => showPage(page));
+            return btn;
+          };
+
+          const maxButtons = 5;
+
+          if (totalPages <= maxButtons) {
+            for (let i = 1; i <= totalPages; i++) {
+              paginationContainer.appendChild(createButton(i, i, i === currentPage));
+            }
           } else {
-            button.classList.remove('active');
+            paginationContainer.appendChild(createButton(1, 1, currentPage === 1));
+
+            if (currentPage > 3) {
+              const ellipsis = document.createElement('span');
+              ellipsis.className = 'ellipsis';
+              ellipsis.innerText = '• • •';
+              paginationContainer.appendChild(ellipsis);
+            }
+
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) {
+              paginationContainer.appendChild(createButton(i, i, i === currentPage));
+            }
+
+            if (currentPage < totalPages - 2) {
+              const ellipsis = document.createElement('span');
+              ellipsis.className = 'ellipsis';
+              ellipsis.innerText = '• • •';
+              paginationContainer.appendChild(ellipsis);
+            }
+
+            paginationContainer.appendChild(
+              createButton(totalPages, totalPages, currentPage === totalPages)
+            );
           }
-        });
-      }
-
-      function setupPagination() {
-        if (totalPages <= 1) return;
-
-        let paginationHTML = '';
-
-        // Previous button
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>&laquo;</button>`;
-
-        for (let i = 1; i <= totalPages; i++) {
-          paginationHTML += `<button class="pagination-btn" data-page="${i}" onclick="showPage(${i})">${i}</button>`;
         }
-        
-        // Next button
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>&raquo;</button>`;
+        // Initial setup
+        setupPagination();
+        showPage(1);
 
-        paginationContainer.innerHTML = paginationHTML;
-      }
+        // Search functionality
+        document.getElementById('catalogSearch').addEventListener('input', function (e) {
+          const searchTerm = e.target.value.toLowerCase();
 
-      function changePage(newPage) {
-        if (newPage > 0 && newPage <= totalPages) {
-          showPage(newPage);
-        }
-      }
-
-      // Initial setup
-      setupPagination();
-      showPage(1);
-
-      // Search functionality
-      document.getElementById('catalogSearch').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        
-        if(searchTerm.trim() !== '') {
+          if (searchTerm.trim() !== '') {
             paginationContainer.style.display = 'none';
             cards.forEach(card => {
-                const title = card.getAttribute('data-title');
-                if (title.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+              const title = card.getAttribute('data-title');
+              if (title.includes(searchTerm)) {
+                card.style.display = 'block';
+              } else {
+                card.style.display = 'none';
+              }
             });
-        } else {
+          } else {
             paginationContainer.style.display = 'flex';
             showPage(1);
+          }
+        });
+
+        // Video click handler
+        function handleVideoClick(videoId) {
+          window.location.href = `/catalog/load/${videoId}`;
         }
-      });
 
-      // Video click handler
-      function handleVideoClick(videoId) {
-        window.location.href = `/catalog/load/${videoId}`;
-      }
+        // Add fade-in animation for cards
+        cards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 0.1}s`;
+          card.style.animation = 'fadeIn 0.5s ease-in forwards';
+          card.style.opacity = '0';
+        });
 
-      // Add fade-in animation for cards
-      cards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.style.animation = 'fadeIn 0.5s ease-in forwards';
-        card.style.opacity = '0';
-      });
-
-      // Fade in animation
-      const style = document.createElement('style');
-      style.textContent = `
+        // Fade in animation
+        const style = document.createElement('style');
+        style.textContent = `
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `;
-      document.head.appendChild(style);
-    </script>
-  </body>
+        document.head.appendChild(style);
+      </script>
+</body>
+
 </html>
