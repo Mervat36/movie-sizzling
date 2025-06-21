@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/AdminController");
-
+const { isAdmin } = require("../middleware/auth")
 // Admin dashboard page
-router.get("/admin", adminController.getAdminDashboard);
+router.get("/admin", isAdmin, adminController.getAdminDashboard);
 
 // Video actions
 router.post("/admin/delete-video/:id", adminController.deleteVideo);

@@ -96,10 +96,12 @@ function ensureAuthenticated(req, res, next) {
 }
 
 function isAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user.isAdmin) {
+  const user = req.user || req.session.user;
+  if (user && user.isAdmin) {
     return next();
   }
-  res.status(403).send("Forbidden");
+  return res.redirect("/");
 }
+
 
 module.exports = { ensureAuthenticated, isAdmin };
