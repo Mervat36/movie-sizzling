@@ -3,7 +3,7 @@ const User = require("../models/User");
 
 exports.getAdminDashboard = async (req, res) => {
   try {
-    const videos = await Video.find({ isHidden: false }).populate("user", "name email");
+    const videos = await Video.find({ isHidden: { $ne: true } }).populate("user");
     const users = await User.find();
     res.render("admin", { videos, users });
   } catch (err) {

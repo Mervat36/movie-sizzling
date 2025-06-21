@@ -15,7 +15,8 @@
     <aside class="sidebar">
       <h1 class="sidebar-title">Admin</h1>
       <nav class="sidebar-nav">
-        <a href="#users" class="nav-link active">Users</a>
+        <a href="#dashboard" class="nav-link active">Dashboard</a>
+        <a href="#users" class="nav-link">Users</a>
         <a href="#videos" class="nav-link">Videos</a>
         <a href="/" class="nav-link">Back to Site</a>
         <div class="theme-toggle-container">
@@ -28,8 +29,26 @@
     </aside>
 
     <main class="main-content">
+      <!-- DASHBOARD SECTION -->
+      <section id="dashboard" class="admin-section">
+        <h2>Dashboard Overview</h2>
+        <div class="dashboard-stats">
+          <div class="stat-card">Total Users: <%= users.length %>
+          </div>
+          <div class="stat-card">Total Videos: <%= videos.length %>
+          </div>
+          <div class="stat-card">
+            Added This Week:
+            <%= videos.filter(v=> v.createdAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length %>
+          </div>
+          <div class="stat-card">
+            Processed:
+            <%= Math.round(videos.reduce((acc, v)=> acc + (v.filename ? 1 : 0), 0) / videos.length * 100) || 0 %>%
+          </div>
+        </div>
+      </section>
       <!-- USERS SECTION -->
-      <section id="users">
+      <section id="users" class="admin-section hidden">
         <h2>User Management</h2>
         <div class="user-grid">
           <% users.forEach(user=> { %>
@@ -97,7 +116,7 @@
       </section>
 
       <!-- VIDEOS SECTION -->
-      <section id="videos">
+      <section id="videos" class="admin-section hidden">
         <h2>Video Catalog</h2>
         <div class="video-grid">
           <% videos.forEach(video=> { %>
@@ -124,7 +143,30 @@
       </section>
     </main>
   </div>
+  <script>
+    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
+    const sections = document.querySelectorAll(".admin-section");
 
+    navLinks.forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+
+        // Remove 'active' from all nav links
+        navLinks.forEach(l => l.classList.remove("active"));
+        // Hide all sections
+        sections.forEach(sec => sec.classList.add("hidden"));
+
+        // Activate clicked link
+        e.currentTarget.classList.add("active");
+        const targetId = e.currentTarget.getAttribute("href").substring(1);
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) targetSection.classList.remove("hidden");
+      });
+    });
+
+    // Default view = dashboard
+    document.getElementById("dashboard").classList.remove("hidden");
+  </script>
   <script>
     flatpickr("#banDatePicker", {
       dateFormat: "Y-m-d",
@@ -150,14 +192,26 @@
       }
     });
 
-    // Navigation highlighting
-    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
     navLinks.forEach(link => {
       link.addEventListener("click", e => {
+        const href = e.currentTarget.getAttribute("href");
+
+        // Allow full page reload for external links
+        if (!href.startsWith("#")) {
+          window.location.href = href; // Allow full navigation to real page
+          return;
+        }
+        e.preventDefault();
         navLinks.forEach(l => l.classList.remove("active"));
         e.currentTarget.classList.add("active");
+
+        sections.forEach(sec => sec.classList.add("hidden"));
+        const targetId = href.substring(1);
+        const targetSection = document.getElementById(targetId);
+        if (targetSection) targetSection.classList.remove("hidden");
       });
     });
+
   </script>
   <script>
     function openBanModal(userId, userName) {

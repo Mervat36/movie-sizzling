@@ -1371,3 +1371,28 @@ body.dark-mode .switch input:checked+.slider {
 body.dark-mode .toggle-text {
   color: var(--text-color);
 }
+
+.admin-section.hidden {
+  display: none;
+}
+
+.dashboard-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background-color: #eef4ff;
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .stat-card {
+  background-color: #1c1f32;
+  color: #e2e8f0;
+}

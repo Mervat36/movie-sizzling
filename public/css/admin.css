@@ -918,3 +918,41 @@ body.dark-mode #banDatePicker {
   color: #e2e8f0;
   box-shadow: 0 0 12px rgba(0, 223, 196, 0.4);
 }
+
+/* Admin Dashboard Stats Styling */
+.dashboard-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  background-color: var(--lm-bg-secondary);
+  color: var(--lm-text-primary);
+  border: 1px solid var(--lm-border-color);
+  padding: 20px 25px;
+  border-radius: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 16px var(--lm-shadow-color);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px var(--lm-shadow-color);
+}
+
+body.dark-mode .stat-card {
+  background-color: #1a1d3b;
+  border: 1px solid var(--dm-border-color);
+  color: var(--dm-text-primary);
+  box-shadow: 0 10px 20px var(--dm-shadow-color);
+}
+
+body.dark-mode .stat-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 25px var(--dm-shadow-color);
+}

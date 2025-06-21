@@ -136,7 +136,7 @@ const loginUser = async (req, res) => {
 
     // Redirect admin to dashboard, otherwise to homepage
     if (user.isAdmin) {
-      res.redirect("/admin");
+      res.redirect("/");
     } else {
       res.redirect("/");
     }
