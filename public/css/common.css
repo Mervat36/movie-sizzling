@@ -754,3 +754,32 @@ body.dark-mode .pagination-btn.active {
   border-color: var(--button-hover-color);
   color: #fff;
 }
+
+.switch {
+  width: 50px;
+  height: 26px;
+}
+
+.switch .slider {
+  background-color: var(--placeholder-color);
+}
+
+.switch input:checked + .slider {
+  background-color: var(--button-color);
+}
+
+body.dark-mode .switch .slider {
+  background-color: #444;
+}
+
+body.dark-mode .switch input:checked + .slider {
+  background-color: var(--link-color);
+}
+
+.privacy-note {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-color);
+  opacity: 0.7;
+}

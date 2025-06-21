@@ -1,127 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/images/logo.png" />
-    <title>Upload Video</title>
-    <link rel="stylesheet" href="/css/common.css" />
-    <link rel="stylesheet" href="/css/form.css" />
-  </head>
-  <body>
-    <%- include("partials/header") %>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/images/logo.png" />
+  <title>Upload Video</title>
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/form.css" />
+</head>
+
+<body>
+  <%- include("partials/header") %>
     <div class="upload-container">
       <h2>Upload Video</h2>
-      <% if (typeof message !== 'undefined') { %>
-      <p style="color: green"><%= message %></p>
-      <% } %>
-      <div id="loading-spinner" style="display: none" class="spinner-overlay">
-        <div class="spinner"></div>
-      </div>
-      <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="text" name="title" placeholder="Movie Title" required />
-        <div id="drop-zone">
-          <p>Drag & drop your video here or click to Upload</p>
-          <video
-            id="video-preview"
-            width="100%"
-            style="display: none"
-            muted
-            controls
-          ></video>
-          <button type="button" id="remove-btn" class="btn-danger" style="display: none;"> Remove Video</button>
-          <input
-            type="file"
-            name="video"
-            id="videoFile"
-            accept="video/*"
-            required
-            hidden
-          />
-        </div>
-        <button type="submit" class="btn-primary">Upload</button>
-      </form>
+      <% if (typeof message !=='undefined' ) { %>
+        <p style="color: green">
+          <%= message %>
+        </p>
+        <% } %>
+          <div id="loading-spinner" style="display: none" class="spinner-overlay">
+            <div class="spinner"></div>
+          </div>
+          <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Movie Title" required />
+            <div id="drop-zone">
+              <p>Drag & drop your video here or click to Upload</p>
+              <video id="video-preview" width="100%" style="display: none" muted controls></video>
+              <button type="button" id="remove-btn" class="btn-danger" style="display: none;"> Remove Video</button>
+              <input type="file" name="video" id="videoFile" accept="video/*" required hidden />
+            </div>
+            <div class="form-group">
+              <label for="hideFromCatalog" class="form-label">Hide from Menu</label>
+              <label class="switch">
+                <input type="checkbox" name="isHidden" id="hideFromCatalog" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <button type="submit" class="btn-primary">Upload</button>
+          </form>
     </div>
     <%- include("partials/footer") %>
-    <script>
-      const dropZone = document.getElementById("drop-zone");
-      const fileInput = document.getElementById("videoFile");
-      dropZone.addEventListener("click", () => {
-        fileInput.click();
-      });
-      fileInput.addEventListener("change", () => {
-        if (fileInput.files.length > 0) {
-          dropZone.querySelector(
-            "p"
-          ).textContent = `File: ${fileInput.files[0].name}`;
+      <script>
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("videoFile");
+        dropZone.addEventListener("click", () => {
+          fileInput.click();
+        });
+        fileInput.addEventListener("change", () => {
+          if (fileInput.files.length > 0) {
+            dropZone.querySelector(
+              "p"
+            ).textContent = `File: ${fileInput.files[0].name}`;
+          }
+        });
+        dropZone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dropZone.classList.add("dragover");
+        });
+        dropZone.addEventListener("dragleave", () => {
+          dropZone.classList.remove("dragover");
+        });
+        dropZone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("dragover");
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            fileInput.files = files;
+            dropZone.querySelector("p").textContent = `File: ${files[0].name}`;
+          }
+        });
+        const videoPreview = document.getElementById("video-preview");
+        function handleFile(file) {
+          if (file && file.type.startsWith("video/")) {
+            const videoURL = URL.createObjectURL(file);
+            videoPreview.src = videoURL;
+            videoPreview.style.display = "block";
+            dropZone.querySelector("p").textContent = `File: ${file.name}`;
+          }
         }
-      });
-      dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropZone.classList.add("dragover");
-      });
-      dropZone.addEventListener("dragleave", () => {
-        dropZone.classList.remove("dragover");
-      });
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("dragover");
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-          fileInput.files = files;
-          dropZone.querySelector("p").textContent = `File: ${files[0].name}`;
+        fileInput.addEventListener("change", () => {
+          if (fileInput.files.length > 0) {
+            handleFile(fileInput.files[0]);
+          }
+        });
+        dropZone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("dragover");
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            fileInput.files = files;
+            handleFile(files[0]);
+          }
+        });
+
+        const removeBtn = document.getElementById("remove-btn");
+
+        // Show video preview and Remove button
+        function handleFile(file) {
+          if (file && file.type.startsWith("video/")) {
+            const videoURL = URL.createObjectURL(file);
+            videoPreview.src = videoURL;
+            videoPreview.style.display = "block";
+            removeBtn.style.display = "inline-block"; // ✅ SHOW the Remove button
+            dropZone.querySelector("p").textContent = `File: ${file.name}`;
+          }
         }
-      });
-      const videoPreview = document.getElementById("video-preview");
-      function handleFile(file) {
-        if (file && file.type.startsWith("video/")) {
-          const videoURL = URL.createObjectURL(file);
-          videoPreview.src = videoURL;
-          videoPreview.style.display = "block";
-          dropZone.querySelector("p").textContent = `File: ${file.name}`;
+
+        // Remove/reset uploaded file
+        function resetUpload() {
+          fileInput.value = "";
+          videoPreview.src = "";
+          videoPreview.style.display = "none";
+          removeBtn.style.display = "none"; // ✅ HIDE the button again
+          dropZone.querySelector("p").textContent = "Drag & drop your video here or click to Upload";
         }
-      }
-      fileInput.addEventListener("change", () => {
-        if (fileInput.files.length > 0) {
-          handleFile(fileInput.files[0]);
-        }
-      });
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("dragover");
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-          fileInput.files = files;
-          handleFile(files[0]);
-        }
-      });
 
-const removeBtn = document.getElementById("remove-btn");
-
-// Show video preview and Remove button
-function handleFile(file) {
-  if (file && file.type.startsWith("video/")) {
-    const videoURL = URL.createObjectURL(file);
-    videoPreview.src = videoURL;
-    videoPreview.style.display = "block";
-    removeBtn.style.display = "inline-block"; // ✅ SHOW the Remove button
-    dropZone.querySelector("p").textContent = `File: ${file.name}`;
-  }
-}
-
-// Remove/reset uploaded file
-function resetUpload() {
-  fileInput.value = "";
-  videoPreview.src = "";
-  videoPreview.style.display = "none";
-  removeBtn.style.display = "none"; // ✅ HIDE the button again
-  dropZone.querySelector("p").textContent = "Drag & drop your video here or click to Upload";
-}
-
-removeBtn.addEventListener("click", resetUpload);
+        removeBtn.addEventListener("click", resetUpload);
 
 
-    </script>
-    <script src="/js/form-loader.js"></script>
-  </body>
+      </script>
+      <script src="/js/form-loader.js"></script>
+</body>
+
 </html>

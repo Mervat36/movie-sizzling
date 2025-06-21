@@ -32,6 +32,7 @@ const uploadVideoWithRetry = async (buffer, path, retries = 3) => {
 exports.handleUpload = async (req, res) => {
   const localTempPath = req.file.path;
   const movieTitle = req.body.title;
+  const isHidden = Boolean(req.body.isHidden && req.body.isHidden !== "false");
   const ext = path.extname(req.file.originalname);
   const safeTitle = movieTitle.trim().replace(/[^a-z0-9_\-]/gi, "_");
   const supaFileName = `${safeTitle}${ext}`;
@@ -76,8 +77,10 @@ exports.handleUpload = async (req, res) => {
       filename: `dl_${supaFileName}`,
       originalName: req.file.originalname,
       user: req.user._id,
+      isHidden: req.body.isHidden === "on",
       createdAt: new Date(),
     });
+
 
     writer.on("finish", async () => {
       console.log("🟡 Starting shot segmentation...");

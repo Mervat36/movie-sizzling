@@ -1,170 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/images/logo.png" />
-    <title>Search History</title>
-    <link rel="stylesheet" href="/css/common.css" />
-    <link rel="stylesheet" href="/css/history.css" />
-    <script defer src="/js/history.js"></script>
-  </head>
-  <body class="layout-body">
-    <%- include("partials/header") %> <% if (toast) { %>
-    <script>
-      var toast = <%- JSON.stringify(toast) %>;
-    </script>
-    <% } %>
-    <div id="loading-spinner" class="spinner-overlay" style="display: none">
-      <div class="spinner"></div>
-    </div>
-    <main class="layout-main">
-      <section class="history-section">
-        <h2 class="center-title">Search History</h2>
 
-        <% if (Object.keys(videoMap).length === 0) { %>
-        <div class="empty-state">
-          <img
-            src="/images/no-videos.png"
-            alt="No videos"
-            class="empty-illustration"
-          />
-          <h3 class="empty-title">You haven't uploaded any videos yet</h3>
-          <p class="empty-subtext">
-            Start by uploading your first video to begin searching and saving
-            results.
-          </p>
-          <a href="/upload" class="btn-primary">Upload a Video</a>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/images/logo.png" />
+  <title>Search History</title>
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/history.css" />
+  <script defer src="/js/history.js"></script>
+</head>
+
+<body class="layout-body">
+  <%- include("partials/header") %>
+    <% if (toast) { %>
+      <script>
+        var toast = <% - JSON.stringify(toast) %>;
+      </script>
+      <% } %>
+        <div id="loading-spinner" class="spinner-overlay" style="display: none">
+          <div class="spinner"></div>
         </div>
-        <% } else { %>
-        <div class="filter-bar">
-          <input
-            type="text"
-            id="historySearchInput"
-            placeholder="Search by video name or query..."
-          />
-        </div>
+        <main class="layout-main">
+          <section class="history-section">
+            <h2 class="center-title">Search History</h2>
 
-        <% videos.forEach(video => { const queries =
-        videoMap[video._id]?.queries || {}; %>
-        <div class="history-table-wrapper history-flex-wrapper" data-video-id="<%= video._id %>">
-          <!-- Video Left -->
-          <div class="video-container">
-            <h3 class="section-label">Uploaded Video</h3>
-            <video controls>
-              <source src="/uploads/<%= video.filename %>" type="video/mp4" />
-            </video>
-            <form
-              action="/videos/rename/<%= video._id %>"
-              method="POST"
-              class="rename-form"
-              data-video-id="<%= video._id %>"
-            >
-              <input
-                type="text"
-                name="newTitle"
-                value="<%= video.title || video.filename %>"
-                class="rename-input"
-              />
-              <button type="submit" class="btn-rename">Rename</button>
-            </form>
+            <% if (Object.keys(videoMap).length===0) { %>
+              <div class="empty-state">
+                <img src="/images/no-videos.png" alt="No videos" class="empty-illustration" />
+                <h3 class="empty-title">You haven't uploaded any videos yet</h3>
+                <p class="empty-subtext">
+                  Start by uploading your first video to begin searching and saving
+                  results.
+                </p>
+                <a href="/upload" class="btn-primary">Upload a Video</a>
+              </div>
+              <% } else { %>
+                <div class="filter-bar">
+                  <input type="text" id="historySearchInput" placeholder="Search by video name or query..." />
+                </div>
 
-            <div class="actions">
-              <a class="btn-download" href="/videos/download/<%= video._id %>"
-                >Download</a
-              >
-              <button
-                class="btn-remove trigger-delete"
-                data-delete-url="/videos/delete/<%= video._id %>"
-              >
-                Delete Video
-              </button>
-              <a
-                class="btn-download"
-                href="/api/search/search-again/<%= video._id %>"
-                >Search</a
-              >
-            </div>
-          </div>
-          <!-- Queries Right -->
-          <div style="flex: 2; min-width: 400px" class="query-list">
-            <% if (Object.keys(queries).length === 0) { %>
-            <div class="empty-query-message">
-              <img src="/images/search-empty.png" alt="No queries" />
-              <h4>No Queries Found</h4>
-              <p>
-                You haven't searched any queries for this video yet. Try
-                exploring a scene!
-              </p>
-            </div>
-            <% } else { %> <% const queryIds = Object.keys(queries); %>
+                <% videos.forEach(video=> { const queries =
+                  videoMap[video._id]?.queries || {}; %>
+                  <div class="history-table-wrapper history-flex-wrapper" data-video-id="<%= video._id %>">
+                    <!-- Video Left -->
+                    <div class="video-container">
+                      <h3 class="section-label">Uploaded Video</h3>
+                      <video controls>
+                        <source src="/uploads/<%= video.filename %>" type="video/mp4" />
+                      </video>
 
-            <div class="query-tabs">
-              <h3 class="section-label">Search Queries & Results</h3>
-              <% queryIds.forEach((queryId, idx) => { const { query } =
-              queries[queryId]; %>
-              <button
-                class="query-tab <%= idx === 0 ? 'active' : '' %>"
-                data-tab="<%= video._id %>-<%= idx %>"
-              >
-                <%= query.query.length > 20 ? query.query.slice(0, 20) + '...' :
-                query.query %>
-              </button>
-              <% }); %>
-            </div>
+                      <form class="rename-form"
+                        onsubmit="event.preventDefault(); openRenameModal('<%= video._id %>', this)">
+                        <% const queryList=Object.values(videoMap[video._id].queries); const
+                          customTitle=queryList.length> 0 ? queryList[0].query.customTitle : null;
+                          %>
+                          <input type="text" name="newTitle" value="<%= customTitle || video.title || video.filename %>"
+                            class="rename-input" />
+                          <button type="button" class="btn-rename"
+                            onclick="openRenameModal('<%= video._id %>', this.closest('form'))">Rename</button>
+                          <div class="form-group">
+                            <label class="checkbox-label">
+                              <input type="checkbox" name="isHidden" value="true" <%=video.isHidden ? "checked" : "" %>
+                              onclick="onHideClick(event, '<%= video._id %>', this)" />
+                                Hide from Menu (Private Video)
+                            </label>
+                          </div>
+                          <div class="actions">
+                            <a class="btn-download" href="/videos/download/<%= video._id %>">Download</a>
+                            <button class="btn-remove trigger-delete" data-delete-url="/videos/delete/<%= video._id %>">
+                              Delete Video
+                            </button>
+                            <a class="btn-download" href="/api/search/search-again/<%= video._id %>">Search</a>
+                          </div>
+                      </form> <!-- ✅ Properly closed here -->
+                    </div>
+                    <!-- Queries Right -->
+                    <div style="flex: 2; min-width: 400px" class="query-list">
+                      <% if (Object.keys(queries).length===0) { %>
+                        <div class="empty-query-message">
+                          <img src="/images/search-empty.png" alt="No queries" />
+                          <h4>No Queries Found</h4>
+                          <p>
+                            You haven't searched any queries for this video yet. Try
+                            exploring a scene!
+                          </p>
+                        </div>
+                        <% } else { %>
+                          <% const queryIds=Object.keys(queries); %>
 
-            <div class="query-panels">
-              <% queryIds.forEach((queryId, idx) => { const { query, results } =
-              queries[queryId]; %>
-              <div
-                class="query-panel <%= idx === 0 ? 'active' : '' %>"
-                id="<%= video._id %>-<%= idx %>"
-              >
-                <div class="query-card">
-                  <div
-                    class="actions"
-                    style="
+                            <div class="query-tabs">
+                              <h3 class="section-label">Search Queries & Results</h3>
+                              <% queryIds.forEach((queryId, idx)=> { const { query } =
+                                queries[queryId]; %>
+                                <button class="query-tab <%= idx === 0 ? 'active' : '' %>"
+                                  data-tab="<%= video._id %>-<%= idx %>">
+                                  <%= query.query.length> 20 ? query.query.slice(0, 20) + '...' :
+                                    query.query %>
+                                </button>
+                                <% }); %>
+                            </div>
+
+                            <div class="query-panels">
+                              <% queryIds.forEach((queryId, idx)=> { const { query, results } =
+                                queries[queryId]; %>
+                                <div class="query-panel <%= idx === 0 ? 'active' : '' %>"
+                                  id="<%= video._id %>-<%= idx %>">
+                                  <div class="query-card">
+                                    <div class="actions" style="
                       justify-content: space-between;
                       align-items: center;
                       margin-bottom: 10px;
-                    "
-                  >
-                    <h3 style="margin: 0">Query: <%= query.query %></h3>
-                    <div class="actions">
-                      <button
-                        class="btn-remove trigger-query-delete"
-                        data-query-id="<%= query._id %>"
-                      >
-                        Delete Query
-                      </button>
-                    </div>
-                  </div>
-                  <% const merged = {}; results.forEach(r => { const key =
-                  r.timeRange; if (!merged[key]) merged[key] = [];
-                  merged[key].push(r); }); const keys = Object.keys(merged); %>
-                  <% keys.forEach(key => { const group = merged[key]; const
-                  first = group[0]; const clipPath = '/output/clips/' +
-                  first.clipFilename; %>
-                  <div class="result-card">
-                    <video controls class="result-video">
-                      <source src="<%= clipPath %>" type="video/mp4" />
-                    </video>
-                    <div class="actions">
-                      <a
-                        class="btn-download"
-                        href="/results/download/<%= first._id %>"
-                        >Download</a
-                      >
-                      <button
-                        class="btn-remove trigger-delete"
-                        data-delete-url="/results/delete/<%= first._id %>"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    <div class="result-info">
-                      <p
-                        style="
+                    ">
+                                      <h3 style="margin: 0">Query: <%= query.query %>
+                                      </h3>
+                                      <div class="actions">
+                                        <button class="btn-remove trigger-query-delete"
+                                          data-query-id="<%= query._id %>">
+                                          Delete Query
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <% const merged={}; results.forEach(r=> { const key =
+                                      r.timeRange; if (!merged[key]) merged[key] = [];
+                                      merged[key].push(r); }); const keys = Object.keys(merged); %>
+                                      <% keys.forEach(key=> { const group = merged[key]; const
+                                        first = group[0]; const clipPath = '/output/clips/' +
+                                        first.clipFilename; %>
+                                        <div class="result-card">
+                                          <video controls class="result-video">
+                                            <source src="<%= clipPath %>" type="video/mp4" />
+                                          </video>
+                                          <div class="actions">
+                                            <a class="btn-download"
+                                              href="/results/download/<%= first._id %>">Download</a>
+                                            <button class="btn-remove trigger-delete"
+                                              data-delete-url="/results/delete/<%= first._id %>">
+                                              Delete
+                                            </button>
+                                          </div>
+                                          <div class="result-info">
+                                            <p style="
                           font-weight: 500;
                           white-space: nowrap;
                           overflow: hidden;
@@ -172,55 +148,81 @@
                           max-width: 100%;
                           text-align: center;
                           margin-top: 4px;
-                        "
-                        title="<%= first.caption %>"
-                      >
-                        <%= first.caption || '' %>
-                      </p>
-                      <p
-                        style="
+                        " title="<%= first.caption %>">
+                                              <%= first.caption || '' %>
+                                            </p>
+                                            <p style="
                           font-size: 13px;
                           color: #888;
                           text-align: center;
                           margin-top: 4px;
-                        "
-                      >
-                        <%= first.timeRange %>
-                      </p>
+                        ">
+                                              <%= first.timeRange %>
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <% }); %>
+                                  </div>
+                                </div>
+                                <% }); %>
+                            </div>
+                            <% } %>
                     </div>
                   </div>
                   <% }); %>
-                </div>
-              </div>
-              <% }); %>
+                    <!-- ✅ closes videos.forEach -->
+                    <% } %>
+                      <!-- ✅ closes outer if -->
+          </section>
+
+          <div id="video-pagination" class="pagination"></div>
+        </main>
+
+        <div id="deleteModal" class="modal hidden">
+          <div class="modal-content">
+            <h3 id="modalTitle">Delete Item?</h3>
+            <p id="modalText">
+              This will permanently delete the item and all related data.
+            </p>
+            <div class="modal-buttons">
+              <button id="cancelDelete" class="btn-cancel">Cancel</button>
+              <form id="confirmDeleteForm" method="POST">
+                <button type="submit" class="btn-delete">Yes, Delete</button>
+              </form>
             </div>
-            <% } %>
           </div>
         </div>
-        <% }); %>
-        <!-- ✅ closes videos.forEach -->
-        <% } %>
-        <!-- ✅ closes outer if -->
-      </section>
-
-      <div id="video-pagination" class="pagination"></div>
-    </main>
-
-    <div id="deleteModal" class="modal hidden">
-      <div class="modal-content">
-        <h3 id="modalTitle">Delete Item?</h3>
-        <p id="modalText">
-          This will permanently delete the item and all related data.
-        </p>
-        <div class="modal-buttons">
-          <button id="cancelDelete" class="btn-cancel">Cancel</button>
-          <form id="confirmDeleteForm" method="POST">
-            <button type="submit" class="btn-delete">Yes, Delete</button>
-          </form>
+        <button id="scrollToTop" class="scroll-to-top" title="Back to top">↑</button>
+        <div class="modal hidden" id="renameModal">
+          <div class="modal-content">
+            <h3>Confirm Rename</h3>
+            <p>Are you sure you want to rename this video?</p>
+            <div class="modal-buttons">
+              <button class="btn-cancel" onclick="closeRenameModal()">Cancel</button>
+              <form id="confirmRenameForm" method="POST">
+                <input type="hidden" name="newTitle" id="confirmNewTitle" />
+                <input type="hidden" name="isHidden" id="confirmIsHidden" />
+                <button class="btn-delete" type="submit">Yes, Rename</button>
+              </form>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <button id="scrollToTop" class="scroll-to-top" title="Back to top">↑</button>
-    <%- include("partials/footer") %>
-  </body>
+        <div id="hideModal" class="modal hidden">
+          <div class="modal-content">
+            <h3 id="hideModalTitle">Hide Video?</h3>
+            <p id="hideModalText">Are you sure you want to change visibility of this video in the catalog?</p>
+            <div class="modal-buttons">
+              <button id="cancelHideToggle" class="btn-cancel">Cancel</button>
+              <form id="confirmHideForm" method="POST">
+                <input type="hidden" name="newTitle" id="hiddenTitleValue" />
+                <input type="hidden" name="isHidden" id="hiddenIsHiddenValue" />
+                <button class="btn-delete" type="submit">Yes, Continue</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <%- include("partials/footer") %>
+</body>
+
 </html>

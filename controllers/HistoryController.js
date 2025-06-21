@@ -58,6 +58,9 @@ exports.getHistoryPage = async (req, res) => {
 
 exports.downloadVideo = async (req, res) => {
   const video = await Video.findById(req.params.id);
+  if (video.isHidden && video.user.toString() !== req.user._id.toString()) {
+    return res.status(403).send("This video is private.");
+  }
   const filePath = path.join(__dirname, "../uploads", video.filename);
   res.download(filePath);
 };
@@ -100,15 +103,18 @@ exports.deleteVideo = async (req, res) => {
 
 
 exports.deleteQuery = async (req, res) => {
+  const userId = req.user._id;
   const queryId = req.params.id;
+
+  const query = await UserQuery.findOne({ _id: queryId, userId });
+  if (!query) {
+    return res.status(404).json({ success: false, message: "Query not found or not yours." });
+  }
+
   await ResultVideo.deleteMany({ queryId });
   await UserQuery.findByIdAndDelete(queryId);
 
-  if (
-    req.headers.accept &&
-    req.headers.accept.toLowerCase().includes("application/json")
-  ) {
-    res.setHeader("Content-Type", "application/json");
+  if (req.headers.accept?.includes("application/json")) {
     return res.status(200).json({ success: true });
   }
 
@@ -118,6 +124,7 @@ exports.deleteQuery = async (req, res) => {
   };
   res.redirect("/history");
 };
+
 
 exports.downloadResult = async (req, res) => {
   const result = await ResultVideo.findById(req.params.id);
@@ -130,41 +137,27 @@ exports.downloadResult = async (req, res) => {
 };
 
 exports.deleteResult = async (req, res) => {
+  const userId = req.user._id;
   const result = await ResultVideo.findById(req.params.id);
   if (!result) {
-    if (
-      req.headers.accept &&
-      req.headers.accept.toLowerCase().includes("application/json")
-    ) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Result not found." });
-    }
-
-    req.session.toast = {
-      type: "error",
-      message: "Result not found or already deleted.",
-    };
-    return res.redirect("/history");
+    return res.status(404).json({ success: false, message: "Result not found." });
   }
 
-  const clipFilename = result.clipFilename;
+  const query = await UserQuery.findOne({ _id: result.queryId, userId });
+  if (!query) {
+    return res.status(403).json({ success: false, message: "Not allowed to delete this result." });
+  }
 
-  // Delete all result entries that share this clip in the SAME query only
+  // Now delete
   await ResultVideo.deleteMany({
     queryId: result.queryId,
-    clipFilename: clipFilename,
+    clipFilename: result.clipFilename,
   });
 
-  // Remove the clip file
-  const clipPath = path.join(__dirname, "../public/output/clips", clipFilename);
+  const clipPath = path.join(__dirname, "../public/output/clips", result.clipFilename);
   if (fs.existsSync(clipPath)) fs.unlinkSync(clipPath);
 
-  if (
-    req.headers.accept &&
-    req.headers.accept.toLowerCase().includes("application/json")
-  ) {
-    res.setHeader("Content-Type", "application/json");
+  if (req.headers.accept?.includes("application/json")) {
     return res.status(200).json({ success: true });
   }
 
@@ -175,77 +168,52 @@ exports.deleteResult = async (req, res) => {
   res.redirect("/history");
 };
 exports.renameVideo = async (req, res) => {
+  const userId = req.user._id;
   const videoId = req.params.id;
   const newTitle = req.body.newTitle?.trim();
+  const isHidden = req.body.isHidden === "true";
 
   if (!newTitle) {
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(400).json({ success: false, message: "Title cannot be empty." });
+    }
     req.session.toast = { type: "error", message: "Title cannot be empty." };
     return res.redirect("/history");
   }
 
   try {
-    const video = await Video.findById(videoId);
-    if (!video) {
-      req.session.toast = { type: "error", message: "Video not found." };
-      return res.redirect("/history");
+    const userQueries = await UserQuery.find({ userId, videoId });
+
+    if (userQueries.length > 0) {
+      await Promise.all(
+        userQueries.map(query =>
+          UserQuery.findByIdAndUpdate(query._id, { customTitle: newTitle })
+        )
+      );
     }
 
-    const oldFilename = video.filename;
-    const oldSafeTitle = oldFilename.replace(/^dl_/, "").replace(/\.mp4$/, "");
-    const newSafeTitle = newTitle.replace(/[^a-z0-9_\-]/gi, "_").toLowerCase();
-    const fileExt = path.extname(oldFilename);
+    await Video.findByIdAndUpdate(videoId, { isHidden });
 
-    const newFilename = `dl_${newSafeTitle}${fileExt}`;
-    const newVideoPath = path.join(__dirname, "../uploads", newFilename);
-    const oldVideoPath = path.join(__dirname, "../uploads", oldFilename);
-
-    // Rename video file
-    if (fs.existsSync(oldVideoPath)) {
-      fs.renameSync(oldVideoPath, newVideoPath);
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(200).json({ success: true });
     }
-
-    // Rename caption JSON
-    const oldCaptions = path.join(
-      __dirname,
-      "..",
-      `${oldSafeTitle}_captions.json`
-    );
-    const newCaptions = path.join(
-      __dirname,
-      "..",
-      `${newSafeTitle}_captions.json`
-    );
-    if (fs.existsSync(oldCaptions)) {
-      fs.renameSync(oldCaptions, newCaptions);
-    }
-
-    // Rename output folder (optional but recommended)
-    const oldOutput = path.join(__dirname, "../output", oldSafeTitle);
-    const newOutput = path.join(__dirname, "../output", newSafeTitle);
-    if (fs.existsSync(oldOutput)) {
-      fs.renameSync(oldOutput, newOutput);
-    }
-
-    // Update DB
-    video.title = newTitle;
-    video.filename = newFilename;
-    await video.save();
 
     req.session.toast = {
       type: "success",
-      message: "Video and files renamed successfully.",
+      message: "Video renamed and visibility updated in your history.",
     };
+    res.redirect("/history");
   } catch (err) {
     console.error("Rename error:", err);
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(500).json({ success: false });
+    }
+
     req.session.toast = {
       type: "error",
-      message: "Failed to rename video or files.",
+      message: "Failed to rename video.",
     };
+    res.redirect("/history");
   }
-
-  if (req.headers.accept.includes("application/json")) {
-    return res.json({ success: true });
-  }
-
-  res.redirect("/history");
 };

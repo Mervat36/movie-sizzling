@@ -9,6 +9,7 @@ const userQuerySchema = new mongoose.Schema({
   },
   query: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
+  customTitle: { type: String, default: null }
 });
 
 module.exports = mongoose.model("UserQuery", userQuerySchema);

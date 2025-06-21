@@ -1196,3 +1196,96 @@ body.dark-mode .btn-rename:hover {
     overflow-x: hidden;
   }
 }
+
+.hidden-badge {
+  background-color: #ccc;
+  color: #000;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+body.dark-mode .hidden-badge {
+  background-color: #444;
+  color: #fff;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-color);
+  margin-top: 10px;
+}
+.checkbox-label input[type="checkbox"] {
+  transform: scale(1.2);
+}
+.rename-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+}
+
+.rename-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.rename-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.rename-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 0 10px;
+}
+
+.rename-input {
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-rename {
+  background-color: var(--button-color);
+  color: var(--button-text);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-rename:hover {
+  background-color: var(--button-hover-color);
+  color: white;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-color);
+}

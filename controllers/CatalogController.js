@@ -9,7 +9,15 @@ const ResultVideo = require("../models/ResultVideo");
 
 exports.renderCatalogPage = async (req, res) => {
   try {
-    const allVideos = await Video.find().sort({ createdAt: -1 });
+    const allVideos = await Video.find({
+      $or: [
+        { isHidden: false },
+        { isHidden: { $exists: false } },
+        { isHidden: null }
+      ]
+    }).sort({ createdAt: -1 });
+
+    console.log("Catalog videos count:", allVideos.length); // ✅ Debug line
     res.render("catalog", { videos: allVideos });
   } catch (err) {
     console.error("❌ Error in catalog:", err.message);
@@ -130,6 +138,7 @@ exports.searchCatalog = async (req, res) => {
           throw new Error("Received HTML instead of JSON");
         }
         parsedResults = JSON.parse(stdout);
+
         console.log("📦 Parsed Results Count:", parsedResults.length);
 
         if (!Array.isArray(parsedResults) || parsedResults.length === 0) {
