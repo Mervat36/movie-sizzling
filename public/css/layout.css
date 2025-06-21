@@ -180,33 +180,6 @@ footer {
   right: 6px;
 }
 /* 5. Footer Styles - "Cosmic Wave" Theme */
-.site-footer {
-  background-color: #161d29;
-  color: #a0a0b5;
-  padding: 50px 20px 20px 20px;
-  font-size: 14px;
-  margin-top: auto;
-  position: relative;
-  overflow: hidden; /* Important for pseudo-elements */
-  border-top: 1px solid var(--accent-primary);
-  background-image: linear-gradient(315deg, var(--bg-primary) 0%, #161d29 74%);
-}
-
-.site-footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-  animation: cosmic-ray 8s linear infinite;
-}
-
-@keyframes cosmic-ray {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
 
 .footer-content {
   display: flex;
@@ -539,4 +512,95 @@ body.dark-mode .login-btn:hover {
 .admin-btn {
   background-color: #e43f5a;
   color: #fff !important;
+}
+/* ========== Unified Footer Style ========== */
+.site-footer {
+  background-color: #1f2937; /* Match header */
+  color: #d1d5db;
+  padding: 25px 20px 15px;
+  font-size: 14px;
+  border-top: none; /* No border */
+  box-shadow: none; /* Remove shadow if needed */
+  background-image: none; /* Remove any gradient */
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.footer-section h4 {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.footer-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section li {
+  margin-bottom: 8px;
+}
+
+.footer-section li a {
+  color: #9ca3af;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-section li a:hover {
+  color: #00dfc4; /* Highlight color from header */
+}
+
+/* Footer copyright */
+.footer-bottom {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 13px;
+  color: #9ca3af;
+  border-top: 1px solid #374151;
+  padding-top: 12px;
+}
+/* 🌙 Dark mode */
+body.dark {
+  --footer-bg: #1f2937;
+  --footer-text: #d1d5db;
+  --footer-heading: #ffffff;
+  --footer-link: #9ca3af;
+  --footer-link-hover: #00dfc4;
+  --footer-border: #374151;
+  --footer-bottom: #9ca3af;
+}
+
+/* ☀️ Light mode */
+body:not(.dark) {
+  --footer-bg: #ffffff;
+  --footer-text: #1e293b;
+  --footer-heading: #0c2a5a;
+  --footer-link: #64748b;
+  --footer-link-hover: #0c2a5a;
+  --footer-border: #e2e8f0;
+  --footer-bottom: #94a3b8;
+}
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
 }
