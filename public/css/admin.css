@@ -117,6 +117,17 @@ h2 {
   margin-bottom: 10px;
 }
 
+.video-preview {
+  width: 100%;
+  padding: 10px 0;
+}
+
+.video-responsive {
+  width: 100%;
+  max-height: 250px;
+  object-fit: cover;
+  border-radius: 6px;
+}
 
 .user-card:hover,
 .video-card:hover {
@@ -562,6 +573,21 @@ body.dark-mode .flatpickr-day.today {
 .modal-content .btn-ban:hover {
   background: #00bfa6;
   /* orange-600 */
+}
+
+.modal-content .btn-delete {
+  background: #ff4d4f;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modal-content .btn-delete:hover {
+  background: #e04344;
 }
 
 .modal-content .btn-cancel {

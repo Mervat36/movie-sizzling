@@ -87,9 +87,8 @@
                     <button class="btn-ban" data-user-id="<%= user._id %>"
                       onclick="openBanModal('<%= user._id %>', '<%= user.name %>')">Ban</button>
                     <% } %>
-                      <form action="/admin/delete/<%= user._id %>" method="POST">
-                        <button class="btn-delete" type="submit">Delete</button>
-                      </form>
+                      <button class="btn-delete"
+                        onclick="openDeleteModal('<%= user._id %>', '<%= user.name %>')">Delete</button>
               </div>
             </div>
             <% }) %>
@@ -116,6 +115,16 @@
             </form>
           </div>
         </div>
+        <div id="deleteUserModal" class="modal hidden">
+          <div class="modal-content">
+            <h3 id="deleteModalTitle">Delete User</h3>
+            <p>Are you sure you want to delete <span id="deleteUserName"></span>?</p>
+            <form id="deleteUserForm" method="POST">
+              <button type="submit" class="btn-delete">Confirm Delete</button>
+              <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            </form>
+          </div>
+        </div>
       </section>
 
       <!-- VIDEOS SECTION -->
@@ -128,17 +137,19 @@
         <div class="video-grid">
           <% videos.forEach(video=> { %>
             <div class="video-card">
-              <img src="<%= video.thumbnailUrl || '/images/logo.png' %>" alt="<%= video.title %>"
-                class="video-thumbnail" />
-              <div class="video-info">
-                <p class="video-title">
-                  <%= video.title %>
-                </p>
-                <p class="video-date">Uploaded: <%= new Date(video.createdAt).toLocaleDateString() %>
-                </p>
-                <p class="video-uploader">By: <%= video.user?.name || 'Unknown' %>
-                </p>
+              <div class="video-preview">
+                <video controls class="video-responsive">
+                  <source src="/uploads/<%= video.filename %>" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
+              <p class="video-title">
+                <%= video.title || video.filename %>
+              </p>
+              <p class="video-date">Uploaded: <%= new Date(video.createdAt).toLocaleDateString() %>
+              </p>
+              <p class="video-uploader">By: <%= video.user?.name || 'Unknown' %>
+              </p>
               <div class="card-actions">
                 <form action="/admin/delete-video/<%= video._id %>" method="POST">
                   <button class="btn-delete" type="submit">Remove</button>
@@ -371,6 +382,17 @@
         console.error("Role update error:", err);
         alert("An error occurred.");
       }
+    }
+    function openDeleteModal(userId, userName) {
+      const modal = document.getElementById("deleteUserModal");
+      const form = document.getElementById("deleteUserForm");
+      document.getElementById("deleteUserName").textContent = userName;
+      form.action = `/admin/delete-user/${userId}`;
+      modal.classList.remove("hidden");
+    }
+
+    function closeDeleteModal() {
+      document.getElementById("deleteUserModal").classList.add("hidden");
     }
   </script>
   <script>
