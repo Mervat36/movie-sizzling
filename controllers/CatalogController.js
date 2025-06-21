@@ -9,13 +9,7 @@ const ResultVideo = require("../models/ResultVideo");
 
 exports.renderCatalogPage = async (req, res) => {
   try {
-    const allVideos = await Video.find({
-      $or: [
-        { isHidden: false },
-        { isHidden: { $exists: false } },
-        { isHidden: null }
-      ]
-    }).sort({ createdAt: -1 });
+    const allVideos = await Video.find({ isHidden: { $ne: true } });
 
     console.log("Catalog videos count:", allVideos.length); // ✅ Debug line
     res.render("catalog", { videos: allVideos });

@@ -21,9 +21,10 @@ exports.getHistoryPage = async (req, res) => {
   const totalVideos = searchedVideoIds.length;
   const totalPages = Math.ceil(totalVideos / limit);
 
-  const videos = await Video.find({
-    _id: { $in: searchedVideoIds }
-  }).sort({ createdAt: 1 });
+  const videos = await Video.find(
+    { _id: { $in: searchedVideoIds } },
+    { isHidden: 1, title: 1, filename: 1, user: 1, createdAt: 1 }
+  ).sort({ createdAt: 1 });
 
 
   const videoMap = {};
@@ -53,6 +54,7 @@ exports.getHistoryPage = async (req, res) => {
     toast,
     currentPage: page,
     totalPages,
+    user: req.user,
   });
 };
 
@@ -171,7 +173,7 @@ exports.renameVideo = async (req, res) => {
   const userId = req.user._id;
   const videoId = req.params.id;
   const newTitle = req.body.newTitle?.trim();
-  const isHidden = req.body.isHidden === "true";
+  const isHidden = String(req.body.isHidden).toLowerCase() === "true";
 
   if (!newTitle) {
     if (req.headers.accept?.includes("application/json")) {
@@ -182,17 +184,27 @@ exports.renameVideo = async (req, res) => {
   }
 
   try {
-    const userQueries = await UserQuery.find({ userId, videoId });
-
-    if (userQueries.length > 0) {
-      await Promise.all(
-        userQueries.map(query =>
-          UserQuery.findByIdAndUpdate(query._id, { customTitle: newTitle })
-        )
-      );
+    const video = await Video.findById(videoId);
+    if (!video) {
+      return res.status(404).json({ success: false, message: "Video not found." });
     }
 
-    await Video.findByIdAndUpdate(videoId, { isHidden });
+    const isOwner = video.user.toString() === userId.toString();
+
+    // ✅ Update title in all UserQueries for this user
+    const userQueries = await UserQuery.find({ userId, videoId });
+    await Promise.all(
+      userQueries.map(query =>
+        UserQuery.findByIdAndUpdate(query._id, { customTitle: newTitle })
+      )
+    );
+
+    // ✅ Only the owner can update visibility + real title
+    if (isOwner) {
+      video.isHidden = isHidden;
+      video.title = newTitle;
+      await video.save();
+    }
 
     if (req.headers.accept?.includes("application/json")) {
       return res.status(200).json({ success: true });
@@ -200,16 +212,14 @@ exports.renameVideo = async (req, res) => {
 
     req.session.toast = {
       type: "success",
-      message: "Video renamed and visibility updated in your history.",
+      message: "Video renamed and visibility updated.",
     };
     res.redirect("/history");
   } catch (err) {
     console.error("Rename error:", err);
-
     if (req.headers.accept?.includes("application/json")) {
       return res.status(500).json({ success: false });
     }
-
     req.session.toast = {
       type: "error",
       message: "Failed to rename video.",

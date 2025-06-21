@@ -573,6 +573,44 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       });
     });
+  document.getElementById("confirmHideForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const videoId = e.target.dataset.videoId;
+    const newTitle = document.getElementById("hiddenTitleValue").value.trim();
+    const isHidden = document.getElementById("hiddenIsHiddenValue").value === "true";
+
+    const submitBtn = e.target.querySelector("button[type='submit']");
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch(`/videos/rename/${videoId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify({ newTitle, isHidden })
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        showToast(`Video ${isHidden ? "hidden" : "visible"} in Menu Page.`, "success");
+
+        const checkbox = document.querySelector(`#hideToggle-${videoId}`);
+        const label = checkbox?.closest(".toggle-container")?.querySelector(".toggle-label");
+        if (checkbox) checkbox.checked = isHidden;
+        if (label) label.textContent = isHidden ? "Unhide Video" : "Hide from Menu Page";
+      } else {
+        showToast("Failed to update visibility.", "error");
+      }
+    } catch (err) {
+      showToast("An error occurred while updating visibility.", "error");
+    } finally {
+      submitBtn.disabled = false;
+      document.getElementById("hideModal").classList.add("hidden");
+    }
+  });
 
   // ========== ✅ QUERY TABS SWITCHING ==========
   function setupQueryTabs() {
@@ -678,77 +716,27 @@ function closeRenameModal() {
 let tempCheckbox = null;
 
 function onHideClick(event, videoId, checkbox) {
-  event.preventDefault(); // stop the checkbox from toggling immediately
-
+  event.preventDefault();
   tempCheckbox = checkbox;
 
   const form = checkbox.closest("form");
-  const newTitle = form.querySelector('input[name="newTitle"]').value;
-  const intendedState = !checkbox.checked;
+  const currentTitle = form.querySelector("input[name='newTitle']").value.trim();
+  const isHidden = checkbox.checked;
 
-  document.getElementById("hiddenTitleValue").value = newTitle;
-  document.getElementById("hiddenIsHiddenValue").value = intendedState ? "true" : "";
-  document.getElementById("confirmHideForm").action = `/videos/rename/${videoId}`;
-  document.getElementById("confirmRenameForm").action = `/videos/rename/${videoId}`;
+  document.getElementById("hiddenTitleValue").value = currentTitle;
+  document.getElementById("hiddenIsHiddenValue").value = isHidden;
+  document.getElementById("confirmHideForm").dataset.videoId = videoId;
+
   document.getElementById("hideModal").classList.remove("hidden");
 }
-// ========== ✅ CONFIRM RENAME SUBMIT (MODAL) ==========
-document.getElementById("confirmRenameForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
 
-  const form = e.target;
-  const videoId = form.action.split("/").pop(); // Extract ID
-  const newTitle = document.getElementById("confirmNewTitle").value.trim();
-  const isHidden = document.getElementById("confirmIsHidden").value === "true";
 
-  if (!newTitle) {
-    alert("Title cannot be empty.");
-    return;
-  }
-
-  const submitBtn = form.querySelector("button[type='submit']");
-  submitBtn.disabled = true;
-
-  try {
-    const response = await fetch(`/videos/rename/${videoId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ newTitle, isHidden }),
-    });
-
-    const res = await response.json();
-    if (res.success) {
-      showToast("Video renamed successfully!", "success");
-
-      // Update the input title value on the page immediately
-      const renameInput = document.querySelector(`form[data-video-id="${videoId}"] input[name="newTitle"]`);
-      if (renameInput) renameInput.value = newTitle;
-
-      // Update checkbox state
-      const checkbox = document.querySelector(`form[data-video-id="${videoId}"] input[name="isHidden"]`);
-      if (checkbox) checkbox.checked = isHidden;
-    } else {
-      showToast("Rename failed.", "error");
-    }
-  } catch (err) {
-    showToast("An error occurred while renaming.", "error");
-  } finally {
-    submitBtn.disabled = false;
-    closeRenameModal();
-  }
-});
-
+window.onHideClick = onHideClick;
 document.getElementById("cancelHideToggle").onclick = () => {
   document.getElementById("hideModal").classList.add("hidden");
 
-  // Revert checkbox to original state
   if (tempCheckbox) {
     tempCheckbox.checked = !tempCheckbox.checked;
     tempCheckbox = null;
   }
 };
-
-window.onHideClick = onHideClick;
