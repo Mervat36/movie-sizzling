@@ -99,7 +99,8 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    // Check for empty fields.
+
+    // 1. Check for empty fields
     if (!email || !password) {
       return res.status(400).render("login", {
         error: "Invalid email or password.",
@@ -107,40 +108,61 @@ const loginUser = async (req, res) => {
         email,
       });
     }
+
+    // 2. Find the user
     const user = await userRepository.findByEmail(email);
-    // Check if current email or password is correct.
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      // Check for ban before login
-      if (user.banUntil && new Date(user.banUntil) > new Date()) {
-        return res.status(403).render("login", {
-          error: `You are banned until ${new Date(user.banUntil).toLocaleString()}.`,
-          showPopup: true,
-          email,
-        });
-      }
+    if (!user) {
       return res.status(401).render("login", {
         error: "Invalid email or password.",
         showPopup: true,
         email,
       });
     }
-    // Login and open session.
-    req.session.user = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      profilePicture: user.profilePicture || null,
-      isGoogleUser: user.isGoogleUser || false,
-      isAdmin: user.isAdmin || false,
-    };
 
-    // Redirect admin to dashboard, otherwise to homepage
-    if (user.isAdmin) {
-      res.redirect("/");
-    } else {
-      res.redirect("/");
+    // 3. Check if user is banned
+    if (user.banUntil && new Date(user.banUntil) > new Date()) {
+      return res.status(403).render("login", {
+        error: `You are banned until ${new Date(user.banUntil).toLocaleString()}.`,
+        showPopup: true,
+        email,
+      });
     }
-    // Any server error.
+
+    // 4. Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).render("login", {
+        error: "Invalid email or password.",
+        showPopup: true,
+        email,
+      });
+    }
+
+    // ✅ 5. Regenerate session to avoid old session contamination
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error("Session regeneration error:", err);
+        return res.status(500).render("login", {
+          error: "Session error. Please try again.",
+          showPopup: true,
+          email,
+        });
+      }
+
+      // 6. Store new user in session
+      req.session.user = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profilePicture || null,
+        isGoogleUser: user.isGoogleUser || false,
+        isAdmin: user.isAdmin || false,
+        banUntil: user.banUntil || null,
+      };
+
+      // 7. Redirect
+      res.redirect("/");
+    });
   } catch (error) {
     console.error("[Login Error]", error.message);
     res.status(500).render("login", {
@@ -150,6 +172,7 @@ const loginUser = async (req, res) => {
     });
   }
 };
+
 
 // 3. Logs out the currently logged-in user.
 const logoutUser = (req, res) => {

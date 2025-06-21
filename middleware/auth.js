@@ -89,11 +89,16 @@ passport.deserializeUser(async (id, done) => {
 
 // 4. Protects private routes by checking if the user is authenticated.
 function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
+  if (req.isAuthenticated() || req.session.user) {
+    const user = req.user || req.session.user;
+    if (user.banUntil && new Date(user.banUntil) > new Date()) {
+      return res.redirect(`/login?banned=${encodeURIComponent(new Date(user.banUntil).toLocaleDateString())}`);
+    }
     return next();
   }
   res.redirect("/login");
 }
+
 
 function isAdmin(req, res, next) {
   const user = req.user || req.session.user;

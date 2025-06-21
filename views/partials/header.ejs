@@ -7,11 +7,7 @@
       </a>
     </div>
     <div class="toggle-wrapper">
-      <button
-        class="menu-toggle"
-        onclick="toggleMenu(this)"
-        aria-label="Toggle Menu"
-      >
+      <button class="menu-toggle" onclick="toggleMenu(this)" aria-label="Toggle Menu">
         <span></span>
         <span></span>
         <span></span>
@@ -19,78 +15,70 @@
     </div>
     <nav class="main-nav">
       <ul>
-        <% if (user) { %>
-         
-        <li><a href="/upload">Upload Video</a></li>
-        <li><a href="/history">Search History</a></li>
-        <li><a href="/catalog">Menu</a></li>
+        <% if (user && !isBanned) { %>
 
-        <% if (user.isAdmin) { %>
-          <li><a href="/admin" class="auth-btn admin-btn">Admin</a></li>
-        <% } %>
+          <li><a href="/upload">Upload Video</a></li>
+          <li><a href="/history">Search History</a></li>
+          <li><a href="/catalog">Menu</a></li>
 
-        <li><a href="/profile" class="auth-btn login-btn">Profile</a></li>
-        <li>
-          
-          <form action="/users/logout" method="POST" style="display: inline">
-           
-            <button
-              class="auth-btn register-btn"
-              style="color: #121636"
-              type="submit"
-            >
-              Logout
-            </button>
-           
-          </form>
-          <li>
-            <% if (user) { %>
-              <span class="welcome-text">Hi, <%= user.name %>!</span>
+          <% if (user.isAdmin) { %>
+            <li><a href="/admin" class="auth-btn admin-btn">Admin</a></li>
             <% } %>
-            </li>
-        </li>
-        <% } else { %>
-        <li><a href="/login" class="auth-btn login-btn">Login</a></li>
-        <li>
-          <a
-            href="/register"
-            class="auth-btn register-btn"
-            style="color: #121636"
-            >Register</a
-          >
-        </li>
-        <% } %>
-        <li class="dark-mode-toggle">
-          <label class="theme-toggle">
-            <input type="checkbox" id="darkToggle" />
-            <span class="slider">
-              <span class="icon sun">&#9728;</span>
-              <span class="icon moon">&#9790;</span>
-            </span>
-          </label>
-        </li>
+
+              <li><a href="/profile" class="auth-btn login-btn">Profile</a></li>
+              <li>
+
+                <form action="/users/logout" method="POST" style="display: inline">
+
+                  <button class="auth-btn register-btn" style="color: #121636" type="submit">
+                    Logout
+                  </button>
+
+                </form>
+              <li>
+                <% if (user) { %>
+                  <span class="welcome-text">Hi, <%= user.name %>!</span>
+                  <% } %>
+              </li>
+              </li>
+              <% } else { %>
+                <li><a href="/login" class="auth-btn login-btn">Login</a></li>
+                <li>
+                  <a href="/register" class="auth-btn register-btn" style="color: #121636">Register</a>
+                </li>
+                <% } %>
+                  <li class="dark-mode-toggle">
+                    <label class="theme-toggle">
+                      <input type="checkbox" id="darkToggle" />
+                      <span class="slider">
+                        <span class="icon sun">&#9728;</span>
+                        <span class="icon moon">&#9790;</span>
+                      </span>
+                    </label>
+                  </li>
       </ul>
     </nav>
   </div>
   <script src="/js/darkmode-toggle.js"></script>
-  <% if (typeof reset !== 'undefined' && reset === 'success') { %>
-  <div id="toast" class="toast success-toast">
-    ✅ Password changed successfully
-  </div>
-  <% } %> <% if (typeof toast !== 'undefined' && toast) { %>
-  <script>
-    const toast = {
-      type: "<%= toast.type %>",
-      message: "<%= toast.message %>",
-    };
-  </script>
-  <% } %>
-  <script>
-    function toggleMenu(btn) {
-      const nav = document.querySelector(".main-nav");
-      nav.classList.toggle("active");
-      btn.classList.toggle("active");
-    }
-  </script>
-  <script src="/js/reset-toast.js"></script>
+  <% if (typeof reset !=='undefined' && reset==='success' ) { %>
+    <div id="toast" class="toast success-toast">
+      ✅ Password changed successfully
+    </div>
+    <% } %>
+      <% if (typeof toast !=='undefined' && toast) { %>
+        <script>
+          const toast = {
+            type: "<%= toast.type %>",
+            message: "<%= toast.message %>",
+          };
+        </script>
+        <% } %>
+          <script>
+            function toggleMenu(btn) {
+              const nav = document.querySelector(".main-nav");
+              nav.classList.toggle("active");
+              btn.classList.toggle("active");
+            }
+          </script>
+          <script src="/js/reset-toast.js"></script>
 </header>

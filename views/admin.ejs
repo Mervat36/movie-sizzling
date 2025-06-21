@@ -82,11 +82,10 @@
 
               <div class="card-actions">
                 <% if (user.banUntil && new Date(user.banUntil)> new Date()) { %>
-                  <form action="/admin/unban/<%= user._id %>" method="POST">
-                    <button class="btn-unban" type="submit">Unban</button>
-                  </form>
+                  <button class="btn-unban" onclick="unbanUser('<%= user._id %>', this)">Unban</button>
                   <% } else { %>
-                    <button class="btn-ban" onclick="openBanModal('<%= user._id %>', '<%= user.name %>')">Ban</button>
+                    <button class="btn-ban" data-user-id="<%= user._id %>"
+                      onclick="openBanModal('<%= user._id %>', '<%= user.name %>')">Ban</button>
                     <% } %>
                       <form action="/admin/delete/<%= user._id %>" method="POST">
                         <button class="btn-delete" type="submit">Delete</button>
@@ -98,7 +97,7 @@
         <div id="banModal" class="modal hidden">
           <div class="modal-content">
             <h3 id="banModalTitle">Ban User</h3>
-            <form id="banForm" method="POST">
+            <form id="banForm" onsubmit="submitBanForm(event)">
               <label>Select ban end date:</label>
               <div class="date-container">
                 <input type="text" id="banDatePicker" name="banDate" placeholder="Select a date" required />
@@ -176,6 +175,40 @@
     document.getElementById("dashboard").classList.remove("hidden");
   </script>
   <script>
+    async function unbanUser(userId, button) {
+      try {
+        const response = await fetch(`/admin/unban/${userId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+
+        if (response.ok) {
+          // Remove ban text
+          const card = button.closest(".user-card");
+          const banText = card.querySelector(".user-ban");
+          if (banText) banText.remove();
+
+          // Replace button with Ban button
+          const actions = card.querySelector(".card-actions");
+          button.remove();
+          const newBanBtn = document.createElement("button");
+          newBanBtn.className = "btn-ban";
+          newBanBtn.textContent = "Ban";
+          newBanBtn.onclick = () => openBanModal(userId, card.querySelector(".user-name").textContent);
+          actions.insertBefore(newBanBtn, actions.querySelector("form")); // insert before delete
+        } else {
+          alert("Failed to unban user.");
+        }
+      } catch (error) {
+        console.error("Unban error:", error);
+        alert("An error occurred while unbanning.");
+      }
+    }
+  </script>
+
+  <script>
     flatpickr("#banDatePicker", {
       dateFormat: "Y-m-d",
       minDate: "today",
@@ -225,13 +258,66 @@
     function openBanModal(userId, userName) {
       const modal = document.getElementById('banModal');
       const form = document.getElementById('banForm');
-      form.action = `/admin/ban-user/${userId}`;
+      form.dataset.userId = userId;
       document.getElementById('banModalTitle').innerText = `Ban ${userName}`;
       modal.classList.remove('hidden');
     }
 
     function closeBanModal() {
       document.getElementById('banModal').classList.add('hidden');
+    }
+    async function submitBanForm(event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const userId = form.dataset.userId;
+      const dateInput = form.querySelector("#banDatePicker");
+      const banDate = dateInput.value;
+
+      if (!banDate) {
+        alert("Please select a date.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/ban-user/${userId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ banUntil: banDate })
+        });
+
+        if (response.ok) {
+          // Update UI
+          const card = document.querySelector(`.user-card button[onclick*="${userId}"]`)?.closest(".user-card");
+          if (card) {
+            // Replace Ban with Unban button
+            const actions = card.querySelector(".card-actions");
+            const banBtn = actions.querySelector(".btn-ban");
+            if (banBtn) banBtn.remove();
+
+            const unbanBtn = document.createElement("button");
+            unbanBtn.className = "btn-unban";
+            unbanBtn.textContent = "Unban";
+            unbanBtn.onclick = () => unbanUser(userId, unbanBtn);
+            actions.insertBefore(unbanBtn, actions.querySelector("form"));
+
+            // Add "Banned until" message
+            const info = card.querySelector(".user-info");
+            const banText = document.createElement("p");
+            banText.className = "user-ban";
+            const untilDate = new Date(banDate).toLocaleDateString();
+            banText.textContent = `Banned until ${untilDate}`;
+            info.appendChild(banText);
+          }
+
+          closeBanModal();
+        } else {
+          alert("Ban failed.");
+        }
+      } catch (err) {
+        console.error("Ban error:", err);
+        alert("Server error.");
+      }
     }
     function openRoleModal(userId, userName, isAdmin) {
       const modal = document.getElementById("roleModal");

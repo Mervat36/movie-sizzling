@@ -74,7 +74,16 @@ app.set("views", path.join(__dirname, "views"));
 
 // Global Locals Middleware
 app.use((req, res, next) => {
-  res.locals.user = req.user || req.session.user || null;
+  const user = req.user || req.session.user;
+  res.locals.user = user || null;
+  res.locals.session = req.session;
+  res.locals.isBanned = false;
+  if (res.locals.user && res.locals.user.banUntil) {
+    const banUntil = new Date(res.locals.user.banUntil);
+    if (banUntil > new Date()) {
+      res.locals.isBanned = true;
+    }
+  }
   res.locals.session = req.session;
   if (req.session.toast) {
     res.locals.toast = req.session.toast;
@@ -138,6 +147,11 @@ app.get("/profile", ensureAuthenticated, async (req, res) => {
   const success = req.session.success;
   delete req.session.success;
   const [firstName, lastName] = (req.session.user.name || "").split(" ");
+
+  if (user.banUntil && user.banUntil > new Date()) {
+    const banUntilDate = user.banUntil.toLocaleDateString();
+    return res.redirect(`/login?banned=${encodeURIComponent(banUntilDate)}`);
+  }
   res.render("profile", {
     user: req.session.user,
     firstName,
@@ -221,6 +235,11 @@ app.get(
         });
         await user.save();
       }
+      if (user.banUntil && user.banUntil > new Date()) {
+        const banUntilDate = user.banUntil.toLocaleDateString();
+        return res.redirect(`/login?banned=${encodeURIComponent(banUntilDate)}`);
+      }
+
       req.session.user = {
         _id: user._id,
         name: user.name,
@@ -230,16 +249,8 @@ app.get(
         isAdmin: user.isAdmin || false,
       };
 
-      if (user.banUntil && user.banUntil > new Date()) {
-        const banUntilDate = user.banUntil.toLocaleDateString();
-        return res.redirect(`/login?banned=${encodeURIComponent(banUntilDate)}`);
-      }
+      res.redirect(user.isAdmin ? "/admin" : "/");
 
-      if (user.isAdmin) {
-        res.redirect('/admin');
-      } else {
-        res.redirect('/');
-      }
     } catch (err) {
       console.error("Google login error:", err.message);
       res.redirect("/login");

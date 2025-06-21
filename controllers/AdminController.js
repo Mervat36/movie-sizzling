@@ -45,7 +45,7 @@ exports.banUser = async (req, res) => {
       user.banUntil = new Date(banUntil);
       await user.save();
     }
-    res.redirect("/admin");
+    res.status(200).json({ message: "User unbanned" });
   } catch (err) {
     console.error("Error banning user:", err);
     res.status(500).send("Server Error");
