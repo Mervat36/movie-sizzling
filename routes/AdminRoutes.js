@@ -1,8 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const AdminController = require('../controllers/AdminController');
-const { isAdmin } = require('../middleware/auth');
+const adminController = require("../controllers/AdminController");
 
-router.get('/admin', isAdmin, AdminController.renderAdminPage);
+// Admin dashboard page
+router.get("/admin", adminController.getAdminDashboard);
 
-module.exports = router; 
+// Video actions
+router.post("/admin/delete-video/:id", adminController.deleteVideo);
+
+// User actions
+router.post("/admin/make-admin/:id", adminController.makeAdmin);
+router.post("/admin/ban-user/:id", adminController.banUser);
+router.post("/admin/delete-user/:id", adminController.deleteUser);
+router.post("/admin/unban/:id", adminController.unbanUser);
+
+module.exports = router;

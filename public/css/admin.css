@@ -14,8 +14,10 @@
   --lm-text-secondary: #64748b;
   --lm-border-color: #e2e8f0;
   --lm-shadow-color: rgba(100, 116, 139, 0.12);
-  --accent-primary: #377dff; /* Shared accent */
-  --danger: #ff4757; /* Shared accent */
+  --accent-primary: #377dff;
+  /* Shared accent */
+  --danger: #ff4757;
+  /* Shared accent */
 }
 
 /* 2. General Body & Layout Styles */
@@ -68,6 +70,7 @@ body {
   background-color: #f0f5ff;
   color: var(--accent-primary);
 }
+
 .sidebar-nav .nav-link.active {
   background-color: var(--accent-primary);
   color: #fff;
@@ -79,6 +82,7 @@ body {
   flex: 1;
   padding: 40px;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 h2 {
@@ -91,27 +95,94 @@ h2 {
 }
 
 /* 5. User and Video Grids/Cards */
-.user-grid, .video-grid {
+.user-grid,
+.video-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 25px;
 }
 
-.user-card, .video-card {
-  background: var(--lm-bg-secondary);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  border: 1px solid var(--lm-border-color);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.video-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.user-card:hover, .video-card:hover {
+.video-thumbnail {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+
+.user-card:hover,
+.video-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px var(--lm-shadow-color);
 }
 
+.video-card .card-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+}
+
 /* 6. Card Content Styling */
+.user-card {
+  background: var(--lm-bg-secondary);
+  border-radius: 12px;
+  padding: 25px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-shadow: 0 5px 15px var(--lm-shadow-color);
+}
+
+/* Base style */
+.user-card .ban-form button,
+.user-card .card-actions button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 100%;
+  max-width: 180px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  color: white;
+}
+
+/* Specific button types */
+.user-card .btn-delete {
+  background-color: #ff4d4f;
+}
+
+.user-card .btn-delete:hover {
+  background-color: #e04344;
+}
+
+.user-card .btn-admin {
+  background-color: #4CAF50;
+}
+
+.user-card .btn-admin:hover {
+  background-color: #3e9442;
+}
+
+.user-card .btn-ban {
+  background-color: #00dfc4;
+}
+
+.user-card .btn-ban:hover {
+  background-color: #00bfa6;
+}
+
 .user-avatar {
   width: 90px;
   height: 90px;
@@ -121,23 +192,15 @@ h2 {
   object-fit: cover;
 }
 
-.video-thumbnail {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  border: 1px solid var(--lm-border-color);
+.user-name,
+.video-title {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-.user-name, .video-title {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin: 10px 0 5px 0;
-  color: var(--lm-text-primary);
-}
-
-.user-email, .video-date {
+.user-email,
+.video-date {
   color: var(--lm-text-secondary);
   font-size: 0.9rem;
   margin-bottom: 15px;
@@ -150,6 +213,13 @@ h2 {
   font-size: 0.8rem;
   font-weight: 700;
   display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-role:hover {
+  opacity: 0.85;
+  transform: scale(1.05);
 }
 
 .user-role.admin {
@@ -163,12 +233,6 @@ h2 {
 }
 
 /* 7. Card Actions / Buttons */
-.card-actions {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
 
 .card-actions button {
   border: none;
@@ -179,12 +243,15 @@ h2 {
   cursor: pointer;
   transition: all 0.3s ease;
   color: #fff;
+  opacity: 0.95;
 }
 
 .card-actions button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  opacity: 1;
 }
+
 
 .btn-delete {
   background: var(--danger);
@@ -225,7 +292,8 @@ h2 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #87CEEB; /* Sky blue for day */
+  background-color: #87CEEB;
+  /* Sky blue for day */
   border-radius: 40px;
   transition: background-color 0.4s;
 }
@@ -238,50 +306,213 @@ h2 {
   width: 32px;
   left: 4px;
   bottom: 4px;
-  background-color: #FFD700; /* Gold for sun */
+  background-color: #FFD700;
+  /* Gold for sun */
   border-radius: 50%;
   transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
 }
 
-.theme-toggle input:checked + .slider {
-  background-color: #2c3e50; /* Night sky */
+.theme-toggle input:checked+.slider {
+  background-color: #2c3e50;
+  /* Night sky */
 }
 
 /* The moon effect */
-.theme-toggle input:checked + .slider::before {
+.theme-toggle input:checked+.slider::before {
   transform: translateX(35px);
   background-color: #EAEAEA;
   /* This creates the crescent shape by overlaying a shadow of the same color as the background */
-  box-shadow: 
+  box-shadow:
     inset -12px -12px 0 0 #2c3e50,
     0 0 15px rgba(234, 234, 234, 0.8);
 }
 
 /* Add stars to the night sky */
 .theme-toggle .slider::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    border-radius: 50%;
-    background: white;
-    top: 8px;
-    left: 58px;
-    opacity: 0;
-    transition: opacity 0.4s, box-shadow 0.4s;
-    box-shadow: 
-        4px 8px 0 white,
-        -4px 12px 1px white;
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: white;
+  top: 8px;
+  left: 58px;
+  opacity: 0;
+  transition: opacity 0.4s, box-shadow 0.4s;
+  box-shadow:
+    4px 8px 0 white,
+    -4px 12px 1px white;
 }
 
-.theme-toggle input:checked + .slider::after {
-    opacity: 1;
+.theme-toggle input:checked+.slider::after {
+  opacity: 1;
 }
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--accent-primary);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  z-index: 9999;
+  font-weight: 600;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  10%,
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.user-card .ban-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.user-card .ban-form input[type="date"] {
+  padding: 8px 10px;
+  border: 1px solid var(--lm-border-color);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  width: 100%;
+  max-width: 180px;
+  text-align: center;
+}
+
+.user-card .ban-form button {
+  width: 100%;
+  max-width: 180px;
+}
+
+.user-card .card-actions {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Modal Styling */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.modal-content label {
+  font-weight: 600;
+  color: #4b5563;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.modal-content input[type="date"] {
+  padding: 10px;
+  width: 100%;
+  max-width: 250px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.modal-content .btn-ban {
+  background: #00bfa6;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-right: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modal-content .btn-ban:hover {
+  background: #ea580c; /* orange-600 */
+}
+
+.modal-content .btn-cancel {
+  background: #e5e7eb;
+  border: none;
+  color: #1f2937;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modal-content .btn-cancel:hover {
+  background: #d1d5db;
+}
+
+.hidden {
+  display: none !important;
+}
+.btn-ban {
+  background-color: #121636;
+  color: white;
+  margin-top: 10px;
+}
+
+.btn-unban {
+  background-color: #2ed573;
+  color: white;
+}
+
+.btn-cancel {
+  background-color: #dcdcdc;
+  margin-left: 10px;
+}
+
 
 /* Dark mode styles for the container */
 body.dark-mode .theme-toggle-container {
-    border-top-color: var(--dm-border-color);
+  border-top-color: var(--dm-border-color);
 }
 
 /* 9. DARK MODE - "Cyberpunk Glow" Theme */
@@ -294,7 +525,7 @@ body.dark-mode {
   --dm-text-secondary: #a0a0b5;
   --dm-border-color: rgba(159, 93, 255, 0.2);
   --dm-shadow-color: rgba(159, 93, 255, 0.1);
-  
+
   background-color: var(--dm-bg-primary);
   color: var(--dm-text-primary);
   background-image: radial-gradient(circle at 1% 1%, var(--dm-accent-primary) 0.5px, transparent 1px);
@@ -319,7 +550,8 @@ body.dark-mode .sidebar-nav .nav-link {
   color: var(--dm-text-secondary);
 }
 
-body.dark-mode .sidebar-nav .nav-link:hover, body.dark-mode .sidebar-nav .nav-link.active {
+body.dark-mode .sidebar-nav .nav-link:hover,
+body.dark-mode .sidebar-nav .nav-link.active {
   background: var(--dm-accent-primary);
   color: #fff;
   box-shadow: 0 0 20px var(--dm-shadow-color);
@@ -332,23 +564,25 @@ body.dark-mode h2 {
 }
 
 body.dark-mode h2::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--dm-accent-primary), var(--dm-accent-secondary));
-    border-radius: 3px;
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--dm-accent-primary), var(--dm-accent-secondary));
+  border-radius: 3px;
 }
 
-body.dark-mode .user-card, body.dark-mode .video-card {
+body.dark-mode .user-card,
+body.dark-mode .video-card {
   background: var(--dm-bg-secondary);
   backdrop-filter: blur(5px);
   border: 1px solid var(--dm-border-color);
 }
 
-body.dark-mode .user-card:hover, body.dark-mode .video-card:hover {
+body.dark-mode .user-card:hover,
+body.dark-mode .video-card:hover {
   transform: translateY(-10px) scale(1.02);
   box-shadow: 0 15px 30px var(--dm-shadow-color);
   border-color: var(--dm-accent-primary);
@@ -363,7 +597,9 @@ body.dark-mode .video-thumbnail {
   border-color: var(--dm-border-color);
 }
 
-body.dark-mode .user-name, body.dark-mode .video-title, body.dark-mode .user-email {
+body.dark-mode .user-name,
+body.dark-mode .video-title,
+body.dark-mode .user-email {
   color: var(--dm-text-primary);
 }
 
@@ -379,4 +615,23 @@ body.dark-mode .user-role.user {
 
 body.dark-mode .btn-notify {
   background: var(--accent-primary);
-} 
+}
+
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 10px 0;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .user-grid,
+  .video-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}

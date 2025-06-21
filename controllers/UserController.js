@@ -110,6 +110,14 @@ const loginUser = async (req, res) => {
     const user = await userRepository.findByEmail(email);
     // Check if current email or password is correct.
     if (!user || !(await bcrypt.compare(password, user.password))) {
+      // Check for ban before login
+      if (user.banUntil && new Date(user.banUntil) > new Date()) {
+        return res.status(403).render("login", {
+          error: `You are banned until ${new Date(user.banUntil).toLocaleString()}.`,
+          showPopup: true,
+          email,
+        });
+      }
       return res.status(401).render("login", {
         error: "Invalid email or password.",
         showPopup: true,
@@ -125,7 +133,7 @@ const loginUser = async (req, res) => {
       isGoogleUser: user.isGoogleUser || false,
       isAdmin: user.isAdmin || false,
     };
-    
+
     // Redirect admin to dashboard, otherwise to homepage
     if (user.isAdmin) {
       res.redirect("/admin");

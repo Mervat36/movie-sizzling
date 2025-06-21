@@ -35,6 +35,7 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    banUntil: { type: Date, default: null },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
   },

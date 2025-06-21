@@ -96,7 +96,10 @@ app.get("/", (req, res) => {
     reset: reset,
   });
 });
-app.get("/login", (req, res) => res.render("login"));
+app.get("/login", (req, res) => {
+  const bannedUntil = req.query.banned;
+  res.render("login", { bannedUntil });
+});
 app.get("/register", (req, res) => res.render("register"));
 app.get("/upload", ensureAuthenticated, (req, res) => res.render("upload"));
 const searchController = require("./controllers/SearchController");
@@ -226,6 +229,11 @@ app.get(
         isGoogleUser: user.isGoogleUser,
         isAdmin: user.isAdmin || false,
       };
+
+      if (user.banUntil && user.banUntil > new Date()) {
+        const banUntilDate = user.banUntil.toLocaleDateString();
+        return res.redirect(`/login?banned=${encodeURIComponent(banUntilDate)}`);
+      }
 
       if (user.isAdmin) {
         res.redirect('/admin');

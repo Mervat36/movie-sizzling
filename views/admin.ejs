@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/admin.css" />
 </head>
+
 <body>
   <div class="admin-container">
     <aside class="sidebar">
@@ -22,77 +24,134 @@
         </div>
       </nav>
     </aside>
+
     <main class="main-content">
+      <!-- USERS SECTION -->
       <section id="users">
         <h2>User Management</h2>
         <div class="user-grid">
-          <% users.forEach(user => { %>
+          <% users.forEach(user=> { %>
             <div class="user-card">
-              <img src="<%= user.profilePicture || '/images/user-icon.png' %>" alt="User" class="user-avatar">
+              <img src="<%= user.profilePicture || '/images/user-icon.png' %>" alt="User" class="user-avatar" />
               <div class="user-info">
-                <p class="user-name"><%= user.name %></p>
-                <p class="user-email"><%= user.email %></p>
+                <p class="user-name">
+                  <%= user.name %>
+                </p>
+                <p class="user-email">
+                  <%= user.email %>
+                </p>
                 <p class="user-role <%= user.isAdmin ? 'admin' : 'user' %>">
                   <%= user.isAdmin ? 'Admin' : 'User' %>
                 </p>
+                <% if (user.banUntil && new Date(user.banUntil)> new Date()) { %>
+                  <p class="user-ban">Banned until <%= new Date(user.banUntil).toLocaleDateString() %>
+                  </p>
+                  <% } %>
               </div>
+              <p class="user-joined">Joined: <%= new Date(user.createdAt).toLocaleDateString() %>
+              </p>
+
               <div class="card-actions">
-                <button class="btn-notify">Notify</button>
-                <button class="btn-delete">Delete</button>
+                <% if (user.banUntil && new Date(user.banUntil)> new Date()) { %>
+                  <form action="/admin/unban/<%= user._id %>" method="POST">
+                    <button class="btn-unban" type="submit">Unban</button>
+                  </form>
+                  <% } else { %>
+                    <button class="btn-ban" onclick="openBanModal('<%= user._id %>', '<%= user.name %>')">Ban</button>
+                    <% } %>
+                      <form action="/admin/delete/<%= user._id %>" method="POST">
+                        <button class="btn-delete" type="submit">Delete</button>
+                      </form>
               </div>
             </div>
-          <% }) %>
+            <% }) %>
+        </div>
+        <div id="banModal" class="modal hidden">
+          <div class="modal-content">
+            <h3 id="banModalTitle">Ban User</h3>
+            <form id="banForm" method="POST">
+              <label>Select ban end date:</label>
+              <input type="date" name="banUntil" required />
+              <button type="submit" class="btn-ban">Confirm Ban</button>
+              <button type="button" class="btn-cancel" onclick="closeBanModal()">Cancel</button>
+            </form>
+          </div>
         </div>
       </section>
+
+      <!-- VIDEOS SECTION -->
       <section id="videos">
         <h2>Video Catalog</h2>
         <div class="video-grid">
-          <% videos.forEach(video => { %>
+          <% videos.forEach(video=> { %>
             <div class="video-card">
-              <img src="<%= video.thumbnailUrl || '/images/logo.png' %>" alt="<%= video.title %>" class="video-thumbnail">
+              <img src="<%= video.thumbnailUrl || '/images/logo.png' %>" alt="<%= video.title %>"
+                class="video-thumbnail" />
               <div class="video-info">
-                <p class="video-title"><%= video.title %></p>
-                <p class="video-date"><%= new Date(video.createdAt).toLocaleDateString() %></p>
+                <p class="video-title">
+                  <%= video.title %>
+                </p>
+                <p class="video-date">Uploaded: <%= new Date(video.createdAt).toLocaleDateString() %>
+                </p>
+                <p class="video-uploader">By: <%= video.user?.name || 'Unknown' %>
+                </p>
               </div>
               <div class="card-actions">
-                <button class="btn-delete">Remove</button>
+                <form action="/admin/delete-video/<%= video._id %>" method="POST">
+                  <button class="btn-delete" type="submit">Remove</button>
+                </form>
               </div>
             </div>
-          <% }) %>
+            <% }) %>
         </div>
       </section>
     </main>
   </div>
 
   <script>
-    // Theme switching logic for the admin dashboard
-    const adminThemeToggle = document.getElementById('adminThemeToggle');
+    // Theme switching
+    const adminThemeToggle = document.getElementById("adminThemeToggle");
     const body = document.body;
+    const savedTheme = localStorage.getItem("admin-theme");
 
-    const savedTheme = localStorage.getItem('admin-theme');
-    if (savedTheme === 'dark') {
-      body.classList.add('dark-mode');
+    if (savedTheme === "dark") {
+      body.classList.add("dark-mode");
       adminThemeToggle.checked = true;
     }
 
-    adminThemeToggle.addEventListener('change', () => {
+    adminThemeToggle.addEventListener("change", () => {
       if (adminThemeToggle.checked) {
-        body.classList.add('dark-mode');
-        localStorage.setItem('admin-theme', 'dark');
+        body.classList.add("dark-mode");
+        localStorage.setItem("admin-theme", "dark");
       } else {
-        body.classList.remove('dark-mode');
-        localStorage.setItem('admin-theme', 'light');
+        body.classList.remove("dark-mode");
+        localStorage.setItem("admin-theme", "light");
       }
     });
 
-    // Simple navigation for admin page sections
-    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    // Navigation highlighting
+    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
     navLinks.forEach(link => {
-      link.addEventListener('click', e => {
-        navLinks.forEach(l => l.classList.remove('active'));
-        e.currentTarget.classList.add('active');
+      link.addEventListener("click", e => {
+        navLinks.forEach(l => l.classList.remove("active"));
+        e.currentTarget.classList.add("active");
       });
     });
   </script>
+  <script>
+    function openBanModal(userId, userName) {
+      const modal = document.getElementById('banModal');
+      const form = document.getElementById('banForm');
+      form.action = `/admin/ban-user/${userId}`;
+      document.getElementById('banModalTitle').innerText = `Ban ${userName}`;
+      modal.classList.remove('hidden');
+    }
+
+    function closeBanModal() {
+      document.getElementById('banModal').classList.add('hidden');
+    }
+  </script>
+
 </body>
-</html> 
+
+</html>
