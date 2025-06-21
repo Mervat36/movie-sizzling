@@ -77,3 +77,30 @@ exports.unbanUser = async (req, res) => {
   }
 };
 
+exports.makeAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      user.isAdmin = true;
+      await user.save();
+    }
+    res.redirect("/admin");
+  } catch (err) {
+    console.error("Error making admin:", err);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.removeAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      user.isAdmin = false;
+      await user.save();
+    }
+    res.redirect("/admin");
+  } catch (err) {
+    console.error("Error removing admin:", err);
+    res.status(500).send("Server Error");
+  }
+};

@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 
 <body>
@@ -32,7 +34,7 @@
         <div class="user-grid">
           <% users.forEach(user=> { %>
             <div class="user-card">
-              <img src="<%= user.profilePicture || '/images/user-icon.png' %>" alt="User" class="user-avatar" />
+              <img src="/images/user-icon.png" alt="User Avatar" class="user-avatar" />
               <div class="user-info">
                 <p class="user-name">
                   <%= user.name %>
@@ -43,6 +45,10 @@
                 <p class="user-role <%= user.isAdmin ? 'admin' : 'user' %>">
                   <%= user.isAdmin ? 'Admin' : 'User' %>
                 </p>
+                <button class="btn-role"
+                  onclick="openRoleModal('<%= user._id %>', '<%= user.name %>', <%= user.isAdmin %>)">
+                  <%= user.isAdmin ? 'Remove Admin' : 'Make Admin' %>
+                </button>
                 <% if (user.banUntil && new Date(user.banUntil)> new Date()) { %>
                   <p class="user-ban">Banned until <%= new Date(user.banUntil).toLocaleDateString() %>
                   </p>
@@ -71,9 +77,20 @@
             <h3 id="banModalTitle">Ban User</h3>
             <form id="banForm" method="POST">
               <label>Select ban end date:</label>
-              <input type="date" name="banUntil" required />
-              <button type="submit" class="btn-ban">Confirm Ban</button>
+              <div class="date-container">
+                <input type="text" id="banDatePicker" name="banDate" placeholder="Select a date" required />
+                <button type="submit" class="btn-ban">Confirm Ban</button>
+              </div>
               <button type="button" class="btn-cancel" onclick="closeBanModal()">Cancel</button>
+            </form>
+          </div>
+        </div>
+        <div id="roleModal" class="modal hidden">
+          <div class="modal-content">
+            <h3 id="roleModalTitle">Update Role</h3>
+            <form id="roleForm" method="POST">
+              <button type="submit" class="btn-role">Confirm</button>
+              <button type="button" class="btn-cancel" onclick="closeRoleModal()">Cancel</button>
             </form>
           </div>
         </div>
@@ -109,6 +126,10 @@
   </div>
 
   <script>
+    flatpickr("#banDatePicker", {
+      dateFormat: "Y-m-d",
+      minDate: "today",
+    });
     // Theme switching
     const adminThemeToggle = document.getElementById("adminThemeToggle");
     const body = document.body;
@@ -149,6 +170,18 @@
 
     function closeBanModal() {
       document.getElementById('banModal').classList.add('hidden');
+    }
+    function openRoleModal(userId, userName, isAdmin) {
+      const modal = document.getElementById("roleModal");
+      const form = document.getElementById("roleForm");
+      document.getElementById("roleModalTitle").innerText =
+        isAdmin ? `Remove admin role from ${userName}?` : `Make ${userName} an admin?`;
+      form.action = isAdmin ? `/admin/remove-admin/${userId}` : `/admin/make-admin/${userId}`;
+      modal.classList.remove("hidden");
+    }
+
+    function closeRoleModal() {
+      document.getElementById("roleModal").classList.add("hidden");
     }
   </script>
 

@@ -389,14 +389,104 @@ h2 {
   margin-top: 10px;
 }
 
-.user-card .ban-form input[type="date"] {
-  padding: 8px 10px;
-  border: 1px solid var(--lm-border-color);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  width: 100%;
-  max-width: 180px;
-  text-align: center;
+/* Full calendar box */
+.flatpickr-calendar {
+  font-family: 'Poppins', sans-serif !important;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  background-color: #ffffff;
+  border: 1px solid #e0e7ff;
+  padding: 10px;
+}
+
+/* Days inside the calendar */
+.flatpickr-day {
+  font-weight: 500;
+  color: #1e293b;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* On hover */
+.flatpickr-day:hover {
+  background-color: #377dff;
+  color: white;
+}
+
+/* Selected day */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background-color: #00dfc4;
+  color: white;
+  border: none;
+}
+
+/* Today */
+.flatpickr-day.today {
+  border: 1px solid #377dff;
+  background-color: #eef4ff;
+  color: #1e3a8a;
+}
+
+/* Disable past or unavailable days */
+.flatpickr-day.disabled,
+.flatpickr-day.notAllowed {
+  background-color: #f1f5f9;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+body.dark-mode .modal-content input[type="date"].flatpickr-input {
+  background-color: #1c1f32 !important;
+  color: #e2e8f0 !important;
+  border: 2px solid #4f46e5 !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  font-size: 1rem !important;
+  width: 250px !important;
+  text-align: center !important;
+  box-shadow: 0 0 12px rgba(79, 70, 229, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+body.dark-mode .flatpickr-calendar {
+  background-color: #1a1d3b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 30px rgba(159, 93, 255, 0.15);
+}
+
+body.dark-mode .flatpickr-day.disabled,
+body.dark-mode .flatpickr-day.notAllowed {
+  background: rgba(255, 255, 255, 0.05);
+  color: #a1a1aa !important;
+  /* soft neutral gray */
+  border-radius: 8px;
+  text-decoration: line-through;
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(100%);
+}
+
+body.dark-mode .flatpickr-day {
+  color: #e2e8f0;
+}
+
+body.dark-mode .flatpickr-day:hover {
+  background-color: #9f5dff;
+  color: #ffffff;
+}
+
+body.dark-mode .flatpickr-day.selected {
+  background-color: #00dfc4;
+  color: #ffffff;
+}
+
+body.dark-mode .flatpickr-day.today {
+  border: 1px solid #00c7ff;
+  background-color: #2a2e4a;
+  color: #00c7ff;
 }
 
 .user-card .ban-form button {
@@ -416,29 +506,35 @@ h2 {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 999;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 400px;
+  margin: auto;
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--lm-bg-secondary);
+  border-radius: 16px;
+  padding: 32px 24px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
-
 .modal-content h3 {
   font-size: 1.5rem;
-  margin-bottom: 20px;
-  font-weight: 700;
+  margin-bottom: 24px;
+  padding-bottom: 5px;
   color: #1e293b;
 }
 
@@ -447,20 +543,12 @@ h2 {
   color: #4b5563;
   display: block;
   margin-bottom: 10px;
-}
-
-.modal-content input[type="date"] {
-  padding: 10px;
+  text-align: center;
   width: 100%;
-  max-width: 250px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-size: 1rem;
-  margin-bottom: 20px;
 }
 
 .modal-content .btn-ban {
-  background: #00bfa6;
+  background: #00dfc4;
   border: none;
   color: white;
   padding: 10px 20px;
@@ -472,7 +560,8 @@ h2 {
 }
 
 .modal-content .btn-ban:hover {
-  background: #ea580c; /* orange-600 */
+  background: #00bfa6;
+  /* orange-600 */
 }
 
 .modal-content .btn-cancel {
@@ -484,6 +573,8 @@ h2 {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s;
+  display: block;
+  margin: 0 auto;
 }
 
 .modal-content .btn-cancel:hover {
@@ -493,6 +584,7 @@ h2 {
 .hidden {
   display: none !important;
 }
+
 .btn-ban {
   background-color: #121636;
   color: white;
@@ -508,6 +600,157 @@ h2 {
   background-color: #dcdcdc;
   margin-left: 10px;
 }
+
+.btn-role {
+  background-color: #377dff;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s ease;
+}
+
+.btn-role:hover {
+  background-color: #2a68d6;
+}
+
+/* Fix layout of modal form buttons */
+.modal-content form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.date-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal-content {
+  padding: 25px;
+  max-width: 400px;
+  border-radius: 12px;
+  background-color: white;
+  text-align: center;
+}
+
+/* 🛠 Enhanced Date Input Field - Universal */
+
+.modal-content input[type="date"] {
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  color: #1e293b;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  min-width: 180px;
+  text-align: center;
+  margin: 0 auto;
+  width: 250px;
+  display: block;
+  background-color: #eef4ff;
+  border-color: #377dff;
+}
+
+.modal-content input[type="date"]::placeholder {
+  color: #64748b;
+  opacity: 0.8;
+}
+
+body.dark-mode .modal-content input[type="date"]::placeholder {
+  color: #94a3b8;
+  opacity: 0.7;
+}
+
+.modal-content input[type="date"]:hover,
+.modal-content input[type="date"]:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(55, 125, 255, 0.15);
+  outline: none;
+}
+
+.modal-content input[type="date"]:hover,
+.modal-content input[type="date"]:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(55, 125, 255, 0.2);
+}
+
+.modal-content input[type="date"]:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(55, 125, 255, 0.25);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(20%) sepia(90%) saturate(300%) hue-rotate(190deg);
+  /* tint icon */
+  cursor: pointer;
+}
+
+.modal-content .btn-ban,
+.modal-content .btn-cancel,
+.btn-role {
+  border-radius: 12px;
+}
+
+/* 🌙 Enhanced Modal in Dark Mode */
+body.dark-mode .modal-content {
+  background-color: #1a1d3b;
+  border: 1px solid rgba(159, 93, 255, 0.3);
+  box-shadow: 0 0 20px rgba(159, 93, 255, 0.15);
+  color: #f8f8ff;
+}
+
+
+body.dark-mode .modal-content h3 {
+  color: #ffffff;
+}
+
+body.dark-mode .modal-content label {
+  color: #cbd5e1;
+}
+
+body.dark-mode .modal-content input[type="date"] {
+  background-color: #1c1f32;
+  color: #e2e8f0;
+  border: 2px solid #4f46e5;
+  /* indigo-600 */
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  width: 250px;
+  text-align: center;
+  box-shadow: 0 0 12px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s ease;
+}
+
+body.dark-mode .modal-content input[type="date"]::placeholder {
+  color: #94a3b8;
+  /* cool gray */
+  opacity: 0.75;
+  font-style: italic;
+  font-weight: 500;
+}
+
+body.dark-mode .modal-content input[type="date"]:hover,
+body.dark-mode .modal-content input[type="date"]:focus {
+  border-color: #00dfc4;
+  box-shadow: 0 0 0 3px rgba(0, 223, 196, 0.25);
+  outline: none;
+}
+
+
 
 
 /* Dark mode styles for the container */
@@ -634,4 +877,44 @@ body.dark-mode .btn-notify {
   .video-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
+}
+
+body.dark-mode .flatpickr-calendar .flatpickr-day.disabled,
+body.dark-mode .flatpickr-calendar .flatpickr-day.flatpickr-disabled,
+body.dark-mode .flatpickr-calendar .flatpickr-day.notAllowed {
+  background-color: #2a2e4a !important;
+  color: #9ca3af !important;
+  opacity: 1;
+  filter: grayscale(100%);
+}
+
+
+
+#banDatePicker {
+  background: url('/images/calendar-icon.svg') no-repeat right 15px center;
+  background-size: 20px;
+  padding: 12px 16px;
+  padding-right: 45px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid #00dfc4;
+  border-radius: 12px;
+  color: #1f2937;
+  box-shadow: 0 0 12px rgba(0, 223, 196, 0.4);
+  text-align: center;
+  width: 250px;
+  transition: 0.3s ease;
+}
+
+#banDatePicker:hover,
+#banDatePicker:focus {
+  box-shadow: 0 0 0 4px rgba(0, 223, 196, 0.3);
+  outline: none;
+}
+
+body.dark-mode #banDatePicker {
+  background-color: #1c1f32;
+  border: 2px solid #00dfc4;
+  color: #e2e8f0;
+  box-shadow: 0 0 12px rgba(0, 223, 196, 0.4);
 }
