@@ -110,7 +110,7 @@
         <div id="roleModal" class="modal hidden">
           <div class="modal-content">
             <h3 id="roleModalTitle">Update Role</h3>
-            <form id="roleForm" method="POST">
+            <form id="roleForm" onsubmit="submitRoleForm(event)">
               <button type="submit" class="btn-role">Confirm</button>
               <button type="button" class="btn-cancel" onclick="closeRoleModal()">Cancel</button>
             </form>
@@ -330,6 +330,47 @@
 
     function closeRoleModal() {
       document.getElementById("roleModal").classList.add("hidden");
+    }
+    async function submitRoleForm(event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const actionUrl = form.action;
+      const isRemoving = actionUrl.includes("/remove-admin/");
+      const userId = actionUrl.split("/").pop();
+
+      try {
+        const response = await fetch(actionUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (response.ok) {
+          const card = Array.from(document.querySelectorAll(".user-card")).find(c =>
+            c.querySelector(".btn-role")?.getAttribute("onclick")?.includes(userId)
+          );
+          if (card) {
+            // Update role text
+            const roleText = card.querySelector(".user-role");
+            const btn = card.querySelector(".btn-role");
+            const newStatus = isRemoving ? "User" : "Admin";
+
+            roleText.textContent = newStatus;
+            roleText.className = `user-role ${isRemoving ? "user" : "admin"}`;
+
+            // Update button text + onclick
+            btn.textContent = isRemoving ? "Make Admin" : "Remove Admin";
+            btn.setAttribute("onclick", `openRoleModal('${userId}', '${card.querySelector(".user-name").textContent}', ${!isRemoving})`);
+          }
+
+          closeRoleModal();
+        } else {
+          alert("Failed to update role.");
+        }
+      } catch (err) {
+        console.error("Role update error:", err);
+        alert("An error occurred.");
+      }
     }
   </script>
   <script>
