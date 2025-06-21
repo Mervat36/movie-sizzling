@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 const supabase = require("../supabaseClient");
+const UserQuery = require("../models/UserQuery");
+const ResultVideo = require("../models/ResultVideo");
 
 exports.renderCatalogPage = async (req, res) => {
   try {
@@ -33,7 +35,7 @@ exports.handleCatalogClick = async (req, res) => {
       const { data, error } = await supabase.storage
         .from("movies")
         .download(video.filename.replace(/^dl_/, ""));
-      
+
       if (error || !data) {
         console.error("❌ Supabase download failed:", error?.message);
         return res.status(500).send("Failed to fetch video from cloud.");
@@ -56,7 +58,7 @@ exports.handleCatalogClick = async (req, res) => {
 
 exports.searchCatalog = async (req, res) => {
   const { query, videoId } = req.body;
-  
+
   if (!query || !videoId) {
     return res.status(400).json({ error: "Query and videoId are required" });
   }
@@ -82,14 +84,26 @@ exports.searchCatalog = async (req, res) => {
       movie_name: captionData.movie_name,
       shots_metadata: captionData.shots_metadata
     };
-    
+
     fs.writeFileSync(tempJsonPath, JSON.stringify(tempData, null, 2));
     console.log("📁 Created temporary captions file:", tempJsonPath);
 
     // 4. Get video path
     const videoPath = path.join("uploads", video.filename);
     if (!fs.existsSync(videoPath)) {
-      return res.status(404).json({ error: "Video file not found locally" });
+      console.log("📥 Video not found locally. Attempting to download from Supabase...");
+      const { data, error } = await supabase.storage
+        .from("movies")
+        .download(video.filename.replace(/^dl_/, ""));
+
+      if (error || !data) {
+        console.error("❌ Supabase video download failed:", error?.message);
+        return res.status(404).json({ error: "Video not found in Supabase either." });
+      }
+
+      const buffer = Buffer.from(await data.arrayBuffer());
+      fs.writeFileSync(videoPath, buffer);
+      console.log("✅ Downloaded video from Supabase.");
     }
 
     // 5. Run Python search script
@@ -117,7 +131,7 @@ exports.searchCatalog = async (req, res) => {
         }
         parsedResults = JSON.parse(stdout);
         console.log("📦 Parsed Results Count:", parsedResults.length);
-        
+
         if (!Array.isArray(parsedResults) || parsedResults.length === 0) {
           return res.json({
             results: [],
@@ -131,6 +145,35 @@ exports.searchCatalog = async (req, res) => {
         const filteredResults = parsedResults
           .filter((result) => result.score >= 0.4)
           .sort((a, b) => b.score - a.score);
+        // ✅ Save to history if user is logged in
+        const userId = req.session.user?._id || req.user?._id;
+        if (userId && filteredResults.length > 0) {
+          const newQuery = await UserQuery.create({
+            userId,
+            query,
+            videoId,
+          });
+
+          for (const match of filteredResults.slice(0, 5)) {
+            const clipFilename = `${safeTitle}_${match.start_time.replace(/:/g, "-")}_${match.end_time.replace(/:/g, "-")}_clip.mp4`;
+
+            const alreadyExists = await ResultVideo.findOne({
+              queryId: newQuery._id,
+              clipFilename,
+              timeRange: `${match.start_time} - ${match.end_time}`,
+            });
+
+            if (!alreadyExists) {
+              await ResultVideo.create({
+                queryId: newQuery._id,
+                clipFilename,
+                timeRange: `${match.start_time} - ${match.end_time}`,
+                caption: match.caption,
+              });
+            }
+          }
+        }
+
 
         res.json({
           results: filteredResults,

@@ -15,10 +15,16 @@ exports.getHistoryPage = async (req, res) => {
   const limit = 3; // 3 videos per page
   const skip = (page - 1) * limit;
 
-  const totalVideos = await Video.countDocuments({ user: userId });
+  const userQueries = await UserQuery.find({ userId });
+  const searchedVideoIds = [...new Set(userQueries.map(q => q.videoId.toString()))];
+
+  const totalVideos = searchedVideoIds.length;
   const totalPages = Math.ceil(totalVideos / limit);
 
-  const videos = await Video.find({ user: userId }).sort({ createdAt: 1 });
+  const videos = await Video.find({
+    _id: { $in: searchedVideoIds }
+  }).sort({ createdAt: 1 });
+
 
   const videoMap = {};
 

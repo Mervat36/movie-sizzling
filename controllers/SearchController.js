@@ -6,6 +6,7 @@ const Video = require("../models/Video");
 const UserQuery = require("../models/UserQuery");
 const ResultVideo = require("../models/ResultVideo");
 const { searchEngine, saveSearchHistory } = require("../utils/searchEngine");
+const Caption = require("../models/Caption");
 
 exports.searchUser = async (req, res) => {
   // Reset previous session search data
@@ -28,21 +29,34 @@ exports.searchUser = async (req, res) => {
     const newQuery = await UserQuery.create({ userId, query, videoId });
     req.session.currentQueryId = newQuery._id;
 
-    const captionsPath = path.join(
-      __dirname,
-      "..",
-      `${safeTitle}_captions.json`
-    );
+    const captionsPath = path.join(__dirname, "..", `${safeTitle}_captions.json`);
     const videoPath = path.join("uploads", `dl_${safeTitle}.mp4`);
-    console.log("📁 Looking for captions at:", captionsPath);
-    console.log("📁 Looking for video at:", videoPath);
 
-    if (!fs.existsSync(captionsPath) || !fs.existsSync(videoPath)) {
+    // 🔁 Try to download missing captions from MongoDB (using Caption model)
+    if (!fs.existsSync(captionsPath)) {
+      const captionDoc = await Caption.findOne({ movie_name: safeTitle });
+      if (captionDoc) {
+        fs.writeFileSync(captionsPath, JSON.stringify({
+          movie_name: captionDoc.movie_name,
+          shots_metadata: captionDoc.shots_metadata
+        }, null, 2));
+        console.log("✅ Downloaded caption JSON from MongoDB.");
+      } else {
+        console.error("❌ Captions not found in DB.");
+        return res.status(400).render("error", {
+          error: { status: 400, message: "Captions not found." },
+          theme: req.session.theme || "light",
+          friendlyMessage: "This video doesn't have subtitle data yet.",
+        });
+      }
+    }
+
+    // 🧱 Video download is already handled earlier – just validate here
+    if (!fs.existsSync(videoPath)) {
       return res.status(400).render("error", {
-        error: { status: 400, message: "Missing captions or video." },
+        error: { status: 400, message: "Video not found." },
         theme: req.session.theme || "light",
-        friendlyMessage:
-          "The video or its subtitles couldn't be found. Please re-upload your video.",
+        friendlyMessage: "Video file is missing. Try reloading from catalog.",
       });
     }
 
