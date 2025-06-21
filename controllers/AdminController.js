@@ -38,7 +38,7 @@ exports.deleteVideo = async (req, res) => {
   try {
     const videoId = req.params.id;
     await Video.findByIdAndDelete(videoId);
-    res.redirect("/admin");
+    res.status(200).json({ message: "Video deleted successfully" });
   } catch (err) {
     console.error("Error deleting video:", err);
     res.status(500).send("Server Error");

@@ -21,12 +21,23 @@ document.addEventListener("DOMContentLoaded", () => {
     document.cookie =
       "deleteToast=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   }
-  // 3. Handle static toast.
+
+  // 3. Handle static toast ONLY IF there's a message (avoid empty popup)
   const staticToast = document.getElementById("toast");
   if (staticToast) {
-    staticToast.classList.add("show");
-    setTimeout(() => staticToast.classList.remove("show"), 4000);
+    const message = staticToast.textContent.trim();
+    if (message !== "") {
+      staticToast.classList.add("show");
+      setTimeout(() => {
+        staticToast.classList.remove("show");
+        staticToast.textContent = ""; // Clear after timeout
+      }, 4000);
+    } else {
+      staticToast.classList.remove("show"); // 🔁 Force hide just in case
+    }
   }
+
+
   function showToast(message, type = "success") {
     const toastDiv = document.createElement("div");
     toastDiv.className = `toast ${type}`;

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/admin.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="/js/form-loader.js"></script>
 </head>
 
 <body>
@@ -37,16 +38,13 @@
           </div>
           <div class="stat-card">Total Videos: <%= videos.length %>
           </div>
-          <div class="stat-card">
-            Added This Week:
-            <%= videos.filter(v=> v.createdAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length %>
-          </div>
-          <div class="stat-card">
-            Processed:
-            <%= Math.round(videos.reduce((acc, v)=> acc + (v.filename ? 1 : 0), 0) / videos.length * 100) || 0 %>%
-          </div>
+          <div class="stat-card">Added This Week: <%= videos.filter(v=> v.createdAt > new Date(Date.now() - 7 * 24 * 60
+              * 60 * 1000)).length %></div>
+          <div class="stat-card">Processed: <%= Math.round(videos.reduce((acc, v)=> acc + (v.filename ? 1 : 0), 0) /
+              videos.length * 100) || 0 %>%</div>
         </div>
       </section>
+
       <!-- USERS SECTION -->
       <section id="users" class="admin-section hidden">
         <h2>User Management</h2>
@@ -79,13 +77,11 @@
               </div>
               <p class="user-joined">Joined: <%= new Date(user.createdAt).toLocaleDateString() %>
               </p>
-
               <div class="card-actions">
                 <% if (user.banUntil && new Date(user.banUntil)> new Date()) { %>
                   <button class="btn-unban" onclick="unbanUser('<%= user._id %>', this)">Unban</button>
                   <% } else { %>
-                    <button class="btn-ban" data-user-id="<%= user._id %>"
-                      onclick="openBanModal('<%= user._id %>', '<%= user.name %>')">Ban</button>
+                    <button class="btn-ban" onclick="openBanModal('<%= user._id %>', '<%= user.name %>')">Ban</button>
                     <% } %>
                       <button class="btn-delete"
                         onclick="openDeleteModal('<%= user._id %>', '<%= user.name %>')">Delete</button>
@@ -93,6 +89,8 @@
             </div>
             <% }) %>
         </div>
+
+        <!-- Modals -->
         <div id="banModal" class="modal hidden">
           <div class="modal-content">
             <h3 id="banModalTitle">Ban User</h3>
@@ -106,6 +104,7 @@
             </form>
           </div>
         </div>
+
         <div id="roleModal" class="modal hidden">
           <div class="modal-content">
             <h3 id="roleModalTitle">Update Role</h3>
@@ -117,7 +116,7 @@
         </div>
         <div id="deleteUserModal" class="modal hidden">
           <div class="modal-content">
-            <h3 id="deleteModalTitle">Delete User</h3>
+            <h3>Delete User</h3>
             <p>Are you sure you want to delete <span id="deleteUserName"></span>?</p>
             <form id="deleteUserForm">
               <button type="submit" class="btn-delete">Confirm Delete</button>
@@ -151,308 +150,35 @@
               <p class="video-uploader">By: <%= video.user?.name || 'Unknown' %>
               </p>
               <div class="card-actions">
-                <form action="/admin/delete-video/<%= video._id %>" method="POST">
-                  <button class="btn-delete" type="submit">Remove</button>
-                </form>
+                <button class="btn-delete" onclick="openDeleteVideoModal('<%= video._id %>')">Remove</button>
               </div>
             </div>
             <% }) %>
         </div>
       </section>
     </main>
+    <div id="deleteVideoModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Delete Video</h3>
+        <p>Are you sure you want to delete this video?</p>
+        <form id="deleteVideoForm">
+          <button type="submit" class="btn-delete">Confirm Delete</button>
+          <button type="button" class="btn-cancel" onclick="closeDeleteVideoModal()">Cancel</button>
+        </form>
+      </div>
+    </div>
   </div>
-  <script>
-    const navLinks = document.querySelectorAll(".sidebar-nav .nav-link");
-    const sections = document.querySelectorAll(".admin-section");
 
-    navLinks.forEach(link => {
-      link.addEventListener("click", e => {
-        e.preventDefault();
+  <!-- 🔄 Global Spinner -->
+  <div id="globalLoader" class="spinner-overlay hidden">
+    <div class="spinner"></div>
+  </div>
 
-        // Remove 'active' from all nav links
-        navLinks.forEach(l => l.classList.remove("active"));
-        // Hide all sections
-        sections.forEach(sec => sec.classList.add("hidden"));
+  <!-- ✅ Toast Notification -->
+  <div id="toast" class="toast"></div>
 
-        // Activate clicked link
-        e.currentTarget.classList.add("active");
-        const targetId = e.currentTarget.getAttribute("href").substring(1);
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) targetSection.classList.remove("hidden");
-      });
-    });
-
-    // Default view = dashboard
-    document.getElementById("dashboard").classList.remove("hidden");
-  </script>
-  <script>
-    async function unbanUser(userId, button) {
-      try {
-        const response = await fetch(`/admin/unban/${userId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          }
-        });
-
-        if (response.ok) {
-          // Remove ban text
-          const card = button.closest(".user-card");
-          const banText = card.querySelector(".user-ban");
-          if (banText) banText.remove();
-
-          // Replace button with Ban button
-          const actions = card.querySelector(".card-actions");
-          button.remove();
-          const newBanBtn = document.createElement("button");
-          newBanBtn.className = "btn-ban";
-          newBanBtn.textContent = "Ban";
-          newBanBtn.onclick = () => openBanModal(userId, card.querySelector(".user-name").textContent);
-          actions.insertBefore(newBanBtn, actions.querySelector("form")); // insert before delete
-        } else {
-          alert("Failed to unban user.");
-        }
-      } catch (error) {
-        console.error("Unban error:", error);
-        alert("An error occurred while unbanning.");
-      }
-    }
-  </script>
-
-  <script>
-    flatpickr("#banDatePicker", {
-      dateFormat: "Y-m-d",
-      minDate: "today",
-    });
-    // Theme switching
-    const adminThemeToggle = document.getElementById("adminThemeToggle");
-    const body = document.body;
-    const savedTheme = localStorage.getItem("admin-theme");
-
-    if (savedTheme === "dark") {
-      body.classList.add("dark-mode");
-      adminThemeToggle.checked = true;
-    }
-
-    adminThemeToggle.addEventListener("change", () => {
-      if (adminThemeToggle.checked) {
-        body.classList.add("dark-mode");
-        localStorage.setItem("admin-theme", "dark");
-      } else {
-        body.classList.remove("dark-mode");
-        localStorage.setItem("admin-theme", "light");
-      }
-    });
-
-    navLinks.forEach(link => {
-      link.addEventListener("click", e => {
-        const href = e.currentTarget.getAttribute("href");
-
-        // Allow full page reload for external links
-        if (!href.startsWith("#")) {
-          window.location.href = href; // Allow full navigation to real page
-          return;
-        }
-        e.preventDefault();
-        navLinks.forEach(l => l.classList.remove("active"));
-        e.currentTarget.classList.add("active");
-
-        sections.forEach(sec => sec.classList.add("hidden"));
-        const targetId = href.substring(1);
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) targetSection.classList.remove("hidden");
-      });
-    });
-
-  </script>
-  <script>
-    function openBanModal(userId, userName) {
-      const modal = document.getElementById('banModal');
-      const form = document.getElementById('banForm');
-      form.dataset.userId = userId;
-      document.getElementById('banModalTitle').innerText = `Ban ${userName}`;
-      modal.classList.remove('hidden');
-    }
-
-    function closeBanModal() {
-      document.getElementById('banModal').classList.add('hidden');
-    }
-    async function submitBanForm(event) {
-      event.preventDefault();
-
-      const form = event.target;
-      const userId = form.dataset.userId;
-      const dateInput = form.querySelector("#banDatePicker");
-      const banDate = dateInput.value;
-
-      if (!banDate) {
-        alert("Please select a date.");
-        return;
-      }
-
-      try {
-        const response = await fetch(`/admin/ban-user/${userId}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ banUntil: banDate })
-        });
-
-        if (response.ok) {
-          // Update UI
-          const card = document.querySelector(`.user-card button[onclick*="${userId}"]`)?.closest(".user-card");
-          if (card) {
-            // Replace Ban with Unban button
-            const actions = card.querySelector(".card-actions");
-            const banBtn = actions.querySelector(".btn-ban");
-            if (banBtn) banBtn.remove();
-
-            const unbanBtn = document.createElement("button");
-            unbanBtn.className = "btn-unban";
-            unbanBtn.textContent = "Unban";
-            unbanBtn.onclick = () => unbanUser(userId, unbanBtn);
-            actions.insertBefore(unbanBtn, actions.querySelector("form"));
-
-            // Add "Banned until" message
-            const info = card.querySelector(".user-info");
-            const banText = document.createElement("p");
-            banText.className = "user-ban";
-            const untilDate = new Date(banDate).toLocaleDateString();
-            banText.textContent = `Banned until ${untilDate}`;
-            info.appendChild(banText);
-          }
-
-          closeBanModal();
-        } else {
-          alert("Ban failed.");
-        }
-      } catch (err) {
-        console.error("Ban error:", err);
-        alert("Server error.");
-      }
-    }
-    function openRoleModal(userId, userName, isAdmin) {
-      const modal = document.getElementById("roleModal");
-      const form = document.getElementById("roleForm");
-      document.getElementById("roleModalTitle").innerText =
-        isAdmin ? `Remove admin role from ${userName}?` : `Make ${userName} an admin?`;
-      form.action = isAdmin ? `/admin/remove-admin/${userId}` : `/admin/make-admin/${userId}`;
-      modal.classList.remove("hidden");
-    }
-
-    function closeRoleModal() {
-      document.getElementById("roleModal").classList.add("hidden");
-    }
-    async function submitRoleForm(event) {
-      event.preventDefault();
-
-      const form = event.target;
-      const actionUrl = form.action;
-      const isRemoving = actionUrl.includes("/remove-admin/");
-      const userId = actionUrl.split("/").pop();
-
-      try {
-        const response = await fetch(actionUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (response.ok) {
-          const card = Array.from(document.querySelectorAll(".user-card")).find(c =>
-            c.querySelector(".btn-role")?.getAttribute("onclick")?.includes(userId)
-          );
-          if (card) {
-            // Update role text
-            const roleText = card.querySelector(".user-role");
-            const btn = card.querySelector(".btn-role");
-            const newStatus = isRemoving ? "User" : "Admin";
-
-            roleText.textContent = newStatus;
-            roleText.className = `user-role ${isRemoving ? "user" : "admin"}`;
-
-            // Update button text + onclick
-            btn.textContent = isRemoving ? "Make Admin" : "Remove Admin";
-            btn.setAttribute("onclick", `openRoleModal('${userId}', '${card.querySelector(".user-name").textContent}', ${!isRemoving})`);
-          }
-
-          closeRoleModal();
-        } else {
-          alert("Failed to update role.");
-        }
-      } catch (err) {
-        console.error("Role update error:", err);
-        alert("An error occurred.");
-      }
-    }
-    function openDeleteModal(userId, userName) {
-      const modal = document.getElementById("deleteUserModal");
-      const form = document.getElementById("deleteUserForm");
-      document.getElementById("deleteUserName").textContent = userName;
-      form.action = `/admin/delete-user/${userId}`;
-      modal.classList.remove("hidden");
-    }
-
-    function closeDeleteModal() {
-      document.getElementById("deleteUserModal").classList.add("hidden");
-    }
-  </script>
-  <script>
-    // === User Search ===
-    const userSearchInput = document.getElementById("userSearchInput");
-    userSearchInput?.addEventListener("input", () => {
-      const searchTerm = userSearchInput.value.toLowerCase();
-      const userCards = document.querySelectorAll(".user-card");
-
-      userCards.forEach(card => {
-        const name = card.querySelector(".user-name")?.textContent.toLowerCase() || "";
-        const email = card.querySelector(".user-email")?.textContent.toLowerCase() || "";
-
-        const matches = name.includes(searchTerm) || email.includes(searchTerm);
-        card.style.display = matches ? "block" : "none";
-      });
-    });
-
-    // === Video Search ===
-    const videoSearchInput = document.getElementById("videoSearchInput");
-    videoSearchInput?.addEventListener("input", () => {
-      const searchTerm = videoSearchInput.value.toLowerCase();
-      const videoCards = document.querySelectorAll(".video-card");
-
-      videoCards.forEach(card => {
-        const title = card.querySelector(".video-title")?.textContent.toLowerCase() || "";
-        const uploader = card.querySelector(".video-uploader")?.textContent.toLowerCase() || "";
-
-        const matches = title.includes(searchTerm) || uploader.includes(searchTerm);
-        card.style.display = matches ? "block" : "none";
-      });
-    });
-  </script>
-  <script>
-    document.getElementById("deleteUserForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const form = e.target;
-      const action = form.action;
-
-      try {
-        const res = await fetch(action, {
-          method: "POST"
-        });
-
-        if (res.ok) {
-          // Remove user card from UI
-          const userId = action.split("/").pop();
-          const userCard = document.querySelector(`.user-card button[onclick*="${userId}"]`)?.closest(".user-card");
-      if (userCard) userCard.remove();
-          closeDeleteModal();
-        } else {
-          alert("Failed to delete user.");
-        }
-      } catch (err) {
-        console.error("Delete error:", err);
-        alert("Server error.");
-      }
-    });
-
-  </script>
+  <!-- 📦 External JS -->
+  <script src="/js/admin.js"></script>
 </body>
 
 </html>

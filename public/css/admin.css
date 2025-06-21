@@ -359,21 +359,6 @@ h2 {
 .theme-toggle input:checked+.slider::after {
   opacity: 1;
 }
-
-.toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--accent-primary);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  z-index: 9999;
-  font-weight: 600;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  animation: fadeInOut 3s ease-in-out;
-}
-
 @keyframes fadeInOut {
   0% {
     opacity: 0;
@@ -1020,4 +1005,66 @@ body.dark-mode .admin-search-input {
 body.dark-mode .admin-search-input::placeholder {
   color: #94a3b8;
   opacity: 0.75;
+}
+.toast {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #00dfc4;
+  color: #121636;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.4s ease, top 0.4s ease;
+  font-weight: bold;
+}
+.toast:not(.show),
+.toast:empty {
+  display: none !important;
+}
+.toast.show {
+  opacity: 1;
+  top: 50px;
+}
+.toast.success {
+  background-color: #28a745;
+}
+.toast.error {
+  background-color: #dc3545;
+}
+body.dark-mode .toast {
+  background-color: #143b2a;
+  color: #32cd89;
+  border: 1px solid #2ecc71;
+}
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #10b981;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
