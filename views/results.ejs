@@ -8,13 +8,74 @@
   <title>Search Results</title>
   <link rel="stylesheet" href="/css/common.css" />
   <link rel="stylesheet" href="/css/form.css" />
+  <style>
+    .auto-refresh-notice {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 15px 0;
+      text-align: center;
+      font-size: 14px;
+      color: #1976d2;
+    }
+    .auto-refresh-notice .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #2196f3;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .refresh-button {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+      font-size: 12px;
+    }
+    .refresh-button:hover {
+      background: #1976d2;
+    }
+    .refresh-button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    /* Center results when no concatenated clips */
+    .results-container.centered {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .results-container.centered .results-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .results-container.centered .result-card {
+      width: 100%;
+      max-width: 600px;
+    }
+  </style>
 </head>
 
 <body>
   <%- include("partials/header") %>
 
   <main>
-    <section class="results-container">
+    <section class="results-container <%= (!concatenatedClips || concatenatedClips.length === 0) ? 'centered' : '' %>">
       <div class="results-header">
         <h2 class="results-title">Search Results</h2>
         <p class="query-label">
@@ -43,7 +104,7 @@
       <% } %>
 
       <% if (results && results.length > 0) { %>
-      <h3 class="section-title text-center">Shorts</h3>
+      <h3 class="section-title text-center"><%= concatenatedClips && concatenatedClips.length > 0 ? 'Shorts' : 'Scene Results' %></h3>
       <div class="results-wrapper">
         <% results.forEach(result => { %>
         <div class="result-card">
