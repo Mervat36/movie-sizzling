@@ -47,7 +47,7 @@
 
         <% videos.forEach(video => { const queries =
         videoMap[video._id]?.queries || {}; %>
-        <div class="history-table-wrapper history-flex-wrapper">
+        <div class="history-table-wrapper history-flex-wrapper" data-video-id="<%= video._id %>">
           <!-- Video Left -->
           <div class="video-container">
             <h3 class="section-label">Uploaded Video</h3>
