@@ -63,7 +63,7 @@
             <% videos.forEach(video=> { %>
               <div class="catalog-card" data-title="<%= video.title.toLowerCase() %>">
                 <div class="catalog-thumbnail" onclick="handleVideoClick('<%= video._id %>')">
-                  <img src="/images/logo.png" alt="<%= video.title %>" class="thumbnail-bg-img" />
+                  <img src="<%= video.thumbnailUrl %>" alt="<%= video.title %>" class="thumbnail-bg-img" onerror="this.src='/images/logo.png'" />
                   <div class="play-icon-overlay">
                     <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="white">
                       <path d="M8 5v14l11-7z" />

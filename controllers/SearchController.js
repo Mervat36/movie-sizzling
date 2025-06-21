@@ -8,6 +8,15 @@ const ResultVideo = require("../models/ResultVideo");
 const { searchEngine, saveSearchHistory } = require("../utils/searchEngine");
 const Caption = require("../models/Caption");
 
+const timestampToSeconds = (ts) => {
+  if (!ts) return 0;
+  const parts = ts.split(':').map(Number);
+  if (parts.length === 3) {
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+  return 0;
+};
+
 exports.searchUser = async (req, res) => {
   // Reset previous session search data
   req.session.searchResults = null;
@@ -139,7 +148,7 @@ exports.searchResult = async (req, res) => {
       },
       theme: req.session.theme || "light",
       friendlyMessage:
-        "Oops! We couldn’t find your video or search term. Please try uploading a video again or go back to the search page.",
+        "Oops! We couldn't find your video or search term. Please try uploading a video again or go back to the search page.",
     });
   }
 
@@ -167,8 +176,79 @@ exports.searchResult = async (req, res) => {
       fs.mkdirSync(clipsDir, { recursive: true });
     }
 
-    const trimmedResults = [];
+    // Sort by start time to check for sequential scenes
+    allResults.sort((a, b) => timestampToSeconds(a.start_time) - timestampToSeconds(b.start_time));
 
+    const sequentialGroups = [];
+    let currentGroup = [];
+
+    for (let i = 0; i < allResults.length; i++) {
+      if (currentGroup.length === 0) {
+        currentGroup.push(allResults[i]);
+      } else {
+        const lastInGroup = currentGroup[currentGroup.length - 1];
+        const currentTime = allResults[i];
+        
+        // Check if the current scene starts immediately after the last one (with a small tolerance)
+        const lastEndTime = timestampToSeconds(lastInGroup.end_time);
+        const currentStartTime = timestampToSeconds(currentTime.start_time);
+
+        if (Math.abs(currentStartTime - lastEndTime) < 2) { // 2-second tolerance
+          currentGroup.push(currentTime);
+        } else {
+          if (currentGroup.length > 1) {
+            sequentialGroups.push(currentGroup);
+          }
+          currentGroup = [allResults[i]];
+        }
+      }
+    }
+    if (currentGroup.length > 1) {
+      sequentialGroups.push(currentGroup);
+    }
+    
+    // Process concatenated clips
+    const concatenatedClips = [];
+    for (const group of sequentialGroups) {
+      const firstScene = group[0];
+      const lastScene = group[group.length - 1];
+      const concatClipName = `${videoTitle}_${firstScene.start_time.replace(/:/g, "-")}_to_${lastScene.end_time.replace(/:/g, "-")}_concat.mp4`;
+      const concatClipPath = path.resolve(clipsDir, concatClipName);
+      const concatClipUrl = `/output/clips/${concatClipName}`;
+      
+      if (!fs.existsSync(concatClipPath)) {
+        const fileListPath = path.join(clipsDir, `concat_list_${Date.now()}.txt`);
+        let fileListContent = "";
+        group.forEach(scene => {
+            const clipName = `${videoTitle}_${scene.start_time.replace(/:/g, "-")}_${scene.end_time.replace(/:/g, "-")}_clip.mp4`;
+            const clipPath = path.resolve(clipsDir, clipName);
+            if(fs.existsSync(clipPath)){
+                fileListContent += `file '${clipPath}'\n`;
+            }
+        });
+
+        fs.writeFileSync(fileListPath, fileListContent);
+
+        const concatCommand = `ffmpeg -f concat -safe 0 -i "${fileListPath}" -c copy "${concatClipPath}"`;
+        try {
+          execSync(concatCommand);
+          fs.unlinkSync(fileListPath); // Clean up the temporary file list
+        } catch (error) {
+          console.error("❌ FFmpeg concatenation failed:", error.message);
+          continue; // Skip if concatenation fails
+        }
+      }
+
+      concatenatedClips.push({
+        clip: concatClipUrl,
+        caption: `Combined scene: ${group.map(s => s.caption).join(' ... ')}`,
+        start_time: firstScene.start_time,
+        end_time: lastScene.end_time,
+        score: group.reduce((acc, s) => acc + s.score, 0) / group.length,
+      });
+    }
+
+    const trimmedResults = [];
     for (const match of allResults) {
       const clipName = `${videoTitle}_${match.start_time.replace(
         /:/g,
@@ -246,6 +326,7 @@ exports.searchResult = async (req, res) => {
     const done = paginatedResults.length + start >= trimmedResults.length;
 
     res.render("results", {
+      concatenatedClips,
       results: paginatedResults,
       query: userQuery,
       video: null,
