@@ -224,8 +224,14 @@ app.get(
         email: user.email,
         profilePicture: user.profilePicture || null,
         isGoogleUser: user.isGoogleUser,
+        isAdmin: user.isAdmin || false,
       };
-      res.redirect("/");
+
+      if (user.isAdmin) {
+        res.redirect('/admin');
+      } else {
+        res.redirect('/');
+      }
     } catch (err) {
       console.error("Google login error:", err.message);
       res.redirect("/login");
@@ -254,6 +260,7 @@ const videoRoutes = require("./routes/VideoRoutes");
 const historyRoutes = require("./routes/HistoryRoutes");
 const searchRoutes = require("./routes/SearchRoutes");
 const catalogRoutes = require("./routes/CatalogRoutes");
+const adminRoutes = require('./routes/AdminRoutes');
 
 app.use("/api/videos", videoRoutes);
 app.use("/users", userRoutes);
@@ -261,6 +268,7 @@ app.use("/", historyRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/", uploadRoutes);
 app.use("/", catalogRoutes);
+app.use('/', adminRoutes);
 
 
 // 404 Fallback
