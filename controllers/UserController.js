@@ -123,8 +123,15 @@ const loginUser = async (req, res) => {
       email: user.email,
       profilePicture: user.profilePicture || null,
       isGoogleUser: user.isGoogleUser || false,
+      isAdmin: user.isAdmin || false,
     };
-    res.redirect("/");
+    
+    // Redirect admin to dashboard, otherwise to homepage
+    if (user.isAdmin) {
+      res.redirect("/admin");
+    } else {
+      res.redirect("/");
+    }
     // Any server error.
   } catch (error) {
     console.error("[Login Error]", error.message);

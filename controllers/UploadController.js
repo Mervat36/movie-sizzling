@@ -202,7 +202,7 @@ exports.handleUpload = async (req, res) => {
           // fs.unlinkSync(localDownloadPath);
 
           console.log("🟢 Starting scene segmentation...");
-          const sceneCommand = `set PYTHONPATH=.&& venv_scene_class\\Scripts\\python.exe AI/Scene/model/scene_segmentation.py "${safeTitle}" "output/${safeTitle}_shots.json" "shots/${safeTitle}"`;
+          const sceneCommand = `set PYTHONPATH=.&& venv_scene_last\\Scripts\\python.exe AI/Scene_Segmentation/scene_prediction.py --movie_folder "shots/${safeTitle}" --model_path "AI/Scene_Segmentation/best_model.pt"`;
 
           exec(sceneCommand, async (sceneErr, stdout, stderr) => {
             if (sceneErr) {

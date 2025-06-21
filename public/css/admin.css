@@ -1,0 +1,382 @@
+/*
+  Innovative Admin Dashboard CSS - Dual Theme
+  - Light Mode: Clean, professional, matches the main site.
+  - Dark Mode: "Cyberpunk Glow" theme.
+*/
+
+/* 1. Import Font & Define Root Variables for Light Mode */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+  --lm-bg-primary: #f4f7fc;
+  --lm-bg-secondary: #ffffff;
+  --lm-text-primary: #1e293b;
+  --lm-text-secondary: #64748b;
+  --lm-border-color: #e2e8f0;
+  --lm-shadow-color: rgba(100, 116, 139, 0.12);
+  --accent-primary: #377dff; /* Shared accent */
+  --danger: #ff4757; /* Shared accent */
+}
+
+/* 2. General Body & Layout Styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--lm-bg-primary);
+  color: var(--lm-text-primary);
+  margin: 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 3. Sidebar Styles */
+.sidebar {
+  width: 250px;
+  background: var(--lm-bg-secondary);
+  border-right: 1px solid var(--lm-border-color);
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s, border-color 0.3s;
+  text-align: center;
+}
+
+.sidebar-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--lm-text-primary);
+  margin-bottom: 50px;
+}
+
+.sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: var(--lm-text-secondary);
+  padding: 15px 20px;
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.sidebar-nav .nav-link:hover {
+  background-color: #f0f5ff;
+  color: var(--accent-primary);
+}
+.sidebar-nav .nav-link.active {
+  background-color: var(--accent-primary);
+  color: #fff;
+}
+
+
+/* 4. Main Content Styles */
+.main-content {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--lm-text-primary);
+  padding-bottom: 15px;
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--lm-border-color);
+}
+
+/* 5. User and Video Grids/Cards */
+.user-grid, .video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 25px;
+}
+
+.user-card, .video-card {
+  background: var(--lm-bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid var(--lm-border-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-card:hover, .video-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px var(--lm-shadow-color);
+}
+
+/* 6. Card Content Styling */
+.user-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid var(--accent-primary);
+  margin-bottom: 15px;
+  object-fit: cover;
+}
+
+.video-thumbnail {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid var(--lm-border-color);
+}
+
+.user-name, .video-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 10px 0 5px 0;
+  color: var(--lm-text-primary);
+}
+
+.user-email, .video-date {
+  color: var(--lm-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  word-wrap: break-word;
+}
+
+.user-role {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.user-role.admin {
+  background-color: var(--danger);
+  color: #fff;
+}
+
+.user-role.user {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+/* 7. Card Actions / Buttons */
+.card-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.card-actions button {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.card-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+.btn-delete {
+  background: var(--danger);
+}
+
+.btn-notify {
+  background: var(--accent-primary);
+}
+
+/* 8. Innovative Theme Toggle */
+.theme-toggle-container {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--lm-border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: border-color 0.3s;
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+  width: 75px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.theme-toggle .slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #87CEEB; /* Sky blue for day */
+  border-radius: 40px;
+  transition: background-color 0.4s;
+}
+
+/* The moving sun/moon orb */
+.theme-toggle .slider::before {
+  position: absolute;
+  content: "";
+  height: 32px;
+  width: 32px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #FFD700; /* Gold for sun */
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.theme-toggle input:checked + .slider {
+  background-color: #2c3e50; /* Night sky */
+}
+
+/* The moon effect */
+.theme-toggle input:checked + .slider::before {
+  transform: translateX(35px);
+  background-color: #EAEAEA;
+  /* This creates the crescent shape by overlaying a shadow of the same color as the background */
+  box-shadow: 
+    inset -12px -12px 0 0 #2c3e50,
+    0 0 15px rgba(234, 234, 234, 0.8);
+}
+
+/* Add stars to the night sky */
+.theme-toggle .slider::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: white;
+    top: 8px;
+    left: 58px;
+    opacity: 0;
+    transition: opacity 0.4s, box-shadow 0.4s;
+    box-shadow: 
+        4px 8px 0 white,
+        -4px 12px 1px white;
+}
+
+.theme-toggle input:checked + .slider::after {
+    opacity: 1;
+}
+
+/* Dark mode styles for the container */
+body.dark-mode .theme-toggle-container {
+    border-top-color: var(--dm-border-color);
+}
+
+/* 9. DARK MODE - "Cyberpunk Glow" Theme */
+body.dark-mode {
+  --dm-bg-primary: #0d0d1a;
+  --dm-bg-secondary: rgba(22, 22, 38, 0.5);
+  --dm-accent-primary: #9f5dff;
+  --dm-accent-secondary: #00c7ff;
+  --dm-text-primary: #f0f0f5;
+  --dm-text-secondary: #a0a0b5;
+  --dm-border-color: rgba(159, 93, 255, 0.2);
+  --dm-shadow-color: rgba(159, 93, 255, 0.1);
+  
+  background-color: var(--dm-bg-primary);
+  color: var(--dm-text-primary);
+  background-image: radial-gradient(circle at 1% 1%, var(--dm-accent-primary) 0.5px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+body.dark-mode .sidebar {
+  background: var(--dm-bg-secondary);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid var(--dm-border-color);
+}
+
+body.dark-mode .sidebar-title {
+  background: linear-gradient(90deg, var(--dm-accent-primary), var(--dm-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  letter-spacing: 2px;
+}
+
+body.dark-mode .sidebar-nav .nav-link {
+  color: var(--dm-text-secondary);
+}
+
+body.dark-mode .sidebar-nav .nav-link:hover, body.dark-mode .sidebar-nav .nav-link.active {
+  background: var(--dm-accent-primary);
+  color: #fff;
+  box-shadow: 0 0 20px var(--dm-shadow-color);
+}
+
+body.dark-mode h2 {
+  color: var(--dm-text-primary);
+  border-bottom: 1px solid var(--dm-border-color);
+  position: relative;
+}
+
+body.dark-mode h2::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--dm-accent-primary), var(--dm-accent-secondary));
+    border-radius: 3px;
+}
+
+body.dark-mode .user-card, body.dark-mode .video-card {
+  background: var(--dm-bg-secondary);
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--dm-border-color);
+}
+
+body.dark-mode .user-card:hover, body.dark-mode .video-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 30px var(--dm-shadow-color);
+  border-color: var(--dm-accent-primary);
+}
+
+body.dark-mode .user-avatar {
+  border-color: var(--dm-accent-primary);
+  background: var(--dm-bg-primary);
+}
+
+body.dark-mode .video-thumbnail {
+  border-color: var(--dm-border-color);
+}
+
+body.dark-mode .user-name, body.dark-mode .video-title, body.dark-mode .user-email {
+  color: var(--dm-text-primary);
+}
+
+body.dark-mode .video-date {
+  color: var(--dm-text-secondary);
+}
+
+body.dark-mode .user-role.user {
+  background: transparent;
+  color: var(--dm-accent-secondary);
+  border-color: var(--dm-accent-secondary);
+}
+
+body.dark-mode .btn-notify {
+  background: var(--accent-primary);
+} 

@@ -24,6 +24,11 @@
         <li><a href="/upload">Upload Video</a></li>
         <li><a href="/history">Search History</a></li>
         <li><a href="/catalog">Menu</a></li>
+
+        <% if (user.isAdmin) { %>
+          <li><a href="/admin" class="auth-btn admin-btn">Admin</a></li>
+        <% } %>
+
         <li><a href="/profile" class="auth-btn login-btn">Profile</a></li>
         <li>
           

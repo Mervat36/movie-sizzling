@@ -55,8 +55,9 @@
       <div class="catalog-grid" id="catalogGrid">
         <% if (videos.length===0) { %>
           <div class="catalog-empty">
-            <h3>No videos yet</h3>
-            <p>Upload your first video to get started with AI-powered content search</p>
+            <h3>No movies here</h3>
+            <p>Your movie catalog is empty. Upload your first video to start building your collection!</p>
+            <a href="/upload" class="btn-primary" style="margin-top: 20px; display: inline-block;">Upload Your First Movie</a>
           </div>
           <% } else { %>
             <% videos.forEach(video=> { %>
@@ -90,11 +91,6 @@
               </div>
               <% }); %>
                 <% } %>
-      </div>
-
-      <!-- Privacy Note -->
-      <div class="privacy-note">
-        🔒 Some videos are hidden for privacy and won’t appear here.
       </div>
 
       <!-- Pagination -->
@@ -187,6 +183,8 @@
         // Search functionality
         document.getElementById('catalogSearch').addEventListener('input', function (e) {
           const searchTerm = e.target.value.toLowerCase();
+          const searchNoResults = document.getElementById('searchNoResults');
+          let visibleCards = 0;
 
           if (searchTerm.trim() !== '') {
             paginationContainer.style.display = 'none';
@@ -194,12 +192,21 @@
               const title = card.getAttribute('data-title');
               if (title.includes(searchTerm)) {
                 card.style.display = 'block';
+                visibleCards++;
               } else {
                 card.style.display = 'none';
               }
             });
+            
+            // Show/hide no results message
+            if (visibleCards === 0) {
+              searchNoResults.style.display = 'block';
+            } else {
+              searchNoResults.style.display = 'none';
+            }
           } else {
             paginationContainer.style.display = 'flex';
+            searchNoResults.style.display = 'none';
             showPage(1);
           }
         });
