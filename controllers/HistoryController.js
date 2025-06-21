@@ -30,7 +30,7 @@ exports.getHistoryPage = async (req, res) => {
 
   await Promise.all(
     videos.map(async (video) => {
-      const queries = await UserQuery.find({ videoId: video._id });
+      const queries = await UserQuery.find({ videoId: video._id, userId });
       const queryMap = {};
 
       await Promise.all(
