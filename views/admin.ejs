@@ -50,6 +50,10 @@
       <!-- USERS SECTION -->
       <section id="users" class="admin-section hidden">
         <h2>User Management</h2>
+        <div class="admin-search-container">
+          <input type="text" id="userSearchInput" class="admin-search-input"
+            placeholder="Search users by name or email..." />
+        </div>
         <div class="user-grid">
           <% users.forEach(user=> { %>
             <div class="user-card">
@@ -118,6 +122,10 @@
       <!-- VIDEOS SECTION -->
       <section id="videos" class="admin-section hidden">
         <h2>Video Catalog</h2>
+        <div class="admin-search-container">
+          <input type="text" id="videoSearchInput" class="admin-search-input"
+            placeholder="Search videos by title or uploader..." />
+        </div>
         <div class="video-grid">
           <% videos.forEach(video=> { %>
             <div class="video-card">
@@ -238,7 +246,37 @@
       document.getElementById("roleModal").classList.add("hidden");
     }
   </script>
+  <script>
+    // === User Search ===
+    const userSearchInput = document.getElementById("userSearchInput");
+    userSearchInput?.addEventListener("input", () => {
+      const searchTerm = userSearchInput.value.toLowerCase();
+      const userCards = document.querySelectorAll(".user-card");
 
+      userCards.forEach(card => {
+        const name = card.querySelector(".user-name")?.textContent.toLowerCase() || "";
+        const email = card.querySelector(".user-email")?.textContent.toLowerCase() || "";
+
+        const matches = name.includes(searchTerm) || email.includes(searchTerm);
+        card.style.display = matches ? "block" : "none";
+      });
+    });
+
+    // === Video Search ===
+    const videoSearchInput = document.getElementById("videoSearchInput");
+    videoSearchInput?.addEventListener("input", () => {
+      const searchTerm = videoSearchInput.value.toLowerCase();
+      const videoCards = document.querySelectorAll(".video-card");
+
+      videoCards.forEach(card => {
+        const title = card.querySelector(".video-title")?.textContent.toLowerCase() || "";
+        const uploader = card.querySelector(".video-uploader")?.textContent.toLowerCase() || "";
+
+        const matches = title.includes(searchTerm) || uploader.includes(searchTerm);
+        card.style.display = matches ? "block" : "none";
+      });
+    });
+  </script>
 </body>
 
 </html>
