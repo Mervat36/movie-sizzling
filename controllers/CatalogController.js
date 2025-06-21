@@ -12,7 +12,34 @@ exports.renderCatalogPage = async (req, res) => {
     const allVideos = await Video.find({ isHidden: { $ne: true } });
 
     console.log("Catalog videos count:", allVideos.length); // ✅ Debug line
-    res.render("catalog", { videos: allVideos });
+    
+    // Fetch thumbnail URLs for each video
+    const videosWithThumbnails = await Promise.all(
+      allVideos.map(async (video) => {
+        const safeTitle = video.title.trim().replace(/ /g, "_");
+        let thumbnailUrl = null;
+        
+        try {
+          // Try to get the first scene thumbnail (scene_001.jpg)
+          const { data: publicUrl } = supabase.storage
+            .from("scene-results")
+            .getPublicUrl(`${safeTitle}/scene_001.jpg`);
+          
+          if (publicUrl) {
+            thumbnailUrl = publicUrl.publicUrl;
+          }
+        } catch (error) {
+          console.log(`No thumbnail found for video: ${video.title}`);
+        }
+        
+        return {
+          ...video.toObject(),
+          thumbnailUrl: thumbnailUrl || "/images/logo.png" // Fallback to logo if no thumbnail
+        };
+      })
+    );
+
+    res.render("catalog", { videos: videosWithThumbnails });
   } catch (err) {
     console.error("❌ Error in catalog:", err.message);
     res.status(500).render("error", {
