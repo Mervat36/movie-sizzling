@@ -292,6 +292,26 @@ function showToast(message, type = "success") {
     }, 4000);
 }
 
+document.querySelectorAll(".btn-delete-report, .btn-resolve-report").forEach(button => {
+    button.addEventListener("click", function () {
+        const action = this.getAttribute("data-action");
+        const message = this.getAttribute("data-message");
+
+        const form = document.getElementById("modalForm");
+        document.getElementById("modalTitle").innerText = this.classList.contains("btn-resolve-report") ? "Resolve Report" : "Delete Report";
+        document.getElementById("modalMessage").innerText = message;
+
+        form.setAttribute("action", action);
+        document.getElementById("reportModalConfirm").classList.remove("hidden");
+    });
+});
+
+
+document.getElementById("modalCancel").addEventListener("click", () => {
+    const modal = document.getElementById("reportModalConfirm");
+    modal.classList.remove("show");
+    modal.classList.add("hidden");
+});
 
 
 

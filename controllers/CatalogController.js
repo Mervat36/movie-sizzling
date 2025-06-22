@@ -6,32 +6,33 @@ const { exec } = require("child_process");
 const supabase = require("../supabaseClient");
 const UserQuery = require("../models/UserQuery");
 const ResultVideo = require("../models/ResultVideo");
+const Report = require("../models/Report");
 
 exports.renderCatalogPage = async (req, res) => {
   try {
     const allVideos = await Video.find({ isHidden: { $ne: true } });
 
     console.log("Catalog videos count:", allVideos.length); // ✅ Debug line
-    
+
     // Fetch thumbnail URLs for each video
     const videosWithThumbnails = await Promise.all(
       allVideos.map(async (video) => {
         const safeTitle = video.title.trim().replace(/ /g, "_");
         let thumbnailUrl = null;
-        
+
         try {
           // Try to get the first scene thumbnail (scene_001.jpg)
           const { data: publicUrl } = supabase.storage
             .from("scene-results")
             .getPublicUrl(`${safeTitle}/scene_001.jpg`);
-          
+
           if (publicUrl) {
             thumbnailUrl = publicUrl.publicUrl;
           }
         } catch (error) {
           console.log(`No thumbnail found for video: ${video.title}`);
         }
-        
+
         return {
           ...video.toObject(),
           thumbnailUrl: thumbnailUrl || "/images/logo.png" // Fallback to logo if no thumbnail
@@ -223,3 +224,29 @@ exports.searchCatalog = async (req, res) => {
     res.status(500).json({ error: "Unexpected server error" });
   }
 };
+
+exports.reportVideo = async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const { reason } = req.body;
+    const userId = req.user?._id || req.session.user?._id;
+    const existing = await Report.findOne({ video: videoId, reportedBy: userId });
+    if (existing) {
+      return res.status(400).json({ error: "You already reported this video" });
+    }
+    const report = new Report({
+      video: videoId,
+      reportedBy: userId,
+      reason,
+    });
+
+    await report.save();
+    res.status(200).json({ message: "Reported successfully" });
+  } catch (err) {
+    console.error("Error reporting video:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+

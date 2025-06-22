@@ -1068,3 +1068,208 @@ body.dark-mode .toast {
     transform: rotate(360deg);
   }
 }
+
+.btn-report {
+  background-color: #ff6347; /* tomato red */
+  color: #fff;
+  padding: 8px 16px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-report:hover {
+  background-color: #e5533d;
+}
+
+body.dark-mode .btn-report {
+  background-color: #ff7a6a;
+  color: #121212;
+  border: 1px solid #ff998a;
+}
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.report-card {
+  display: flex;
+  gap: 15px;
+  background: var(--lm-bg-secondary);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 5px 15px var(--lm-shadow-color);
+  align-items: center;
+}
+
+.report-card .thumbnail {
+  width: 120px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.report-info h4 {
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  color: var(--lm-text-primary);
+}
+
+.report-info p {
+  margin: 2px 0;
+  color: var(--lm-text-secondary);
+  font-size: 0.9rem;
+}
+
+.report-info form {
+  margin-top: 10px;
+}
+
+body.dark-mode .report-card {
+  background: var(--dm-bg-secondary);
+  box-shadow: 0 10px 20px var(--dm-shadow-color);
+}
+
+body.dark-mode .report-info h4 {
+  color: var(--dm-text-primary);
+}
+
+body.dark-mode .report-info p {
+  color: var(--dm-text-secondary);
+}
+.badge {
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 6px;
+  display: none;
+  vertical-align: middle;
+}
+.reported {
+  border: 2px solid #ff4d4f; /* bright red */
+  box-shadow: 0 0 8px rgba(255, 77, 79, 0.8);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Optional: subtle pulse animation */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 77, 79, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 77, 79, 1);
+  }
+}
+
+.reported {
+  animation: pulse 2s infinite ease-in-out;
+}
+/* Red border for reported cards */
+.user-card.reported,
+.video-card.reported {
+  border: 2px solid #ff4d4f; /* bright red */
+  position: relative;
+}
+
+/* Badge styling */
+.reported-badge {
+  background-color: #ff4d4f;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* Optional: Badge position absolute (top-right corner) */
+.user-card.reported .reported-badge,
+.video-card.reported .reported-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  margin-left: 0;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 15px;
+  box-shadow: 0 0 6px rgba(255, 77, 79, 0.6);
+  cursor: default;
+}
+.report-card.reported {
+  border: 2px solid #ff4d4f; /* red */
+}
+
+.report-card.resolved {
+  border: 2px solid #4CAF50; /* green */
+}
+
+.reported-badge {
+  background-color: #ff4d4f;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+}
+.report-thumbnail {
+  width: 100px;
+  height: auto;
+  margin-right: 20px;
+  border-radius: 10px;
+}
+.btn-delete-report {
+  background-color: #ff4d4f;
+  color: white;
+  padding: 10px 18px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(255, 77, 79, 0.3);
+}
+
+.btn-delete-report:hover {
+  background-color: #e04344;
+  transform: translateY(-2px);
+}
+
+/* Optional consistency with modal content button */
+.modal-content .btn-delete-report {
+  background-color: #ff4d4f;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modal-content .btn-delete-report:hover {
+  background-color: #e04344;
+}
+
+/* Dark mode compatibility */
+body.dark-mode .btn-delete-report {
+  background-color: #ff6b6b;
+  color: #121212;
+  border: 1px solid #ff9999;
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.2);
+}
+
+body.dark-mode .modal-content .btn-delete-report {
+  background-color: #ff6b6b;
+  color: #121212;
+  border: 1px solid #ff9999;
+}

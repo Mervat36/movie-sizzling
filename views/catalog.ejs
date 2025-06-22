@@ -57,13 +57,15 @@
           <div class="catalog-empty">
             <h3>No movies here</h3>
             <p>Your movie catalog is empty. Upload your first video to start building your collection!</p>
-            <a href="/upload" class="btn-primary" style="margin-top: 20px; display: inline-block;">Upload Your First Movie</a>
+            <a href="/upload" class="btn-primary" style="margin-top: 20px; display: inline-block;">Upload Your First
+              Movie</a>
           </div>
           <% } else { %>
             <% videos.forEach(video=> { %>
               <div class="catalog-card" data-title="<%= video.title.toLowerCase() %>">
                 <div class="catalog-thumbnail" onclick="handleVideoClick('<%= video._id %>')">
-                  <img src="<%= video.thumbnailUrl %>" alt="<%= video.title %>" class="thumbnail-bg-img" onerror="this.src='/images/logo.png'" />
+                  <img src="<%= video.thumbnailUrl %>" alt="<%= video.title %>" class="thumbnail-bg-img"
+                    onerror="this.src='/images/logo.png'" />
                   <div class="play-icon-overlay">
                     <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="white">
                       <path d="M8 5v14l11-7z" />
@@ -82,10 +84,12 @@
                       <%= video.originalName ? video.originalName.split('.').pop().toUpperCase() : 'MP4' %>
                     </span>
                   </div>
+                  <!-- Report Confirmation Modal -->
                   <div class="catalog-actions">
                     <button class="catalog-btn catalog-btn-primary" onclick="handleVideoClick('<%= video._id %>')">
                       Watch & Search
                     </button>
+                    <button class="btn-report report-btn" data-video-id="<%= video._id %>">Report</button>
                   </div>
                 </div>
               </div>
@@ -100,139 +104,239 @@
     <%- include("partials/footer") %>
 
       <script>
-        const itemsPerPage = 6;
-        const cards = document.querySelectorAll('.catalog-card');
-        const totalPages = Math.ceil(cards.length / itemsPerPage);
-        const paginationContainer = document.getElementById('video-pagination');
-        let currentPage = 1;
+        document.addEventListener('DOMContentLoaded', () => {
+          const itemsPerPage = 6;
+          const cards = document.querySelectorAll('.catalog-card');
+          const totalPages = Math.ceil(cards.length / itemsPerPage);
+          const paginationContainer = document.getElementById('video-pagination');
+          let currentPage = 1;
 
-        function showPage(page) {
-          currentPage = page;
-          const startIndex = (page - 1) * itemsPerPage;
-          const endIndex = startIndex + itemsPerPage;
+          function showPage(page) {
+            currentPage = page;
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
 
-          cards.forEach((card, index) => {
-            card.style.display = (index >= startIndex && index < endIndex) ? 'block' : 'none';
-          });
+            cards.forEach((card, index) => {
+              card.style.display = (index >= startIndex && index < endIndex) ? 'block' : 'none';
+            });
 
-          updatePaginationButtons();
-        }
-
-        function updatePaginationButtons() {
-          const pageButtons = document.querySelectorAll('.page-btn');
-          pageButtons.forEach(button => {
-            if (parseInt(button.dataset.page) === currentPage) {
-              button.classList.add('active');
-            } else {
-              button.classList.remove('active');
-            }
-          });
-        }
-
-        function setupPagination() {
-          paginationContainer.innerHTML = '';
-
-          const createButton = (label, page, isActive = false) => {
-            const btn = document.createElement('button');
-            btn.innerText = label;
-            btn.className = 'page-btn';
-            btn.dataset.page = page;
-            if (isActive) btn.classList.add('active');
-            btn.addEventListener('click', () => showPage(page));
-            return btn;
-          };
-
-          const maxButtons = 5;
-
-          if (totalPages <= maxButtons) {
-            for (let i = 1; i <= totalPages; i++) {
-              paginationContainer.appendChild(createButton(i, i, i === currentPage));
-            }
-          } else {
-            paginationContainer.appendChild(createButton(1, 1, currentPage === 1));
-
-            if (currentPage > 3) {
-              const ellipsis = document.createElement('span');
-              ellipsis.className = 'ellipsis';
-              ellipsis.innerText = '• • •';
-              paginationContainer.appendChild(ellipsis);
-            }
-
-            const start = Math.max(2, currentPage - 1);
-            const end = Math.min(totalPages - 1, currentPage + 1);
-            for (let i = start; i <= end; i++) {
-              paginationContainer.appendChild(createButton(i, i, i === currentPage));
-            }
-
-            if (currentPage < totalPages - 2) {
-              const ellipsis = document.createElement('span');
-              ellipsis.className = 'ellipsis';
-              ellipsis.innerText = '• • •';
-              paginationContainer.appendChild(ellipsis);
-            }
-
-            paginationContainer.appendChild(
-              createButton(totalPages, totalPages, currentPage === totalPages)
-            );
+            updatePaginationButtons();
           }
-        }
-        // Initial setup
-        setupPagination();
-        showPage(1);
 
-        // Search functionality
-        document.getElementById('catalogSearch').addEventListener('input', function (e) {
-          const searchTerm = e.target.value.toLowerCase();
-          const searchNoResults = document.getElementById('searchNoResults');
-          let visibleCards = 0;
-
-          if (searchTerm.trim() !== '') {
-            paginationContainer.style.display = 'none';
-            cards.forEach(card => {
-              const title = card.getAttribute('data-title');
-              if (title.includes(searchTerm)) {
-                card.style.display = 'block';
-                visibleCards++;
+          function updatePaginationButtons() {
+            const pageButtons = document.querySelectorAll('.page-btn');
+            pageButtons.forEach(button => {
+              if (parseInt(button.dataset.page) === currentPage) {
+                button.classList.add('active');
               } else {
-                card.style.display = 'none';
+                button.classList.remove('active');
               }
             });
-            
-            // Show/hide no results message
-            if (visibleCards === 0) {
-              searchNoResults.style.display = 'block';
-            } else {
-              searchNoResults.style.display = 'none';
-            }
-          } else {
-            paginationContainer.style.display = 'flex';
-            searchNoResults.style.display = 'none';
-            showPage(1);
           }
-        });
 
-        // Video click handler
-        function handleVideoClick(videoId) {
-          window.location.href = `/catalog/load/${videoId}`;
-        }
+          function setupPagination() {
+            paginationContainer.innerHTML = '';
 
-        // Add fade-in animation for cards
-        cards.forEach((card, index) => {
-          card.style.animationDelay = `${index * 0.1}s`;
-          card.style.animation = 'fadeIn 0.5s ease-in forwards';
-          card.style.opacity = '0';
-        });
+            const createButton = (label, page, isActive = false) => {
+              const btn = document.createElement('button');
+              btn.innerText = label;
+              btn.className = 'page-btn';
+              btn.dataset.page = page;
+              if (isActive) btn.classList.add('active');
+              btn.addEventListener('click', () => showPage(page));
+              return btn;
+            };
 
-        // Fade in animation
-        const style = document.createElement('style');
-        style.textContent = `
+            const maxButtons = 5;
+
+            if (totalPages <= maxButtons) {
+              for (let i = 1; i <= totalPages; i++) {
+                paginationContainer.appendChild(createButton(i, i, i === currentPage));
+              }
+            } else {
+              paginationContainer.appendChild(createButton(1, 1, currentPage === 1));
+
+              if (currentPage > 3) {
+                const ellipsis = document.createElement('span');
+                ellipsis.className = 'ellipsis';
+                ellipsis.innerText = '• • •';
+                paginationContainer.appendChild(ellipsis);
+              }
+
+              const start = Math.max(2, currentPage - 1);
+              const end = Math.min(totalPages - 1, currentPage + 1);
+              for (let i = start; i <= end; i++) {
+                paginationContainer.appendChild(createButton(i, i, i === currentPage));
+              }
+
+              if (currentPage < totalPages - 2) {
+                const ellipsis = document.createElement('span');
+                ellipsis.className = 'ellipsis';
+                ellipsis.innerText = '• • •';
+                paginationContainer.appendChild(ellipsis);
+              }
+
+              paginationContainer.appendChild(
+                createButton(totalPages, totalPages, currentPage === totalPages)
+              );
+            }
+          }
+          // Initial setup
+          setupPagination();
+          showPage(1);
+
+          // Search functionality
+          document.getElementById('catalogSearch').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const searchNoResults = document.getElementById('searchNoResults');
+            let visibleCards = 0;
+
+            if (searchTerm.trim() !== '') {
+              paginationContainer.style.display = 'none';
+              cards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                if (title.includes(searchTerm)) {
+                  card.style.display = 'block';
+                  visibleCards++;
+                } else {
+                  card.style.display = 'none';
+                }
+              });
+
+              // Show/hide no results message
+              if (visibleCards === 0) {
+                searchNoResults.style.display = 'block';
+              } else {
+                searchNoResults.style.display = 'none';
+              }
+            } else {
+              paginationContainer.style.display = 'flex';
+              searchNoResults.style.display = 'none';
+              showPage(1);
+            }
+          });
+
+          // Video click handler
+          window.handleVideoClick = function (videoId) {
+            window.location.href = `/catalog/load/${videoId}`;
+          };
+
+          // Add fade-in animation for cards
+          cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.animation = 'fadeIn 0.5s ease-in forwards';
+            card.style.opacity = '0';
+          });
+
+          // Fade in animation
+          const style = document.createElement('style');
+          style.textContent = `
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `;
-        document.head.appendChild(style);
+          document.head.appendChild(style);
+          let reportVideoId = null;
+          window.openReportModal = function (videoId) {
+            reportVideoId = videoId;
+            console.log("Report video ID set to:", reportVideoId);
+            document.getElementById('reportModal').classList.remove('hidden');
+          };
+
+
+          document.getElementById('confirmReportBtn').addEventListener('click', async () => {
+            if (!reportVideoId) return;
+
+            try {
+              const res = await fetch(`/catalog/report/${reportVideoId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: 'Inappropriate content' }),
+              });
+
+              if (res.ok) {
+                showToast('Video reported successfully.', 'success');
+              } else {
+                showToast('Failed to report video.', 'error');
+              }
+            } catch (err) {
+              console.error('Error reporting video:', err);
+              showToast('Server error while reporting video.', 'error');
+            } finally {
+              document.getElementById('reportModal').classList.add('hidden');
+              reportVideoId = null;
+            }
+          });
+
+          document.getElementById('cancelReport').addEventListener('click', () => {
+            document.getElementById('reportModal').classList.add('hidden');
+            reportVideoId = null;
+          });
+        });
       </script>
+      <div id="reportModal" class="modal hidden">
+        <div class="modal-content">
+          <h3>Report Video</h3>
+          <p>Are you sure you want to report this video as inappropriate?</p>
+          <div class="modal-buttons">
+            <button id="cancelReport" class="btn-cancel" type="button">Cancel</button>
+            <button id="confirmReportBtn" class="btn-delete" type="button">Yes, Report</button>
+          </div>
+        </div>
+      </div>
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const reportButtons = document.querySelectorAll(".report-btn");
+          const reportModal = document.getElementById("reportModal");
+          const confirmReportBtn = document.getElementById("confirmReportBtn");
+          const cancelReportBtn = document.getElementById("cancelReport");
+
+          let selectedVideoId = null;
+
+          reportButtons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+              selectedVideoId = btn.dataset.videoId;
+              reportModal.classList.add("show");
+              reportModal.classList.remove("hidden");
+            });
+          });
+
+          cancelReportBtn.addEventListener("click", () => {
+            reportModal.classList.remove("show");
+            reportModal.classList.add("hidden");
+          });
+
+          confirmReportBtn.addEventListener("click", async () => {
+            if (!selectedVideoId) return;
+            try {
+              const response = await fetch(`/catalog/report/${selectedVideoId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reason: "inappropriate" }),
+              });
+              const data = await response.json();
+              showToast("Reported successfully!", "success");
+            } catch (error) {
+              console.error("Report failed", error);
+              showToast("Failed to report", "error");
+            } finally {
+              reportModal.classList.remove("show");
+              reportModal.classList.add("hidden");
+            }
+          });
+        });
+
+        function showToast(message, type = "success") {
+          const toast = document.createElement("div");
+          toast.className = `alert ${type === "error" ? "error" : "success"}`;
+          toast.textContent = message;
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        }
+      </script>
+
+      <script src="/js/reset-toast.js"></script>
 </body>
 
 </html>

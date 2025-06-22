@@ -19,6 +19,7 @@
         <a href="#dashboard" class="nav-link active">Dashboard</a>
         <a href="#users" class="nav-link">Users</a>
         <a href="#videos" class="nav-link">Videos</a>
+        <a href="#reports" class="nav-link">Reports</a>
         <a href="/" class="nav-link">Back to Site</a>
         <div class="theme-toggle-container">
           <label class="theme-toggle">
@@ -42,6 +43,10 @@
               * 60 * 1000)).length %></div>
           <div class="stat-card">Processed: <%= Math.round(videos.reduce((acc, v)=> acc + (v.filename ? 1 : 0), 0) /
               videos.length * 100) || 0 %>%</div>
+          <div class="stat-card">Pending Reports: <%= pendingReportsCount %>
+          </div>
+          <div class="stat-card">Resolved Reports: <%= resolvedReportsCount %>
+          </div>
         </div>
       </section>
 
@@ -54,11 +59,14 @@
         </div>
         <div class="user-grid">
           <% users.forEach(user=> { %>
-            <div class="user-card">
+            <div class="user-card <%= reportedUserIds.includes(user._id.toString()) ? 'reported' : '' %>">
               <img src="/images/user-icon.png" alt="User Avatar" class="user-avatar" />
               <div class="user-info">
                 <p class="user-name">
                   <%= user.name %>
+                    <% if (reportedUserIds.includes(user._id.toString())) { %>
+                      <span class="reported-badge">Reported</span>
+                      <% } %>
                 </p>
                 <p class="user-email">
                   <%= user.email %>
@@ -135,7 +143,7 @@
         </div>
         <div class="video-grid">
           <% videos.forEach(video=> { %>
-            <div class="video-card">
+            <div class="video-card <%= reportedVideoIds.includes(video._id.toString()) ? 'reported' : '' %>">
               <div class="video-preview">
                 <video controls class="video-responsive">
                   <source src="/uploads/<%= video.filename %>" type="video/mp4" />
@@ -144,6 +152,9 @@
               </div>
               <p class="video-title">
                 <%= video.title || video.filename %>
+                  <% if (reportedVideoIds.includes(video._id.toString())) { %>
+                    <span class="reported-badge">Reported</span>
+                    <% } %>
               </p>
               <p class="video-date">Uploaded: <%= new Date(video.createdAt).toLocaleDateString() %>
               </p>
@@ -156,6 +167,60 @@
             <% }) %>
         </div>
       </section>
+
+      <!-- REPORTS SECTION -->
+      <section id="reports" class="admin-section hidden">
+        <h2>Video Reports</h2>
+        <div class="report-list">
+          <% if (reports.length===0) { %>
+            <p>No reports at the moment.</p>
+            <% } else { %>
+              <% reports.forEach(report=> { %>
+                <div class="report-card <%= report.status === 'pending' ? 'reported' : 'resolved' %>">
+                  <img src="/images/report.png" alt="Reported Video" class="report-thumbnail" />
+                  <div class="report-info">
+                    <h4>
+                      <%= report.video.title %>
+                    </h4>
+                    <p><strong>Video:</strong>
+                      <%= report.video?.title || "Untitled" %>
+                    </p>
+                    <p><strong>Uploader:</strong>
+                      <%= report.video?.user?.name || "Unknown" %>
+                    </p>
+                    <p>Reported by: <%= report.reportedBy.name %> (<%= report.reportedBy.email %>)</p>
+                    <p>Reason: <%= report.reason || 'No reason given' %>
+                    </p>
+
+                    <!-- Status Badge -->
+                    <p>Status: <span class="status-badge <%= report.status %>">
+                        <%= report.status.charAt(0).toUpperCase() + report.status.slice(1) %>
+                      </span></p>
+
+                    <!-- Show "Mark as Resolved" button only if report is pending -->
+                    <% if (report.status==='pending' ) { %>
+                      <button class="btn-role btn-resolve-report" data-id="<%= report._id %>"
+                        data-action="/admin/reports/resolve/<%= report._id %>"
+                        data-message="Mark this report as resolved?">
+                        Mark as Resolved
+                      </button>
+
+                      <% } %>
+
+                        <button class="btn-delete btn-delete-report" data-report-id="<%= report._id %>"
+                          data-action="/admin/reports/delete/<%= report._id %>"
+                          data-message="Are you sure you want to delete this report?">
+                          Delete Report
+                        </button>
+
+
+                  </div>
+                </div>
+
+                <% }) %>
+                  <% } %>
+        </div>
+      </section>
     </main>
     <div id="deleteVideoModal" class="modal hidden">
       <div class="modal-content">
@@ -166,6 +231,16 @@
           <button type="button" class="btn-cancel" onclick="closeDeleteVideoModal()">Cancel</button>
         </form>
       </div>
+    </div>
+  </div>
+  <div id="reportModalConfirm" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="modalTitle"></h3>
+      <p id="modalMessage"></p>
+      <form id="modalForm" method="POST">
+        <button type="submit" class="btn-delete">Confirm</button>
+        <button type="button" id="modalCancel" class="btn-cancel">Cancel</button>
+      </form>
     </div>
   </div>
 

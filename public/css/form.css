@@ -773,3 +773,122 @@ body.dark-mode .btn-toggle-password:hover {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
+/* Modal overlay */
+.hidden {
+  display: none;
+}
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* semi-transparent dark overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal.hidden {
+  display: none !important;
+}
+
+/* Modal content box */
+.modal-content {
+  background-color: var(--card-bg, #fff);
+  color: var(--text-color, #121636);
+  max-width: 400px;
+  width: 100%;
+  padding: 30px 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  user-select: none;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .modal-content {
+  background-color: var(--card-bg, #1a1d3b);
+  color: var(--text-color, #f8f8ff);
+  box-shadow: 0 10px 30px rgba(159, 93, 255, 0.25);
+}
+
+/* Modal heading */
+.modal-content h3 {
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+/* Modal text */
+.modal-content p {
+  font-size: 1rem;
+  margin-bottom: 25px;
+  color: var(--text-color-secondary, #5f6470);
+}
+
+body.dark-mode .modal-content p {
+  color: #c0c0d0;
+}
+
+/* Modal buttons container */
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Cancel button */
+.btn-cancel {
+  background-color: #ddd;
+  color: #333;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 120px;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+.btn-cancel:hover {
+  background-color: #ccc;
+}
+
+body.dark-mode .btn-cancel {
+  background-color: #444;
+  color: #ddd;
+}
+body.dark-mode .btn-cancel:hover {
+  background-color: #666;
+  color: #fff;
+}
+
+/* Delete / Report button */
+.btn-delete, .btn-report {
+  background: linear-gradient(to right, #ff4e4e, #e60000);
+  color: white;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 50px;
+  font-weight: bold;
+  cursor: pointer;
+  min-width: 120px;
+  box-shadow: 0 4px 8px rgba(230, 0, 0, 0.3);
+  transition: background 0.3s ease;
+  user-select: none;
+}
+.btn-delete:hover, .btn-report:hover {
+  background: linear-gradient(to right, #e60000, #cc0000);
+}

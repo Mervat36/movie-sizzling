@@ -15,5 +15,8 @@ router.post("/admin/remove-admin/:id", adminController.removeAdmin);
 router.post("/admin/ban-user/:id", adminController.banUser);
 router.post("/admin/unban/:id", adminController.unbanUser);
 router.post("/admin/delete-user/:id", adminController.deleteUser);
+router.get("/admin/reports", isAdmin, adminController.getReports);
+router.post("/admin/reports/delete/:reportId", isAdmin, adminController.deleteReport);
+router.post("/admin/reports/resolve/:reportId", isAdmin, adminController.resolveReport);
 
 module.exports = router;

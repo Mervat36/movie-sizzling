@@ -1004,3 +1004,25 @@ body.dark-mode .no-results {
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
+
+.btn-report {
+  background-color: #ff6347; /* tomato red */
+  color: #fff;
+  padding: 8px 16px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-report:hover {
+  background-color: #e5533d;
+}
+
+body.dark-mode .btn-report {
+  background-color: #ff7a6a;
+  color: #121212;
+  border: 1px solid #ff998a;
+}

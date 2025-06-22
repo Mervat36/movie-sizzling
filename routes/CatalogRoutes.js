@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const { ensureAuthenticated } = require("../middleware/auth");
-const { renderCatalogPage, handleCatalogClick, searchCatalog } = require("../controllers/CatalogController");
+const CatalogController = require("../controllers/CatalogController");
 
-router.get("/catalog", ensureAuthenticated, renderCatalogPage);
-router.get("/catalog/load/:id", ensureAuthenticated, handleCatalogClick);
-router.post("/catalog/search", ensureAuthenticated, searchCatalog);
+router.post("/catalog/report/:videoId", ensureAuthenticated, CatalogController.reportVideo);
+router.get("/catalog", ensureAuthenticated, CatalogController.renderCatalogPage);
+router.get("/catalog/load/:id", ensureAuthenticated, CatalogController.handleCatalogClick);
+router.post("/catalog/search", ensureAuthenticated, CatalogController.searchCatalog);
 
 module.exports = router;
