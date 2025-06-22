@@ -313,6 +313,43 @@ document.getElementById("modalCancel").addEventListener("click", () => {
     modal.classList.add("hidden");
 });
 
+document.getElementById("modalForm")?.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const actionUrl = form.getAttribute("action");
+    const isResolve = actionUrl.includes("/resolve/");
+    const reportId = actionUrl.split("/").pop();
+
+    showLoader();
+    try {
+        const res = await fetch(actionUrl, { method: "POST" });
+        if (res.ok) {
+            const card = document.querySelector(`.report-card button[data-action*="${reportId}"]`)?.closest(".report-card");
+
+            if (card) {
+                if (isResolve) {
+                    card.classList.remove("reported");
+                    card.classList.add("resolved");
+                    card.querySelector(".status-badge").textContent = "Resolved";
+                    card.querySelector(".status-badge").classList.add("resolved");
+                    card.querySelector(".btn-resolve-report")?.remove();
+                } else {
+                    card.remove();
+                }
+            }
+
+            showToast(isResolve ? "Report marked as resolved." : "Report deleted.", "success");
+        } else {
+            showToast("Action failed.", "error");
+        }
+    } catch (err) {
+        console.error("Report action error:", err);
+        showToast("Server error while handling report.", "error");
+    } finally {
+        hideLoader();
+        document.getElementById("reportModalConfirm").classList.add("hidden");
+    }
+});
 
 
 // ========== Flatpickr Setup ==========
