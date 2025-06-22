@@ -34,6 +34,7 @@ exports.getAdminDashboard = async (req, res) => {
 
     const reportedVideoIds = [...new Set(reports.map(r => r.video?._id.toString()))];
     const reportedUserIds = [...new Set(reports.map(r => r.reportedBy?._id.toString()))];
+    const reportedUploaders = [...new Set(reports.map(r => r.video?.user?._id.toString()).filter(Boolean))];
 
     // Calculate counts before rendering
     const pendingReportsCount = await Report.countDocuments({ status: "pending" });
@@ -42,6 +43,7 @@ exports.getAdminDashboard = async (req, res) => {
     // Single render call passing all variables
     res.render("admin", {
       videos, users, reports, reportedVideoIds, reportedUserIds,
+      reportedUploaders,
       pendingReportsCount,
       resolvedReportsCount
     });

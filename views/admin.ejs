@@ -59,7 +59,7 @@
         </div>
         <div class="user-grid">
           <% users.forEach(user=> { %>
-            <div class="user-card <%= reportedUserIds.includes(user._id.toString()) ? 'reported' : '' %>">
+            <div class="user-card <%= reportedUploaders.includes(user._id.toString()) ? 'reported' : '' %>">
               <img src="/images/user-icon.png" alt="User Avatar" class="user-avatar" />
               <div class="user-info">
                 <p class="user-name">
