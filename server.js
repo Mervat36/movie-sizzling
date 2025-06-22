@@ -249,7 +249,7 @@ app.get(
         isAdmin: user.isAdmin || false,
       };
 
-      res.redirect(user.isAdmin ? "/admin" : "/");
+      res.redirect("/");
 
     } catch (err) {
       console.error("Google login error:", err.message);
